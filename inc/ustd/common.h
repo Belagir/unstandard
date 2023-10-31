@@ -29,7 +29,8 @@ typedef double f64; ///< convenience type redefinition
 
 #define force_cast(__TYPE, __variable) (*((__TYPE*) &(__variable)))
 /// returns the sign bitfield of a 32-bit signed integer
-#define sgn_i32(_v) ((_v) & (0x80000000))
+#define sgn_i32(_v) ((_v) >> 31)
+
 /// maximum between two values
 #define max(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
 /// minimum between two values
