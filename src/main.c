@@ -1,6 +1,5 @@
 
 #include <ustd/allocation.h>
-#include <ustd/byte_matching.h>
 #include <ustd/logging.h>
 #include <ustd/math.h>
 #include <ustd/math3d.h>
