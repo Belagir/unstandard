@@ -10,8 +10,7 @@
 #endif
 
 // -------------------------------------------------------------------------------------------------
-u32
-sorted_array_find_in(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *needle, size_t *out_position)
+u32 sorted_array_find_in(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *needle, size_t *out_position)
 {
     i32 beggining = 0u;
     i32 end = 0u;
@@ -21,36 +20,29 @@ sorted_array_find_in(void* restrict haystack, size_t size, size_t length, i32 (*
     beggining = 0u;
     end = (i32) length - 1;
 
-    while ((beggining <= end) && (comp_result != 0))
-    {
+    while ((beggining <= end) && (comp_result != 0)) {
         index = (i32) ceilf(((f32) (beggining + end)) / 2.0f);
 
         comp_result = comparator(needle, (void *) ((uintptr_t) haystack + (uintptr_t) (index * (i32) size)));
 
-        if (comp_result == 1)
-        {
+        if (comp_result == 1) {
             beggining = index + 1;
         }
-        else if (comp_result == -1)
-        {
+        else if (comp_result == -1) {
             end = index - 1;
         }
     }
 
-    while ((index > 0) && (comparator(needle, (void *) ((uintptr_t) haystack + (uintptr_t) ((index - 1) * (i32) size))) == 0))
-    {
+    while ((index > 0) && (comparator(needle, (void *) ((uintptr_t) haystack + (uintptr_t) ((index - 1) * (i32) size))) == 0)) {
         index -= 1;
         comp_result = comparator(needle, (void *) ((uintptr_t) haystack + (uintptr_t) (index * (i32) size)));
     }
 
-    if (out_position != NULL)
-    {
-        if ((comp_result == 0) || (comp_result == -1) || (length == 0u))
-        {
+    if (out_position != NULL) {
+        if ((comp_result == 0) || (comp_result == -1) || (length == 0u)) {
             *out_position = (size_t) index;
         }
-        else
-        {
+        else {
             *out_position = (size_t) (index + comp_result);
         }
     }
@@ -59,21 +51,18 @@ sorted_array_find_in(void* restrict haystack, size_t size, size_t length, i32 (*
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t
-sorted_array_remove_from(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *needle)
+size_t sorted_array_remove_from(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *needle)
 {
     u32 found = 0u;
     size_t found_pos = 0u;
 
-    if (!haystack || !comparator || !needle)
-    {
+    if (!haystack || !comparator || !needle) {
         return length;
     }
 
     found = sorted_array_find_in(haystack, size, length, comparator, needle, &found_pos);
 
-    if (found)
-    {
+    if (found) {
         bytewise_copy((void *) ((uintptr_t) haystack + (uintptr_t) (found_pos * size)),
                       (void *) ((uintptr_t) haystack + (uintptr_t) ((found_pos + 1u) * size)), (length - found_pos) * size);
     }
@@ -81,8 +70,7 @@ sorted_array_remove_from(void* restrict haystack, size_t size, size_t length, i3
 
 // -------------------------------------------------------------------------------------------------
 size_t
-sorted_array_insert_in(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *inserted_needle)
-{
+sorted_array_insert_in(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *inserted_needle) {
     size_t theorical_position = 0u;
 
     if (!haystack || !comparator || !inserted_needle)
@@ -108,8 +96,7 @@ sorted_array_insert_in(void* restrict haystack, size_t size, size_t length, i32 
 
 #ifdef UNITTESTING
 
-i32 test_u32_comparator(const void *v1, const void *v2)
-{
+i32 test_u32_comparator(const void *v1, const void *v2) {
     u32 val1 = *((u32 *) v1);
     u32 val2 = *((u32 *) v2);
 
