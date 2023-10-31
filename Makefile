@@ -69,10 +69,10 @@ vpath %.c $(sort $(dir $(shell find $(SRC_DIR) -name *.c)))
 
 # -------- compilation -----------------
 
+all: check $(BUILD_DIRS) $(TARGET) | count_lines
+
 run: all
 	./$(TARGET)
-
-all: check $(BUILD_DIRS) $(TARGET) | count_lines
 
 $(TARGET): $(OBJ) $(RES_BIN)
 	$(CC) $^ -o $@ $(LFLAGS)

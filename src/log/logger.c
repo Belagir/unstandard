@@ -1,39 +1,36 @@
 
+#include <ustd/common.h>
 #include <ustd/logging.h>
 
 #include <stdarg.h>
 
-#include <ustd/common.h>
+#define LOGGER_MAXIMUM_NUMBER 8u
 
-#define CUSTOM_LOGGER_MAXIMUM_NUMBER 8u
-
-typedef struct custom_logger_t
-{
+typedef struct logger {
     FILE *target_stream;
-    custom_logger_on_destroy_t on_destroy;
-} custom_logger_t;
+    logger_on_destroy on_destroy;
+    allocator alloc;
+} logger;
 
 // -------------------------------------------------------------------------------------------------
-static struct
-{
-    custom_logger_t loggers[CUSTOM_LOGGER_MAXIMUM_NUMBER];
+static struct {
+    logger loggers[LOGGER_MAXIMUM_NUMBER];
     size_t free_logger_index;
 } logger_module = { 0u };
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-static const char *custom_logger_severity_msg[CUSTOM_LOGGER_SEVERITIES_NUMBER] =
-{
-        // CUSTOM_LOGGER_NONE
+static const char *logger_severity_msg[LOGGER_SEVERITIES_NUMBER] = {
+        // LOGGER_NONE
         "",
-        // CUSTOM_LOGGER_INFO
+        // LOGGER_INFO
         "[INFO] ",
-        // CUSTOM_LOGGER_WARN
+        // LOGGER_WARN
         "[WARNING] ",
-        // CUSTOM_LOGGER_ERRO
+        // LOGGER_ERRO
         "[ERROR] ",
-        // CUSTOM_LOGGER_CRIT
+        // LOGGER_CRIT
         "[CRITICAL] ",
 };
 
@@ -41,52 +38,43 @@ static const char *custom_logger_severity_msg[CUSTOM_LOGGER_SEVERITIES_NUMBER] =
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-custom_logger_t *
-custom_logger_create(FILE *target, custom_logger_on_destroy_t on_destroy)
+logger * logger_create(allocator alloc, FILE target[static 1], logger_on_destroy on_destroy)
 {
-    custom_logger_t *new_logger = NULL;
+    logger *new_logger = nullptr;
 
-    if (logger_module.free_logger_index >= CUSTOM_LOGGER_MAXIMUM_NUMBER)
-    {
-        return NULL;
+    if (logger_module.free_logger_index >= LOGGER_MAXIMUM_NUMBER) {
+        return nullptr;
     }
 
     new_logger = logger_module.loggers + logger_module.free_logger_index;
+    *new_logger = (logger) { .alloc = alloc, .target_stream = target, .on_destroy = on_destroy };
     logger_module.free_logger_index += 1u;
-
-    new_logger->target_stream = target;
-    new_logger->on_destroy = on_destroy;
 
     return new_logger;
 }
 
 // -------------------------------------------------------------------------------------------------
-void
-custom_logger_destroy(custom_logger_t **custom_logger)
+void logger_destroy(logger **custom_logger)
 {
-    if ((!custom_logger) || (!*custom_logger))
-    {
+    if ((!custom_logger) || (!*custom_logger)) {
         return;
     }
 
-    if (((*custom_logger)->target_stream) && ((*custom_logger)->on_destroy == CUSTOM_LOGGER_ON_DESTROY_CLOSE_STREAM))
-    {
+    if (((*custom_logger)->target_stream) && ((*custom_logger)->on_destroy == LOGGER_ON_DESTROY_CLOSE_STREAM)) {
         fclose((*custom_logger)->target_stream);
     }
 
-    if (logger_module.free_logger_index > 0u)
-    {
+    if (logger_module.free_logger_index > 0u) {
         logger_module.free_logger_index -= 1u;
         bytewise_copy((*custom_logger), logger_module.loggers + logger_module.free_logger_index, sizeof(**custom_logger));
     }
 
-
-    (*custom_logger) = NULL;
+    (*custom_logger) = nullptr;
 }
 
 // -------------------------------------------------------------------------------------------------
 void
-custom_logger_log(custom_logger_t *logger, custom_logger_severity_t severity, char *msg, ...)
+logger_log(logger *logger, logger_severity severity, char *msg, ...)
 {
     va_list args;
     va_start(args, msg);
@@ -95,7 +83,7 @@ custom_logger_log(custom_logger_t *logger, custom_logger_severity_t severity, ch
         return;
     }
 
-    fprintf(logger->target_stream, custom_logger_severity_msg[severity]);
+    fprintf(logger->target_stream, logger_severity_msg[severity]);
     vfprintf(logger->target_stream, msg, args);
 
     va_end(args);

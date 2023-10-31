@@ -12,63 +12,62 @@
 #define __LOGGER_H__
 
 #include <stdio.h>
+#include <ustd/allocation.h>
 
 /**
  * @brief When a call is made to output some content to a stream, it can log it along a severity so it can be filtered downstream.
  *
  */
-typedef enum custom_logger_severity_t
+typedef enum logger_severity
 {
     /// no severity should be logged along the content.
-    CUSTOM_LOGGER_SEVERITY_NONE,
+    LOGGER_SEVERITY_NONE,
 
     /// informational output, meant for nominal output
-    CUSTOM_LOGGER_SEVERITY_INFO,
+    LOGGER_SEVERITY_INFO,
     /// warning message, meant to notify of an invalid program state that can be recovered from
-    CUSTOM_LOGGER_SEVERITY_WARN,
+    LOGGER_SEVERITY_WARN,
     /// error message, meant to notify of an invalid program state that can not be recovered from
-    CUSTOM_LOGGER_SEVERITY_ERRO,
+    LOGGER_SEVERITY_ERRO,
     /// critical error message, meant to notify of an invalid program state that is not meant to be part of the normal program flow and / or will leave some external resources in an invalid state.
-    CUSTOM_LOGGER_SEVERITY_CRIT,
+    LOGGER_SEVERITY_CRIT,
 
     /// number of available severity options
-    CUSTOM_LOGGER_SEVERITIES_NUMBER,
-} custom_logger_severity_t;
+    LOGGER_SEVERITIES_NUMBER,
+} logger_severity;
 
 /**
  * @brief Behavior when a logger is destroyed.
  *
  */
-typedef enum custom_logger_on_destroy_t
+typedef enum logger_on_destroy
 {
     /// do nothing more than releasing the data from memory
-    CUSTOM_LOGGER_ON_DESTROY_DO_NOTHING,
+    LOGGER_ON_DESTROY_DO_NOTHING,
     /// in addition from releasing the data from memory, close the associated stream
-    CUSTOM_LOGGER_ON_DESTROY_CLOSE_STREAM,
-} custom_logger_on_destroy_t;
+    LOGGER_ON_DESTROY_CLOSE_STREAM,
+} logger_on_destroy;
 
 /**
  * @brief Opaque type to handle a statically-allocated custom logger's data.
  *
  */
-typedef struct custom_logger_t custom_logger_t;
+typedef struct logger logger;
 
 /**
  * @brief Creates a logger object on the static logger module memory and return a pointer to it.
  *
  * @param[in] target
- * @return custom_logger_t*
+ * @return logger*
  */
-custom_logger_t *
-custom_logger_create(FILE *target, custom_logger_on_destroy_t on_destroy);
+logger * logger_create(allocator alloc, FILE target[static 1], logger_on_destroy on_destroy);
 
 /**
  * @brief Release a logger object from the module memory.
  *
- * @param[inout] custom_logger_t
+ * @param[inout] logger
  */
-void
-custom_logger_destroy(custom_logger_t **custom_logger_t);
+void logger_destroy(logger **logger);
 
 /**
  * @brief Log a message associated to a severity through a custom logger.
@@ -78,7 +77,6 @@ custom_logger_destroy(custom_logger_t **custom_logger_t);
  * @param[in] msg
  * @param[in] ...
  */
-void
-custom_logger_log(custom_logger_t *logger, custom_logger_severity_t severity, char *msg, ...);
+void logger_log(logger *logger, logger_severity severity, char *msg, ...);
 
 #endif
