@@ -45,8 +45,8 @@ void range_clear(range *r);
 #define range_back(__r, __t)    range_at(__r, (__r->length - 1), __t)
 
 // creation & destruction
-range *range_dynamic_create(allocator alloc, size_t size_element, size_t nb_elements);
-range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements, size_t nb_elements_max, void *array);
+range *range_dynamic_create(allocator alloc, size_t size_element, size_t nb_elements_max);
+range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, void *array);
 range *range_dynamic_destroy(allocator alloc, range *r);
 
 // ranges & ranges

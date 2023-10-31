@@ -78,6 +78,31 @@ bool range_pop_front(range *r)
 }
 
 // -------------------------------------------------------------------------------------------------
+range *range_dynamic_create(allocator alloc, size_t size_element, size_t nb_elements_max)
+{
+    range *r = alloc.malloc(alloc, sizeof(*r) + (size_element * nb_elements_max));
+    *r = (range) { .stride = size_element, .capacity = nb_elements_max, .length = 0 };
+
+    return r;
+}
+
+// -------------------------------------------------------------------------------------------------
+range *range_dynamic_destroy(allocator alloc, range *r)
+{
+    alloc.free(alloc, r);
+}
+
+// -------------------------------------------------------------------------------------------------
+range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, void *array)
+{
+    range *r = range_dynamic_create(alloc, size_element, nb_elements_max);
+    bytewise_copy(r->data, array, nb_elements * size_element);
+    r->length = nb_elements;
+
+    return r;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------

@@ -14,7 +14,10 @@ int main(int argc, char const *argv[])
     quaternion_execute_unittests();
     sorted_array_execute_unittests();
 #endif
-    range *r = range_static_create(10, i32);
+    i32 array[10] = { 1, 2, 3, 4, 0 };
+
+    range *r = range_dynamic_from(make_system_allocator(), sizeof(i32), 10, 4, array);
+    // range *r = range_static_create(10, i32);
 
     (void) range_insert(r, 0,  &(i32) { 42 });
     (void) range_insert(r, 3,  &(i32) { 43 });
@@ -31,6 +34,8 @@ int main(int argc, char const *argv[])
 
     range_front(r, i32) = 87;
     printf("%d, %d\n", range_front(r, i32), range_back(r, i32));
+
+    range_dynamic_destroy(make_system_allocator(), r);
 
     return 0;
 }
