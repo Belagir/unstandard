@@ -17,7 +17,6 @@ typedef uint16_t u16; ///< convenience type redefinition
 typedef uint32_t u32; ///< convenience type redefinition
 typedef uint64_t u64; ///< convenience type redefinition
 
-
 typedef float  f32; ///< convenience type redefinition
 typedef double f64; ///< convenience type redefinition
 
@@ -28,7 +27,6 @@ typedef double f64; ///< convenience type redefinition
 #define max(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
 /// minimum between two values
 #define min(_a, _b) (((_a) < (_b)) ? (_a) : (_b))
-
 
 #define sizeof_element(__array) (sizeof(*(__array)))
 #define count_of(__array) (sizeof(__array) / sizeof_element(__array))
@@ -41,8 +39,7 @@ typedef double f64; ///< convenience type redefinition
  * @param[in] source pointer to the start of the copied-from region
  * @param[in] nb_bytes number of bytes copied.
  */
-void
-bytewise_copy(void *dest, const void *source, size_t nb_bytes);
+void bytewise_copy(void *dest, const void *source, size_t nb_bytes);
 
 /**
  * @brief Counts the number of set bits in a byte.
@@ -50,8 +47,7 @@ bytewise_copy(void *dest, const void *source, size_t nb_bytes);
  * @param[in] value a byte
  * @return u8 total number of set bits
  */
-u8
-count_set_bits(u8 value);
+u8 count_set_bits(u8 value);
 
 /**
  * @brief Reverse the bit representation of a 32 bit integer.
@@ -59,7 +55,6 @@ count_set_bits(u8 value);
  * @param[in] x
  * @return u32
  */
-u32
-reverse_bit_representation(u32 x);
+u32 reverse_bit_representation(u32 x);
 
 #endif
