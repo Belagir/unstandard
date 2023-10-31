@@ -47,7 +47,7 @@ void byte_matcher_add_blacklist_rule(byte_matcher *matcher, size_t value_offset,
  * @param[in] object_tested
  * @return i32
  */
-i32 byte_matcher_test(byte_matcher *matcher, void *object_tested);
+bool byte_matcher_test(byte_matcher *matcher, void *object_tested);
 
 /**
  * @brief Releases resources held by a matcher.
@@ -56,5 +56,10 @@ i32 byte_matcher_test(byte_matcher *matcher, void *object_tested);
  * @param[in] free_function
  */
 void byte_matcher_destroy(byte_matcher **matcher);
+
+#ifdef UNITTESTING
+void byte_matcher_execute_unittests(void);
+#endif
+
 
 #endif

@@ -65,9 +65,12 @@ vpath %.c $(sort $(dir $(shell find $(SRC_DIR) -name *.c)))
 
 # --------------- Rules --------------------------------------------------------
 
-.PHONY: all check clean count_lines
+.PHONY: all check clean count_lines run
 
 # -------- compilation -----------------
+
+run: all
+	./$(TARGET)
 
 all: check $(BUILD_DIRS) $(TARGET) | count_lines
 
