@@ -9,102 +9,83 @@
  * @brief
  *
  */
-typedef enum __attribute__ ((__packed__)) unstandard_byte_matcher_axiom_flavor_t
-{
-    BYTE_MATCHER_AXIOM_FLAVOR_IGNORED,
+typedef enum __attribute__ ((__packed__)) byte_matcher_axiom_flavor {
+    BYTE_MATCHER_AXIOM_FLAVOR_IGNORED = 0,
     BYTE_MATCHER_AXIOM_FLAVOR_WHITELIST,
     BYTE_MATCHER_AXIOM_FLAVOR_BLACKLIST,
-} unstandard_byte_matcher_axiom_flavor_t;
+} byte_matcher_axiom_flavor;
 
 /**
  * @brief
  *
  */
-typedef struct unstandard_byte_matcher_axiom_t
-{
-    unstandard_byte_matcher_axiom_flavor_t flavor;
+typedef struct byte_matcher_axiom {
+    byte_matcher_axiom_flavor flavor;
     u8 expected_value;
-} unstandard_byte_matcher_axiom_t;
+} byte_matcher_axiom;
 
 /**
  * @brief
  *
  */
-typedef struct unstandard_byte_matcher_t {
+typedef struct byte_matcher {
     size_t size_of_filter;
-    unstandard_byte_matcher_axiom_t filter[];
-} unstandard_byte_matcher_t;
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-void
-unstandard_byte_matcher_add_rule(unstandard_byte_matcher_t *matcher, size_t value_offset, size_t value_size, void *value, unstandard_byte_matcher_axiom_flavor_t flavor);
+    allocator alloc;
+    byte_matcher_axiom filter[];
+} byte_matcher;
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+void byte_matcher_add_rule(byte_matcher *matcher, size_t value_offset, size_t value_size, void *value, byte_matcher_axiom_flavor flavor);
+
 // -------------------------------------------------------------------------------------------------
-unstandard_byte_matcher_t *
-unstandard_byte_matcher_create(void *(*malloc_function)(size_t), size_t size_of_target_type)
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+byte_matcher * byte_matcher_create(allocator alloc, size_t size_of_target_type)
 {
-    unstandard_byte_matcher_t *new_matcher = NULL;
+    byte_matcher *new_matcher = NULL;
 
-    if (!malloc_function)
-    {
+    new_matcher = alloc.malloc(sizeof(*new_matcher) + (size_of_target_type * sizeof(*(new_matcher->filter))));
+
+    if (new_matcher == NULL) {
         return NULL;
     }
 
-    new_matcher = malloc_function(sizeof(*new_matcher) + (size_of_target_type * sizeof(*(new_matcher->filter))));
-
-    if (new_matcher == NULL)
-    {
-        return NULL;
-    }
-
-    new_matcher->size_of_filter = size_of_target_type;
-
-    for (size_t i = 0u ; i < new_matcher->size_of_filter ; i++)
-    {
-        new_matcher->filter[i].flavor = BYTE_MATCHER_AXIOM_FLAVOR_IGNORED;
-    }
+    *new_matcher = (byte_matcher) { .alloc = alloc, .size_of_filter = size_of_target_type };
 
     return new_matcher;
 }
 
 // -------------------------------------------------------------------------------------------------
-void
-unstandard_byte_matcher_add_whitelist_rule(unstandard_byte_matcher_t *matcher, size_t value_offset, size_t value_size, void *expected_value)
+void byte_matcher_add_whitelist_rule(byte_matcher *matcher, size_t value_offset, size_t value_size, void *expected_value)
 {
-    unstandard_byte_matcher_add_rule(matcher, value_offset, value_size, expected_value, BYTE_MATCHER_AXIOM_FLAVOR_WHITELIST);
+    byte_matcher_add_rule(matcher, value_offset, value_size, expected_value, BYTE_MATCHER_AXIOM_FLAVOR_WHITELIST);
 }
 
 // -------------------------------------------------------------------------------------------------
-void
-unstandard_byte_matcher_add_blacklist_rule(unstandard_byte_matcher_t *matcher, size_t value_offset, size_t value_size, void *rejected_value)
+void byte_matcher_add_blacklist_rule(byte_matcher *matcher, size_t value_offset, size_t value_size, void *rejected_value)
 {
-    unstandard_byte_matcher_add_rule(matcher, value_offset, value_size, rejected_value, BYTE_MATCHER_AXIOM_FLAVOR_BLACKLIST);
+    byte_matcher_add_rule(matcher, value_offset, value_size, rejected_value, BYTE_MATCHER_AXIOM_FLAVOR_BLACKLIST);
 }
 
 // -------------------------------------------------------------------------------------------------
-i32
-unstandard_byte_matcher_test(unstandard_byte_matcher_t *matcher, void *object_tested)
+i32 byte_matcher_test(byte_matcher *matcher, void *object_tested)
 {
     i32 is_matching = 0;
     size_t pos = 0u;
-    u8 *object_tested_bytes = NULL;
+    byte *object_tested_bytes = NULL;
 
-    if (!matcher || !object_tested)
-    {
+    if (!matcher || !object_tested) {
         return 0;
     }
 
-    object_tested_bytes = (u8 *) object_tested;
+    object_tested_bytes = (byte *) object_tested;
 
     is_matching = 1;
-    while ((is_matching) && (pos < matcher->size_of_filter))
-    {
-        if (matcher->filter[pos].flavor != BYTE_MATCHER_AXIOM_FLAVOR_IGNORED)
-        {
+    while ((is_matching) && (pos < matcher->size_of_filter)) {
+        if (matcher->filter[pos].flavor != BYTE_MATCHER_AXIOM_FLAVOR_IGNORED) {
             is_matching = ((matcher->filter[pos].flavor == BYTE_MATCHER_AXIOM_FLAVOR_WHITELIST) && (matcher->filter[pos].expected_value == object_tested_bytes[pos]))
                     || ((matcher->filter[pos].flavor == BYTE_MATCHER_AXIOM_FLAVOR_BLACKLIST) && (matcher->filter[pos].expected_value != object_tested_bytes[pos]));
         }
@@ -114,36 +95,37 @@ unstandard_byte_matcher_test(unstandard_byte_matcher_t *matcher, void *object_te
 }
 
 // -------------------------------------------------------------------------------------------------
-void
-unstandard_byte_matcher_destroy(unstandard_byte_matcher_t **matcher, void (*free_function)(void *))
+void byte_matcher_destroy(byte_matcher **matcher)
 {
-    if (!matcher || !*matcher || !free_function)
-    {
+    if (!matcher || !*matcher) {
         return;
     }
 
-    free_function(*matcher);
+    (*matcher)->alloc.free(*matcher);
     *matcher = NULL;
 }
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-void
-unstandard_byte_matcher_add_rule(unstandard_byte_matcher_t *matcher, size_t value_offset, size_t value_size, void *value, unstandard_byte_matcher_axiom_flavor_t flavor)
+void byte_matcher_add_rule(byte_matcher *matcher, size_t value_offset, size_t value_size, void *value, byte_matcher_axiom_flavor flavor)
 {
     u8 *value_bytes = NULL;
 
-    if (!matcher || !value || ((value_offset + value_size) >= matcher->size_of_filter))
-    {
+    if (!matcher || !value || ((value_offset + value_size) >= matcher->size_of_filter)) {
         return;
     }
 
     value_bytes = (u8 *) value;
 
-    for (size_t i = 0u ; i < value_size ; i++)
-    {
+    for (size_t i = 0u ; i < value_size ; i++) {
         matcher->filter[i + value_offset].flavor = flavor;
         matcher->filter[i + value_offset].expected_value = value_bytes[i];
     }
 }
+
+#ifdef UNITTESTING
+
+// void byte_matcher_test
+
+#endif

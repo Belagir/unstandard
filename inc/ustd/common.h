@@ -5,6 +5,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef DEBUG
+#define UNITTESTING
+#endif
+
+// temp
+#define UNITTESTING
+
 typedef char byte;
 
 typedef int8_t  i8;   ///< convenience type redefinition

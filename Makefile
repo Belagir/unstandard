@@ -32,7 +32,7 @@ LFLAGS += -lm
 RESFLAGS = -r -b binary -z noexecstack
 
 # additional flags for defines
-DFLAGS += -DUNITTESTING
+DFLAGS += -DDEBUG
 
 # --------------- Internal variables -------------------------------------------
 
