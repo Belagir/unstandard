@@ -407,6 +407,47 @@ tst_CREATE_TEST_CASE(range_resize_to_empty, range_resize,
         .resize_to = 0
 )
 
+tst_CREATE_TEST_SCENARIO(range_concat,
+        {
+            range_static(10, u32) r_left;
+            range_static(10, u32) r_right;
+
+            range_static(20, u32) r_expected;
+        },
+        {
+            range *r = range_concat(make_system_allocator(), (range *) &data->r_left, (range *) &data->r_right);
+
+            tst_assert_equal(data->r_expected.length, r->length, "length of %d");
+            for (size_t i = 0 ; i < r->length ; i++) {
+                tst_assert(range_at(&data->r_expected, i, u32) == range_at(r, i, u32), "data at index %d mismatch : expected %d, got %d",
+                        i, range_at(&data->r_expected, i, u32), range_at(r, i, u32));
+            }
+
+            range_dynamic_destroy(make_system_allocator(), r);
+        }
+)
+
+tst_CREATE_TEST_CASE(range_concat_full, range_concat,
+        .r_left = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .r_right = range_static_create(10, u32, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19),
+        .r_expected = range_static_create(20, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19),
+)
+tst_CREATE_TEST_CASE(range_concat_notfull, range_concat,
+        .r_left = range_static_create(10, u32, 0, 1, 2, 3, 4, 5),
+        .r_right = range_static_create(10, u32, 6, 7, 8, 9),
+        .r_expected = range_static_create(20, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+)
+tst_CREATE_TEST_CASE(range_concat_one_empty, range_concat,
+        .r_left = range_static_create(10, u32, 0, 1, 2, 3, 4, 5),
+        .r_right = range_static_create(10, u32),
+        .r_expected = range_static_create(20, u32, 0, 1, 2, 3, 4, 5),
+)
+tst_CREATE_TEST_CASE(range_concat_two_empty, range_concat,
+        .r_left = range_static_create(10, u32),
+        .r_right = range_static_create(10, u32),
+        .r_expected = range_static_create(20, u32),
+)
+
 void range_execute_unittests(void)
 {
     tst_run_test_case(range_insert_in_empty);
@@ -436,6 +477,11 @@ void range_execute_unittests(void)
     tst_run_test_case(range_resize_same_size);
     tst_run_test_case(range_resize_smaller);
     tst_run_test_case(range_resize_to_empty);
+
+    tst_run_test_case(range_concat_full);
+    tst_run_test_case(range_concat_notfull);
+    tst_run_test_case(range_concat_one_empty);
+    tst_run_test_case(range_concat_two_empty);
 }
 
 #endif
