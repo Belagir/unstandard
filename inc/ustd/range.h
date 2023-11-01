@@ -47,7 +47,7 @@ bool range_pop_front(range *r);
 void range_clear(range *r);
 
 // accession
-#define range_at(__r, __i, __t) ( *((__t *) (((byte *) (__r)->data) + ((__i) * (__r)->stride))) )
+#define range_at(__r, __i, __t) ( *((__t *) (((byte *) (__r)->data) + ((size_t) (__i) * (__r)->stride))) )
 #define range_front(__r, __t)   range_at(__r, 0, __t)
 #define range_back(__r, __t)    range_at(__r, (__r->length - 1), __t)
 

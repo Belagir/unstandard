@@ -29,15 +29,13 @@ void heapsort_execute_unittests(void);
 /**
  * @brief Find the position of an element (needle) in an anonymous array (haystack) that is assumed to be sorted.
  *
- * @param[in] haystack pointer to the array.
- * @param[in] size size in bytes of the type stored in the array.
- * @param[in] length number of elements in the array.
+ * @param[in] haystack valid range.
  * @param[in] comparator a comparison function for the type of the element.
  * @param[in] needle  element equal to the one to find.
  * @param[out] out_position theorical (when not found) or real (when found) position of the needle.
- * @return u32 1 if the elment was found, 0 otherwise.
+ * @return bool 1 if the elment was found, 0 otherwise.
  */
-u32 sorted_array_find_in(void *haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *needle, size_t *out_position);
+bool sorted_array_find_in(range *haystack, i32 (*comparator)(const void*, const void*), void *needle, size_t *out_position);
 
 /**
  * @brief Removes the first occurence of an element (needle) from an anonymous array (haystack) that is assumed to be sorted.
