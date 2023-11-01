@@ -259,6 +259,71 @@ tst_CREATE_TEST_CASE(range_insert_in_full_start, range_insert,
         .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 )
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_SCENARIO(range_remove,
+        {
+            range_static(10, u64) r;
+            size_t index_removal;
+
+            bool expect_success;
+            range_static(10, u64) r_expected;
+        },
+        {
+            bool success = range_remove((range *) &data->r, data->index_removal);
+            tst_assert_equal(data->expect_success, success, "success of %d");
+
+            tst_assert_equal(data->r_expected.length, data->r.length, "length of %d");
+            for (size_t i = 0 ; i < data->r_expected.length ; i++) {
+                tst_assert(range_at(&data->r_expected, i, u64) == range_at(&data->r, i, u64), "data at index %d mismatch : got %d, expected %d",
+                        i, range_at(&data->r_expected, i, u64), range_at(&data->r, i, u64));
+            }
+        })
+
+tst_CREATE_TEST_CASE(range_remove_unique, range_remove,
+        .r = range_static_create(10, u64, 42),
+        .index_removal = 0,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64)
+)
+tst_CREATE_TEST_CASE(range_remove_start, range_remove,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .index_removal = 0,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+)
+tst_CREATE_TEST_CASE(range_remove_end, range_remove,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .index_removal = 9,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+)
+tst_CREATE_TEST_CASE(range_remove_middle, range_remove,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .index_removal = 5,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 6, 7, 8, 9)
+)
+tst_CREATE_TEST_CASE(range_remove_bad_index, range_remove,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
+        .index_removal = 6,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5)
+)
+tst_CREATE_TEST_CASE(range_remove_empty, range_remove,
+        .r = range_static_create(10, u64),
+        .index_removal = 5,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u64)
+)
+tst_CREATE_TEST_CASE(range_remove_empty_start, range_remove,
+        .r = range_static_create(10, u64),
+        .index_removal = 0,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u64)
+)
+
 void range_execute_unittests(void)
 {
     tst_run_test_case(range_insert_in_empty);
@@ -270,6 +335,14 @@ void range_execute_unittests(void)
     tst_run_test_case(range_insert_in_full);
     tst_run_test_case(range_insert_in_full_far);
     tst_run_test_case(range_insert_in_full_start);
+
+    tst_run_test_case(range_remove_unique);
+    tst_run_test_case(range_remove_start);
+    tst_run_test_case(range_remove_end);
+    tst_run_test_case(range_remove_middle);
+    tst_run_test_case(range_remove_bad_index);
+    tst_run_test_case(range_remove_empty);
+    tst_run_test_case(range_remove_empty_start);
 }
 
 #endif
