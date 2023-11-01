@@ -3,6 +3,10 @@
 
 #include <math.h>
 
+#ifdef UNITTESTING
+#include <ustd/testutilities.h>
+#endif
+
 #define PARENT(index) (((index) >> (1u))-(1u))
 #define LEFT(index)   (((index) << (1u))+(1u))
 #define RIGHT(index)  ((((index) << (1u)) | 0x1)+(1u))
@@ -12,24 +16,28 @@
 
 static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize);
 
-static void heapify(void *data, size_t size, size_t length, size_t index, i32 (*comparator)(const void*, const void*));
+static void heapify(range *array, size_t length_heap, size_t index, i32 (*comparator)(const void*, const void*));
 
-static void build_heap(void *data, size_t size, size_t length, i32 (*comparator)(const void*, const void*));
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+static void build_heap(range *array, i32 (*comparator)(const void*, const void*));
 
 // -------------------------------------------------------------------------------------------------
-void heapsort_sort(void *data, size_t size, size_t length, i32 (*comparator)(const void*, const void*))
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+void heapsort_sort(range *array, i32 (*comparator)(const void*, const void*))
 {
-    build_heap(data, size, length, comparator);
+    if (array->length == 0) {
+        return;
+    }
 
-    size_t length_heap = length;
+    build_heap(array, comparator);
 
-    for (size_t i = (length - 1); i >= 1u; i--) {
-        swap_pointed(data, (void *) ((uintptr_t) data + (uintptr_t) (i * size)), size);
+    size_t length_heap = array->length;
+
+    for (size_t i = (array->length - 1); i >= 1u; i--) {
+        swap_pointed(array->data, (void *) ((uintptr_t) array->data + (uintptr_t) (i * array->stride)), array->stride);
         length_heap = length_heap - 1;
-        heapify(data, size, length_heap, 0u, comparator);
+        heapify(array, length_heap, 0u, comparator);
     }
 }
 
@@ -51,7 +59,7 @@ static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize)
 }
 
 // -------------------------------------------------------------------------------------------------
-static void heapify(void *data, size_t size, size_t length, size_t index, i32 (*comparator)(const void*, const void*))
+static void heapify(range *array, size_t length_heap, size_t index, i32 (*comparator)(const void*, const void*))
 {
     size_t imax;
     size_t left;
@@ -65,34 +73,34 @@ static void heapify(void *data, size_t size, size_t length, size_t index, i32 (*
 
         imax = index;
 
-        if ((right < length) && (comparator((void *) ((uintptr_t) data + (uintptr_t) (right*size)), (void *) ((uintptr_t) data + (uintptr_t) (imax*size))) == 1)) {
+        if ((right < length_heap) && (comparator((void *) &range_at(array, right, byte), (void *) &range_at(array, imax, byte)) == 1)) {
             imax = right;
         }
 
-        if ((left < length) && (comparator((void *) ((uintptr_t) data + (uintptr_t) (left*size)), (void *) ((uintptr_t) data + (uintptr_t) (imax*size))) == 1)) {
+        if ((left < length_heap) && (comparator((void *) &range_at(array, left, byte), (void *) &range_at(array, imax, byte)) == 1)) {
             imax = left;
         }
 
         heaped = (imax == index);
 
         if (!heaped) {
-            swap_pointed((void *) ((uintptr_t) data + (uintptr_t) (imax*size)), (void *) ((uintptr_t) data + (uintptr_t) (index*size)), size);
+            swap_pointed((void *) ((uintptr_t) array->data + (uintptr_t) (imax*array->stride)), (void *) ((uintptr_t) array->data + (uintptr_t) (index*array->stride)), array->stride);
             index = imax;
         }
     }
 }
 
 // -------------------------------------------------------------------------------------------------
-static void build_heap(void *data, size_t size, size_t length, i32 (*comparator)(const void*, const void*))
+static void build_heap(range *array, i32 (*comparator)(const void*, const void*))
 {
-    const size_t start_at = (size_t) ceil((f64) length / 2.0F);
+    const size_t start_at = (size_t) ceil((f64) array->length / 2.0F);
 
     for (size_t i = start_at ; i > 0u ; i--) {
-        heapify(data, size, length, i, comparator);
+        heapify(array, array->length, i, comparator);
     }
     // last iteration, working with unsigned has its toll
-    if (length > 0u) {
-        heapify(data, size, length, 0u, comparator);
+    if (array->length > 0u) {
+        heapify(array, array->length, 0u, comparator);
     }
 }
 
@@ -108,3 +116,44 @@ i32 is_sorted(void *data, size_t size, size_t length, i32 (*comparator)(const vo
 
     return (pos == length);
 }
+
+#ifdef UNITTESTING
+
+i32 test_i32_comparator(const void *v1, const void *v2) {
+    i32 val1 = *((i32 *) v1);
+    i32 val2 = *((i32 *) v2);
+
+    return (val1 > val2) - (val1 < val2);
+}
+
+tst_CREATE_TEST_SCENARIO(heap_sort,
+        {
+            range_static(10, i32) to_sort;
+            range_static(10, i32) expected;
+        },
+        {
+            heapsort_sort((range *) &data->to_sort, &test_i32_comparator);
+
+            for (size_t i = 0 ; i < 10 ; i++) {
+                tst_assert(range_at(&data->expected, i, i32) == range_at(&data->to_sort, i, i32),
+                        "data at index %d mismatch : expected %d, got %d", i, range_at(&data->expected, i, i32) == range_at(&data->to_sort, i, i32));
+            }
+        }
+)
+
+tst_CREATE_TEST_CASE(heap_sort_nominal, heap_sort,
+        .to_sort =  range_static_create(10, i32, 2, 6, 3, 9, 8, 4, 1, 7, 5, 0),
+        .expected = range_static_create(10, i32, 0, 1, 2, 3, 4, 5, 6, 7, 8 ,9)
+)
+tst_CREATE_TEST_CASE(heap_sort_nothing, heap_sort,
+        .to_sort =  range_static_create(10, i32),
+        .expected = range_static_create(10, i32)
+)
+
+void heapsort_execute_unittests(void)
+{
+    tst_run_test_case(heap_sort_nominal);
+    tst_run_test_case(heap_sort_nothing);
+}
+
+#endif

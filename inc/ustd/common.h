@@ -12,7 +12,7 @@
 // temp
 #define UNITTESTING
 
-typedef char byte;
+typedef unsigned char byte;
 
 typedef int8_t  i8;   ///< convenience type redefinition
 typedef int16_t i16;  ///< convenience type redefinition
