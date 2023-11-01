@@ -15,7 +15,7 @@ typedef struct orbr_block_t {
 
 #define BLOCK_HEADER_SIZE sizeof(orbr_block_t)  ///< size in number of bytes of a block header
 #define BLOCK_TOTAL_SIZE(_ptr_block_header) ((BLOCK_HEADER_SIZE)*(_ptr_block_header->size != 0) + (_ptr_block_header->size)) ///< total number of bytes taken by the block
-#define BLOCK_OF(_ptr_memory) ((orbr_block_t *) (_ptr_memory - BLOCK_HEADER_SIZE)) ///< inferred block of a pointer. Might not exist, no way to know.
+#define BLOCK_OF(_ptr_memory) ((orbr_block_t *) ((size_t) _ptr_memory - BLOCK_HEADER_SIZE)) ///< inferred block of a pointer. Might not exist, no way to know.
 
 /**
  * @brief Data describing an Ouroboros allocator.
@@ -61,7 +61,7 @@ static void alloc_initialize(ouroboros_t *alloc, size_t size);
 
 // -------------------------------------------------------------------------------------------------
 void *orbr_access_bounded_raw(void *target_array, size_t position) {
-    return (void *) (((size_t) (target_array + position)) * (position < (BLOCK_OF(target_array)->size)));
+    return (void *) ((((size_t) target_array + position)) * (position < (BLOCK_OF(target_array)->size)));
 }
 
 
@@ -116,7 +116,7 @@ void * orbr_alloc(ouroboros_t *alloc, const size_t wanted_size) {
     if ((alloc->index->size == 0)) {
         new_block_address = alloc->index;
     } else {
-        new_block_address = (orbr_block_t *) (((void *) alloc->index) + BLOCK_TOTAL_SIZE(alloc->index));
+        new_block_address = (orbr_block_t *) (((byte *) alloc->index) + BLOCK_TOTAL_SIZE(alloc->index));
     }
 
     *new_block_address = new_block;
@@ -127,7 +127,7 @@ void * orbr_alloc(ouroboros_t *alloc, const size_t wanted_size) {
     // keeping count
     alloc->nb_bytes_allocated += BLOCK_TOTAL_SIZE(new_block_address);
 
-    return (void *) ((void *) (new_block_address) + BLOCK_HEADER_SIZE);
+    return (void *) ((byte *) (new_block_address) + BLOCK_HEADER_SIZE);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ ouroboros_t *orbr_create(void *mem, const size_t size) {
 // -------------------------------------------------------------------------------------------------
 void orbr_free(ouroboros_t *alloc, void *object) {
     // checking if the address is actually managed by the allocator
-    if ((object < (alloc->raw_mem + BLOCK_HEADER_SIZE)) || (object >= (alloc->raw_mem + alloc->size_memory))) {
+    if (((byte *) object < ((byte *) alloc->raw_mem + BLOCK_HEADER_SIZE)) || ((byte *) object >= ((byte *) alloc->raw_mem + alloc->size_memory))) {
         return;
     }
 
@@ -200,10 +200,10 @@ static size_t alloc_free_size_at_index(ouroboros_t *alloc) {
 
     // the currently indexed block is loops back to the beggining, available memory is the buffer's end
     if (alloc->index->next <= alloc->index) {
-        limit = alloc->raw_mem + alloc->size_memory;
+        limit = ((byte *) alloc->raw_mem) + alloc->size_memory;
     }
 
-    free_chunk_size = (size_t) (limit - ((void *) (alloc->index) + BLOCK_TOTAL_SIZE(alloc->index)));
+    free_chunk_size = (size_t) ((byte *) limit - ((byte *) (alloc->index) + BLOCK_TOTAL_SIZE(alloc->index)));
 
     return free_chunk_size;
 }
@@ -219,10 +219,10 @@ static void alloc_cleanup_at_index(ouroboros_t *alloc) {
 // -------------------------------------------------------------------------------------------------
 static void alloc_initialize(ouroboros_t *alloc, size_t size) {
     *alloc = (ouroboros_t) {
-            .index              = ((void*) alloc) + sizeof(*alloc),
+            .index              = (orbr_block_t *) ((byte*) alloc) + sizeof(*alloc),
             .nb_bytes_allocated = 0u,
             .size_memory        = size - sizeof(*alloc),
-            .raw_mem            = ((void*) alloc) + sizeof(*alloc),
+            .raw_mem            = (orbr_block_t *) ((byte*) alloc) + sizeof(*alloc),
     };
 
     // first block at the start of the allocated memory as a starting point
