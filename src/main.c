@@ -7,6 +7,7 @@
 #include <ustd/res.h>
 #include <ustd/sorting.h>
 #include <ustd/testutilities.h>
+#include <ustd/tree.h>
 
 int main(int argc, char const *argv[])
 {
@@ -15,6 +16,7 @@ int main(int argc, char const *argv[])
     heapsort_execute_unittests();
     sorted_range_execute_unittests();
     range_execute_unittests();
+    ttree_execute_unittests();
 #endif
 
     return 0;
