@@ -50,25 +50,25 @@ bool sorted_array_find_in(range *r_haystack, i32 (*comparator)(const void*, cons
     return (comp_result == 0);
 }
 
-#if 0
 // -------------------------------------------------------------------------------------------------
-size_t sorted_array_remove_from(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *needle)
+size_t sorted_array_remove_from(range *haystack, i32 (*comparator)(const void*, const void*), void *needle)
 {
     u32 found = 0u;
     size_t found_pos = 0u;
 
-    if (!haystack || !comparator || !needle) {
-        return length;
+    if (!comparator || !needle) {
+        return haystack->length;
     }
 
-    found = sorted_array_find_in(haystack, size, length, comparator, needle, &found_pos);
+    found = sorted_array_find_in(haystack, comparator, needle, &found_pos);
 
     if (found) {
-        bytewise_copy((void *) ((uintptr_t) haystack + (uintptr_t) (found_pos * size)),
-                      (void *) ((uintptr_t) haystack + (uintptr_t) ((found_pos + 1u) * size)), (length - found_pos) * size);
+        bytewise_copy((void *) ((uintptr_t) haystack->data + (uintptr_t) (found_pos * haystack->stride)),
+                      (void *) ((uintptr_t) haystack->data + (uintptr_t) ((found_pos + 1u) * haystack->stride)), (haystack->length - found_pos) * haystack->stride);
     }
 }
 
+#if 0
 // -------------------------------------------------------------------------------------------------
 size_t
 sorted_array_insert_in(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *inserted_needle) {
@@ -205,63 +205,63 @@ tst_CREATE_TEST_CASE(sorted_array_find_first_occ_adjacent, sorted_array_u32_find
         .expect_success    = 1u)
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-#if 0
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(sorted_array_remove_element,
         {
-            u32 array[20u];
+            range_static(20, u32) array;
             u32 needle;
 
-            u32 expected_array[20u];
+            range_static(20, u32) expected_array;
             u32 expect_deletion;
         },
         {
-            size_t deletion_pos = sorted_array_remove_from((void *) data->array, sizeof(*data->array), 20u, &test_u32_comparator, (void *) &data->needle);
+            size_t deletion_pos = sorted_array_remove_from((range *) &data->array, &test_u32_comparator, (void *) &data->needle);
 
             tst_assert(((data->expect_deletion && (deletion_pos != 20u)) || (!data->expect_deletion)), "element was %sdeleted",
                         (data->expect_deletion)? "not " : "");
 
             for (size_t i = 0u ; i < (20u - data->expect_deletion) ; i++)
             {
-                tst_assert(data->array[i] == data->expected_array[i], "element at position %d did not match : expected %d , got %d",
-                            i, data->array[i], data->expected_array[i]);
+                tst_assert(range_at(&data->array, i, u32) == range_at(&data->expected_array, i, u32), "element at position %d did not match : expected %d , got %d",
+                            i, range_at(&data->array, i, u32), range_at(&data->expected_array, i, u32));
             }
         }
 )
 
 tst_CREATE_TEST_CASE(sorted_array_remove_element_nominal, sorted_array_remove_element,
-        .array           = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u },
+        .array           = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u),
         .needle          = 15u,
-        .expected_array  = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 16u, 17u, 18u, 19u, 0u },
+        .expected_array  = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 16u, 17u, 18u, 19u, 0u),
         .expect_deletion = 1u)
 
 tst_CREATE_TEST_CASE(sorted_array_remove_element_nominal_2, sorted_array_remove_element,
-        .array           = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u },
+        .array           = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u),
         .needle          = 14u,
-        .expected_array  = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 15u, 16u, 17u, 18u, 19u, 0u },
+        .expected_array  = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 15u, 16u, 17u, 18u, 19u, 0u),
         .expect_deletion = 1u)
 
 tst_CREATE_TEST_CASE(sorted_array_remove_element_at_start, sorted_array_remove_element,
-        .array           = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u },
+        .array           = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u),
         .needle          = 0u,
-        .expected_array  = { 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u, 0u },
+        .expected_array  = range_static_create(20, u32, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u, 0u),
         .expect_deletion = 1u)
 
 tst_CREATE_TEST_CASE(sorted_array_remove_element_at_end, sorted_array_remove_element,
-        .array           = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u },
+        .array           = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u),
         .needle          = 19u,
-        .expected_array  = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 0u },
+        .expected_array  = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 0u),
         .expect_deletion = 1u)
 
 tst_CREATE_TEST_CASE(sorted_array_remove_element_not_found, sorted_array_remove_element,
-        .array           = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u },
+        .array           = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u),
         .needle          = 20u,
-        .expected_array  = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u },
+        .expected_array  = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u),
         .expect_deletion = 0u)
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-
+#if 0
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(sorted_array_insert,
@@ -353,7 +353,6 @@ sorted_array_execute_unittests(void)
 
     tst_run_test_case(sorted_array_find_first_occ_adjacent);
 
-#if 0
     tst_run_test_case(sorted_array_remove_element_nominal);
     tst_run_test_case(sorted_array_remove_element_nominal_2);
 
@@ -362,6 +361,7 @@ sorted_array_execute_unittests(void)
 
     tst_run_test_case(sorted_array_remove_element_not_found);
 
+#if 0
     tst_run_test_case(sorted_array_insert_nominal);
     tst_run_test_case(sorted_array_insert_at_beginning);
     tst_run_test_case(sorted_array_insert_second_position);

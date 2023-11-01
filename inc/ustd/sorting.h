@@ -40,14 +40,12 @@ bool sorted_array_find_in(range *haystack, i32 (*comparator)(const void*, const 
 /**
  * @brief Removes the first occurence of an element (needle) from an anonymous array (haystack) that is assumed to be sorted.
  *
- * @param[inout] haystack pointer to the array to modify.
- * @param[in] size size in bytes of the type stored in the array.
- * @param[in] length number of elements in the array.
+ * @param[inout] haystack valid range.
  * @param[in] comparator a comparison function for the type of the element.
  * @param[in] needle element equal to the one to remove.
  * @return size_t The position of the deleted element, or the length of the array if not found.
  */
-size_t sorted_array_remove_from(void *haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *needle);
+size_t sorted_array_remove_from(range *haystack, i32 (*comparator)(const void*, const void*), void *needle);
 
 /**
  * @brief Adds an element (needle) in an anonymous array (haystack) that is assumed to be sorted and to have enough free space after it for one more element.
