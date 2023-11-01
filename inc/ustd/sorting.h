@@ -50,14 +50,12 @@ size_t sorted_array_remove_from(range *haystack, i32 (*comparator)(const void*, 
 /**
  * @brief Adds an element (needle) in an anonymous array (haystack) that is assumed to be sorted and to have enough free space after it for one more element.
  *
- * @param[inout] data pointer to the array to modify.
- * @param[in] size size in bytes of the type stored in the array.
- * @param[in] length number of elements in the array.
+ * @param[inout] haystack valid range.
  * @param[in] comparator a comparison function for the type of the element.
  * @param[in] needle element to add (by shallow copy).
  * @return size_t The new position of the element.
  */
-size_t sorted_array_insert_in(void *haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *inserted_needle);
+size_t sorted_array_insert_in(range *haystack, i32 (*comparator)(const void*, const void*), void *inserted_needle);
 
 #ifdef UNITTESTING
 void sorted_array_execute_unittests(void);

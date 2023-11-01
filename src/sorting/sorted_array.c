@@ -62,35 +62,30 @@ size_t sorted_array_remove_from(range *haystack, i32 (*comparator)(const void*, 
 
     found = sorted_array_find_in(haystack, comparator, needle, &found_pos);
 
-    if (found) {
-        bytewise_copy((void *) ((uintptr_t) haystack->data + (uintptr_t) (found_pos * haystack->stride)),
-                      (void *) ((uintptr_t) haystack->data + (uintptr_t) ((found_pos + 1u) * haystack->stride)), (haystack->length - found_pos) * haystack->stride);
+    if (!found) {
+        return haystack->length;
     }
+
+    range_remove(haystack, found_pos);
+
+    return found_pos;
 }
 
-#if 0
 // -------------------------------------------------------------------------------------------------
-size_t
-sorted_array_insert_in(void* restrict haystack, size_t size, size_t length, i32 (*comparator)(const void*, const void*), void *inserted_needle) {
+size_t sorted_array_insert_in(range *haystack, i32 (*comparator)(const void*, const void*), void *inserted_needle)
+{
     size_t theorical_position = 0u;
 
-    if (!haystack || !comparator || !inserted_needle)
+    if (!comparator || !inserted_needle)
     {
-        return length;
+        return haystack->length;
     }
 
-    (void) sorted_array_find_in(haystack, size, length, comparator, inserted_needle, &theorical_position);
-
-    for (size_t i = length ; i > theorical_position ; i -= 1u)
-    {
-        bytewise_copy((void *) ((uintptr_t) haystack + (uintptr_t) (i * size)),
-                        (void *) ((uintptr_t) haystack + (uintptr_t) ((i-1u) * size)), size);
-    }
-    bytewise_copy((void *) ((uintptr_t) haystack + (uintptr_t) (theorical_position * size)), inserted_needle, size);
+    (void) sorted_array_find_in(haystack, comparator, inserted_needle, &theorical_position);
+    range_insert(haystack, theorical_position, inserted_needle);
 
     return theorical_position;
 }
-#endif
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -222,9 +217,9 @@ tst_CREATE_TEST_SCENARIO(sorted_array_remove_element,
             tst_assert(((data->expect_deletion && (deletion_pos != 20u)) || (!data->expect_deletion)), "element was %sdeleted",
                         (data->expect_deletion)? "not " : "");
 
-            for (size_t i = 0u ; i < (20u - data->expect_deletion) ; i++)
-            {
-                tst_assert(range_at(&data->array, i, u32) == range_at(&data->expected_array, i, u32), "element at position %d did not match : expected %d , got %d",
+            for (size_t i = 0u ; i < (20u - data->expect_deletion) ; i++) {
+                tst_assert(range_at(&data->array, i, u32) == range_at(&data->expected_array, i, u32),
+                            "element at position %d did not match : expected %d , got %d",
                             i, range_at(&data->array, i, u32), range_at(&data->expected_array, i, u32));
             }
         }
@@ -261,76 +256,83 @@ tst_CREATE_TEST_CASE(sorted_array_remove_element_not_found, sorted_array_remove_
         .expect_deletion = 0u)
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-#if 0
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(sorted_array_insert,
         {
-            u32 array[20u];
+            range_static(20, u32) array;
             size_t array_length;
             u32 inserted_element;
 
             u32 expected_position;
-            u32 expected_array[20u];
+            range_static(20, u32) expected_array;
         },
         {
-            size_t insertion_pos = sorted_array_insert_in((void *) data->array, sizeof(*data->array), data->array_length, test_u32_comparator, (void *) &data->inserted_element);
+            data->array.length = data->array_length;
+            size_t insertion_pos = sorted_array_insert_in((range *) &data->array, &test_u32_comparator, (void *) &data->inserted_element);
 
             tst_assert_equal(data->expected_position, insertion_pos, "position %d");
 
-            for (size_t i = 0u ; i < (data->array_length + 1u) ; i++)
-            {
-                tst_assert(data->array[i] == data->expected_array[i], "element at position %u did not match : expected %u , got %u",
-                            i,  data->expected_array[i], data->array[i]);
+            for (size_t i = 0u ; i < (data->array.length) ; i++) {
+                tst_assert(range_at(&data->array, i, u32) == range_at(&data->expected_array, i, u32),
+                            "element at position %d did not match : expected %d , got %d",
+                            i, range_at(&data->array, i, u32), range_at(&data->expected_array, i, u32));
             }
         }
 )
 
 tst_CREATE_TEST_CASE(sorted_array_insert_nominal, sorted_array_insert,
-        .array             = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 12u, 13u, 14u, 15u, 0u, 0u, 0u, 0u },
+        .array             = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 12u, 13u, 14u, 15u, 0u, 0u, 0u, 0u ),
         .array_length      = 15u,
         .inserted_element  = 11u,
         .expected_position = 11u,
-        .expected_array    = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u })
+        .expected_array    = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u ),
+)
 tst_CREATE_TEST_CASE(sorted_array_insert_at_beginning, sorted_array_insert,
-        .array             = { 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u, 0u },
+        .array             = range_static_create(20, u32, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u, 0u ),
         .array_length      = 15u,
         .inserted_element  = 0u,
         .expected_position = 0u,
-        .expected_array    = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u })
+        .expected_array    = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u ),
+)
 tst_CREATE_TEST_CASE(sorted_array_insert_second_position, sorted_array_insert,
-        .array             = { 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u },
+        .array             = range_static_create(20, u32, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u ),
         .array_length      = 1u,
         .inserted_element  = 2u,
         .expected_position = 1u,
-        .expected_array    = { 1u, 2u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u })
+        .expected_array    = range_static_create(20, u32, 1u, 2u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u ),
+)
 tst_CREATE_TEST_CASE(sorted_array_insert_penultimate, sorted_array_insert,
-        .array             = { 1u, 2u, 3u, 5u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u },
+        .array             = range_static_create(20, u32, 1u, 2u, 3u, 5u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u ),
         .array_length      = 4u,
         .inserted_element  = 4u,
         .expected_position = 3u,
-        .expected_array    = { 1u, 2u, 3u, 4u, 5u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u })
+        .expected_array    = range_static_create(20, u32, 1u, 2u, 3u, 4u, 5u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u ),
+)
 tst_CREATE_TEST_CASE(sorted_array_insert_at_end, sorted_array_insert,
-        .array             = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 0u, 0u, 0u, 0u, 0u },
+        .array             = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 0u, 0u, 0u, 0u, 0u ),
         .array_length      = 15u,
         .inserted_element  = 15u,
         .expected_position = 15u,
-        .expected_array    = { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u })
+        .expected_array    = range_static_create(20, u32, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 0u, 0u, 0u ),
+)
 tst_CREATE_TEST_CASE(sorted_array_u32_insert_other, sorted_array_insert,
-        .array             = { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 0u },
+        .array             = range_static_create(20, u32, 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 0u ),
         .array_length      = 19u,
         .inserted_element  = 390u,
         .expected_position = 16u,
-        .expected_array    = { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 390u, 395u, 400u, 4025u })
+        .expected_array    = range_static_create(20, u32, 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 390u, 395u, 400u, 4025u ),
+)
 tst_CREATE_TEST_CASE(sorted_array_u32_insert_in_empty, sorted_array_insert,
-        .array             = { 0u },
+        .array             = range_static_create(20, u32, ),
         .array_length      = 0u,
         .inserted_element  = 42u,
         .expected_position = 0u,
-        .expected_array    = { 42u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u })
+        .expected_array    = range_static_create(20, u32, 42u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u ),
+)
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-#endif
 
 void
 sorted_array_execute_unittests(void)
@@ -361,7 +363,6 @@ sorted_array_execute_unittests(void)
 
     tst_run_test_case(sorted_array_remove_element_not_found);
 
-#if 0
     tst_run_test_case(sorted_array_insert_nominal);
     tst_run_test_case(sorted_array_insert_at_beginning);
     tst_run_test_case(sorted_array_insert_second_position);
@@ -369,7 +370,6 @@ sorted_array_execute_unittests(void)
     tst_run_test_case(sorted_array_insert_at_end);
     tst_run_test_case(sorted_array_u32_insert_other);
     tst_run_test_case(sorted_array_u32_insert_in_empty);
-#endif
 }
 
 #endif
