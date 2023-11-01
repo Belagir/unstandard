@@ -16,13 +16,11 @@ void heapsort_sort(range *array, i32 (*comparator)(const void*, const void*));
 /**
  * @brief Returns wether a section of memory is sorted (depending on info given by the user).
  *
- * @param[in] data pointer to an array of data.
- * @param[in] size size in bytes of the type stored in the array.
- * @param[in] length number of elements in the array.
+ * @param[inout] array a valid range.
  * @param[in] comparator a comparison function for the type of the element.
  * @return i32
  */
-i32 is_sorted(void *data, size_t size, size_t length, i32 (*comparator)(const void*, const void*));
+bool is_sorted(range *array, i32 (*comparator)(const void*, const void*));
 
 #ifdef UNITTESTING
 void heapsort_execute_unittests(void);

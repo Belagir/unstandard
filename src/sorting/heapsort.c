@@ -105,16 +105,20 @@ static void build_heap(range *array, i32 (*comparator)(const void*, const void*)
 }
 
 // -------------------------------------------------------------------------------------------------
-i32 is_sorted(void *data, size_t size, size_t length, i32 (*comparator)(const void*, const void*))
+bool is_sorted(range *array, i32 (*comparator)(const void*, const void*))
 {
-    size_t pos = 0u;
+    size_t pos = { 0u };
+
+    if (array->length == 0) {
+        return true;
+    }
 
     pos = 1u;
-    while ((pos < length) && (comparator((void *) ((uintptr_t) data + (pos * size)), (void *) ((uintptr_t) data + ((pos-1) * size))) != -1)) {
+    while ((pos < array->length) && (comparator((void *) &range_at(array, pos, byte), (void *) &range_at(array, pos-1, byte)) != -1)) {
         pos += 1u;
     }
 
-    return (pos == length);
+    return (pos == array->length);
 }
 
 #ifdef UNITTESTING
@@ -138,6 +142,8 @@ tst_CREATE_TEST_SCENARIO(heap_sort,
                 tst_assert(range_at(&data->expected, i, i32) == range_at(&data->to_sort, i, i32),
                         "data at index %d mismatch : expected %d, got %d", i, range_at(&data->expected, i, i32) == range_at(&data->to_sort, i, i32));
             }
+
+            tst_assert(is_sorted((range *) &data->to_sort, &test_i32_comparator), "range is not sorted !");
         }
 )
 
@@ -149,11 +155,16 @@ tst_CREATE_TEST_CASE(heap_sort_nothing, heap_sort,
         .to_sort =  range_static_create(10, i32),
         .expected = range_static_create(10, i32)
 )
+tst_CREATE_TEST_CASE(heap_sort__one_element, heap_sort,
+        .to_sort =  range_static_create(10, i32, 1),
+        .expected = range_static_create(10, i32, 1)
+)
 
 void heapsort_execute_unittests(void)
 {
     tst_run_test_case(heap_sort_nominal);
     tst_run_test_case(heap_sort_nothing);
+    tst_run_test_case(heap_sort__one_element);
 }
 
 #endif
