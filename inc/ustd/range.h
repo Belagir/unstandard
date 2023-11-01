@@ -15,6 +15,9 @@ typedef struct {
     byte data[];        /** actual data in the range as a byte array */
 } range;
 
+/**
+ * @brief Size in bytes of a range.
+ */
 #define sizeof_range(__r) (sizeof(*(__r)) + ((__r)->stride * (__r)->capacity))
 
 /**
@@ -36,7 +39,6 @@ typedef struct {
 bool range_insert(range *r, size_t index, void *value);
 bool range_push_back(range *r, void *value);
 bool range_push_front(range *r, void *value);
-// + range insertion / in place concatenation with Generics
 
 // deletion
 bool range_remove(range *r, size_t index);
@@ -52,10 +54,14 @@ void range_clear(range *r);
 // creation & destruction
 range *range_dynamic_create(allocator alloc, size_t size_element, size_t nb_elements_max);
 range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, void *array);
-range *range_dynamic_destroy(allocator alloc, range *r);
+range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capacity);
+void   range_dynamic_destroy(allocator alloc, range *r);
 
 // ranges & ranges
 range *range_concat(allocator alloc, range *r_left, range *r_right);
 range *range_copy_of(allocator alloc, range *r);
 
+#ifdef UNITTESTING
+void range_execute_unittests(void);
+#endif
 #endif

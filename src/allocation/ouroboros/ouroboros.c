@@ -101,7 +101,7 @@ void * orbr_alloc(ouroboros_t *alloc, const size_t wanted_size) {
         }
     } while ((!has_space) && (!is_looping));
 
-    // no space big enough found, but there is enough bytes in total : defragmentation time !
+    // no space big enough found, but there is enough bytes in total : fragmentation time !
     if (free_size < real_wanted_size) {
         return 0x0;
     }
