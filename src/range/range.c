@@ -149,12 +149,13 @@ range *range_concat(allocator alloc, range *r_left, range *r_right)
 // -------------------------------------------------------------------------------------------------
 range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capacity)
 {
-    range *new_range = alloc.malloc(alloc, new_capacity * r->stride);
+    range *new_range = range_dynamic_create(alloc, r->stride, new_capacity);
     if (new_range == nullptr) {
         return r;
     }
 
-    bytewise_copy(new_range, r, min(r->length, new_range->capacity) * r->stride);
+    new_range->length = min(r->length, new_range->capacity);
+    bytewise_copy(new_range->data, r->data, new_range->length * r->stride);
 
     return new_range;
 }
@@ -190,7 +191,7 @@ tst_CREATE_TEST_SCENARIO(range_insert,
             tst_assert_equal(data->r_expected.length, data->r.length, "length of %d");
 
             for (size_t i = 0 ; i < data->r_expected.length ; i++) {
-                tst_assert(range_at(&data->r_expected, i, u64) == range_at(&data->r, i, u64), "data at index %d mismatch : got %d, expected %d",
+                tst_assert(range_at(&data->r_expected, i, u64) == range_at(&data->r, i, u64), "data at index %d mismatch : expected %d, got %d",
                         i, range_at(&data->r_expected, i, u64), range_at(&data->r, i, u64));
             }
         })
@@ -276,7 +277,7 @@ tst_CREATE_TEST_SCENARIO(range_remove,
 
             tst_assert_equal(data->r_expected.length, data->r.length, "length of %d");
             for (size_t i = 0 ; i < data->r_expected.length ; i++) {
-                tst_assert(range_at(&data->r_expected, i, u64) == range_at(&data->r, i, u64), "data at index %d mismatch : got %d, expected %d",
+                tst_assert(range_at(&data->r_expected, i, u64) == range_at(&data->r, i, u64), "data at index %d mismatch : expected %d, got %d",
                         i, range_at(&data->r_expected, i, u64), range_at(&data->r, i, u64));
             }
         })
@@ -324,6 +325,88 @@ tst_CREATE_TEST_CASE(range_remove_empty_start, range_remove,
         .r_expected = range_static_create(10, u64)
 )
 
+tst_CREATE_TEST_SCENARIO(range_create_from,
+        {
+            u64 source[10];
+            size_t source_length;
+
+            range_static(10, u64) expected;
+        },
+        {
+            range *r = range_dynamic_from(make_system_allocator(), sizeof(*data->source), count_of(data->source), data->source_length, data->source);
+
+            tst_assert_equal(data->source_length, r->length, "length of %d");
+            for (size_t i = 0 ; i < data->expected.length ; i++) {
+                tst_assert(range_at(&data->expected, i, u64) == range_at(r, i, u64), "data at index %d mismatch : expected %d, got %d",
+                        i, range_at(&data->expected, i, u64), range_at(r, i, u64));
+            }
+
+            range_dynamic_destroy(make_system_allocator(), r);
+        }
+)
+
+tst_CREATE_TEST_CASE(range_create_from_full, range_create_from,
+        .source = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
+        .source_length = 10,
+        .expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 )
+)
+tst_CREATE_TEST_CASE(range_create_from_zero, range_create_from,
+        .source = { },
+        .source_length = 10,
+        .expected = range_static_create(10, u64)
+)
+tst_CREATE_TEST_CASE(range_create_from_empty, range_create_from,
+        .source = { },
+        .source_length = 0,
+        .expected = range_static_create(10, u64)
+)
+
+tst_CREATE_TEST_SCENARIO(range_resize,
+        {
+            range_static(10, u32) original_range;
+            size_t resize_to;
+        },
+        {
+            range *r = range_dynamic_from_resize_of(make_system_allocator(), (range *) &data->original_range, data->resize_to);
+
+            tst_assert_equal(data->resize_to, r->capacity, "capacity of %d");
+
+            if (data->resize_to < data->original_range.length) {
+                tst_assert_equal(data->resize_to, r->length, "capacity of %d");
+            } else {
+                tst_assert_equal(data->original_range.length, r->length, "capacity of %d");
+            }
+
+            for (size_t i = 0 ; i < r->length ; i++) {
+                tst_assert(range_at(&data->original_range, i, u32) == range_at(r, i, u32), "data at index %d mismatch : expected %d, got %d",
+                        i, range_at(&data->original_range, i, u32), range_at(r, i, u32));
+            }
+
+            range_dynamic_destroy(make_system_allocator(), r);
+        }
+)
+
+tst_CREATE_TEST_CASE(range_resize_bigger, range_resize,
+        .original_range = range_static_create(10, u32, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11),
+        .resize_to = 15
+)
+tst_CREATE_TEST_CASE(range_resize_bigger_from_empty, range_resize,
+        .original_range = range_static_create(0, u32),
+        .resize_to = 15
+)
+tst_CREATE_TEST_CASE(range_resize_same_size, range_resize,
+        .original_range = range_static_create(10, u32, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11),
+        .resize_to = 10
+)
+tst_CREATE_TEST_CASE(range_resize_smaller, range_resize,
+        .original_range = range_static_create(10, u32, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11),
+        .resize_to = 6
+)
+tst_CREATE_TEST_CASE(range_resize_to_empty, range_resize,
+        .original_range = range_static_create(10, u32, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11),
+        .resize_to = 0
+)
+
 void range_execute_unittests(void)
 {
     tst_run_test_case(range_insert_in_empty);
@@ -343,6 +426,16 @@ void range_execute_unittests(void)
     tst_run_test_case(range_remove_bad_index);
     tst_run_test_case(range_remove_empty);
     tst_run_test_case(range_remove_empty_start);
+
+    tst_run_test_case(range_create_from_full);
+    tst_run_test_case(range_create_from_zero);
+    tst_run_test_case(range_create_from_empty);
+
+    tst_run_test_case(range_resize_bigger);
+    tst_run_test_case(range_resize_bigger_from_empty);
+    tst_run_test_case(range_resize_same_size);
+    tst_run_test_case(range_resize_smaller);
+    tst_run_test_case(range_resize_to_empty);
 }
 
 #endif
