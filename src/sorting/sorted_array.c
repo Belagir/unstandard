@@ -1,8 +1,6 @@
 
 #include <ustd/sorting.h>
 
-#include <stdlib.h>
-
 #include <math.h>
 
 #ifdef UNITTESTING
@@ -10,7 +8,7 @@
 #endif
 
 // -------------------------------------------------------------------------------------------------
-bool sorted_array_find_in(range *r_haystack, i32 (*comparator)(const void*, const void*), void *needle, size_t *out_position)
+bool sorted_range_find_in(range *r_haystack, i32 (*comparator)(const void*, const void*), void *needle, size_t *out_position)
 {
     i32 beggining = 0u;
     i32 end = 0u;
@@ -21,7 +19,7 @@ bool sorted_array_find_in(range *r_haystack, i32 (*comparator)(const void*, cons
     end = (i32) r_haystack->length - 1;
 
     while ((beggining <= end) && (comp_result != 0)) {
-        index = (i32) ceilf(((f32) (beggining + end)) / 2.0f);
+        index = (i32) ceil_div(beggining + end, 2);
 
         comp_result = comparator(needle, (void *) &range_at(r_haystack, index, byte));
 
@@ -51,7 +49,7 @@ bool sorted_array_find_in(range *r_haystack, i32 (*comparator)(const void*, cons
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t sorted_array_remove_from(range *haystack, i32 (*comparator)(const void*, const void*), void *needle)
+size_t sorted_range_remove_from(range *haystack, i32 (*comparator)(const void*, const void*), void *needle)
 {
     u32 found = 0u;
     size_t found_pos = 0u;
@@ -60,7 +58,7 @@ size_t sorted_array_remove_from(range *haystack, i32 (*comparator)(const void*, 
         return haystack->length;
     }
 
-    found = sorted_array_find_in(haystack, comparator, needle, &found_pos);
+    found = sorted_range_find_in(haystack, comparator, needle, &found_pos);
 
     if (!found) {
         return haystack->length;
@@ -72,7 +70,7 @@ size_t sorted_array_remove_from(range *haystack, i32 (*comparator)(const void*, 
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t sorted_array_insert_in(range *haystack, i32 (*comparator)(const void*, const void*), void *inserted_needle)
+size_t sorted_range_insert_in(range *haystack, i32 (*comparator)(const void*, const void*), void *inserted_needle)
 {
     size_t theorical_position = 0u;
 
@@ -81,7 +79,7 @@ size_t sorted_array_insert_in(range *haystack, i32 (*comparator)(const void*, co
         return haystack->length;
     }
 
-    (void) sorted_array_find_in(haystack, comparator, inserted_needle, &theorical_position);
+    (void) sorted_range_find_in(haystack, comparator, inserted_needle, &theorical_position);
     range_insert(haystack, theorical_position, inserted_needle);
 
     return theorical_position;
@@ -112,7 +110,7 @@ tst_CREATE_TEST_SCENARIO(sorted_array_u32_find,
         },
         {
             size_t theorical_pos = 0u;
-            size_t found = sorted_array_find_in((range *) &data->array, &test_u32_comparator, (void *) &data->needle, &theorical_pos);
+            size_t found = sorted_range_find_in((range *) &data->array, &test_u32_comparator, (void *) &data->needle, &theorical_pos);
 
             tst_assert_equal(data->expected_position, theorical_pos, "position %d");
             tst_assert((data->expect_success && (found)) || (!data->expect_success), "element was %sfound",
@@ -212,7 +210,7 @@ tst_CREATE_TEST_SCENARIO(sorted_array_remove_element,
             u32 expect_deletion;
         },
         {
-            size_t deletion_pos = sorted_array_remove_from((range *) &data->array, &test_u32_comparator, (void *) &data->needle);
+            size_t deletion_pos = sorted_range_remove_from((range *) &data->array, &test_u32_comparator, (void *) &data->needle);
 
             tst_assert(((data->expect_deletion && (deletion_pos != 20u)) || (!data->expect_deletion)), "element was %sdeleted",
                         (data->expect_deletion)? "not " : "");
@@ -270,7 +268,7 @@ tst_CREATE_TEST_SCENARIO(sorted_array_insert,
         },
         {
             data->array.length = data->array_length;
-            size_t insertion_pos = sorted_array_insert_in((range *) &data->array, &test_u32_comparator, (void *) &data->inserted_element);
+            size_t insertion_pos = sorted_range_insert_in((range *) &data->array, &test_u32_comparator, (void *) &data->inserted_element);
 
             tst_assert_equal(data->expected_position, insertion_pos, "position %d");
 
@@ -335,7 +333,7 @@ tst_CREATE_TEST_CASE(sorted_array_u32_insert_in_empty, sorted_array_insert,
 // -------------------------------------------------------------------------------------------------
 
 void
-sorted_array_execute_unittests(void)
+sorted_range_execute_unittests(void)
 {
     tst_run_test_case(sorted_array_u32_find_nominal);
     tst_run_test_case(sorted_array_u32_find_nominal_2);
