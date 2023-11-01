@@ -202,10 +202,74 @@ tst_CREATE_TEST_CASE(range_insert_in_empty, range_insert,
         .expect_success = true,
         .r_expected = range_static_create(10, u64, 42)
 )
+tst_CREATE_TEST_CASE(range_insert_in_empty_far_index, range_insert,
+        .r = range_static_create(10, u64),
+        .index_insertion = 6,
+        .inserted_value = 42,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 42)
+)
+tst_CREATE_TEST_CASE(range_insert_in_populated_end, range_insert,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
+        .index_insertion = 6,
+        .inserted_value = 42,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 42),
+)
+tst_CREATE_TEST_CASE(range_insert_in_populated_end_far, range_insert,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
+        .index_insertion = 9,
+        .inserted_value = 42,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 42),
+)
+tst_CREATE_TEST_CASE(range_insert_in_populated_start, range_insert,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
+        .index_insertion = 0,
+        .inserted_value = 42,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 42, 0, 1, 2, 3, 4, 5)
+)
+tst_CREATE_TEST_CASE(range_insert_in_populated_middle, range_insert,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
+        .index_insertion = 3,
+        .inserted_value = 42,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 42, 3, 4, 5)
+)
+tst_CREATE_TEST_CASE(range_insert_in_full, range_insert,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .index_insertion = 5,
+        .inserted_value = 42,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+)
+tst_CREATE_TEST_CASE(range_insert_in_full_far, range_insert,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .index_insertion = 15,
+        .inserted_value = 42,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+)
+tst_CREATE_TEST_CASE(range_insert_in_full_start, range_insert,
+        .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .index_insertion = 0,
+        .inserted_value = 42,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+)
 
 void range_execute_unittests(void)
 {
     tst_run_test_case(range_insert_in_empty);
+    tst_run_test_case(range_insert_in_empty_far_index);
+    tst_run_test_case(range_insert_in_populated_end);
+    tst_run_test_case(range_insert_in_populated_end_far);
+    tst_run_test_case(range_insert_in_populated_start);
+    tst_run_test_case(range_insert_in_populated_middle);
+    tst_run_test_case(range_insert_in_full);
+    tst_run_test_case(range_insert_in_full_far);
+    tst_run_test_case(range_insert_in_full_start);
 }
 
 #endif
