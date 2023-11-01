@@ -15,17 +15,22 @@ typedef struct {
     byte data[];        /** actual data in the range as a byte array */
 } range;
 
+#define sizeof_range(__r) (sizeof(*(__r)) + ((__r)->stride * (__r)->capacity))
+
+/**
+ * @brief Type of a static range with a size determined at compile time.
+ */
+#define range_static(__capacity, __type) struct { size_t stride; size_t capacity; size_t length; __type data[__capacity]; }
 /**
  * @brief Creates a static range from values. This range lives in the context it has been created in.
  */
 #define range_static_create(__capacity, __type, ...) \
-        ((range *) &(struct { size_t stride; size_t capacity; size_t length; __type data[__capacity]; }) \
         { \
                 .stride = sizeof(__type), \
                 .capacity = __capacity,  \
                 .length = count_of(((__type[]) {__VA_ARGS__})), \
                 .data = {__VA_ARGS__} \
-        })
+        }
 
 // adding elements
 bool range_insert(range *r, size_t index, void *value);
