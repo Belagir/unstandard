@@ -3,16 +3,17 @@
 #define __TEEMING_TREE_H__
 
 #include <ustd/common.h>
+#include <ustd/allocation.h>
 
 /**
  * @brief
  *
  */
-enum ttree_mishap {
+typedef enum {
 	TTREE_NO_MISHAP,
 
 	TTREE_INCORRECT_PATH
-};
+} ttree_mishap;
 
 #define TTREE_FOREACH_FLAG_INCLUDE_CHILDREN  (0x01u)
 #define TTREE_FOREACH_FLAG_INCLUDE_PARENTS   (0x02u)
@@ -40,7 +41,7 @@ typedef struct {
  * @param[in] nb_nodes maximum number of nodes held inside the tree
  * @return ttree*
  */
-ttree * ttree_create(size_t nb_nodes);
+ttree * ttree_create(allocator alloc, size_t nb_nodes);
 
 /**
  * @brief Returns a subtree from a broader tree by its path. The subtree can then be used with other ttree interface methods to change the tree.
@@ -111,7 +112,7 @@ i32 ttree_remove(subttree target);
  *
  * @param[inout] tree discarded tree
  */
-void ttree_destroy(ttree **tree);
+void ttree_destroy(allocator alloc, ttree **tree);
 
 #ifdef UNITTESTING
 void ttree_execute_unittests(void);

@@ -1,5 +1,5 @@
 
-#include <stdlib.h>
+// #include <stdlib.h>
 
 #include <ustd/common.h>
 #include <ustd/tree.h>
@@ -108,7 +108,7 @@ static void apply_other_function_on_data(ttree *tree, void *additional_args);
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-ttree * ttree_create(size_t nb_nodes)
+ttree * ttree_create(allocator alloc, size_t nb_nodes)
 {
 	ttree *new_tree = NULL;
 
@@ -118,7 +118,7 @@ ttree * ttree_create(size_t nb_nodes)
 	}
 
 	// allocating memory for the tree struct
-	new_tree = malloc(sizeof(*new_tree) + (sizeof(*new_tree) * (nb_nodes + 1u)));
+	new_tree = alloc.malloc(alloc, sizeof(*new_tree) + (sizeof(*new_tree) * (nb_nodes + 1u)));
 
 	if (!new_tree) {
 		return NULL;
@@ -254,9 +254,9 @@ void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additiona
 }
 
 // -------------------------------------------------------------------------------------------------
-void ttree_destroy(ttree **tree)
+void ttree_destroy(allocator alloc, ttree **tree)
 {
-	free(*tree);
+	alloc.free(alloc, *tree);
 	*tree = NULL;
 }
 
@@ -403,11 +403,11 @@ tst_CREATE_TEST_SCENARIO(tree_creation,
 			i32 is_failing;
 		},
 		{
-			ttree *tree = ttree_create(data->nb_nodes);
+			ttree *tree = ttree_create(make_system_allocator(), data->nb_nodes);
 
 			tst_assert_equal(data->is_failing, (tree == NULL), "nullness test of %d");
 			if (tree) {
-				ttree_destroy(&tree);
+				ttree_destroy(make_system_allocator(), &tree);
 			}
 			tst_assert_equal(NULL, tree, "tree address : %#010x");
 		}
