@@ -117,6 +117,7 @@ range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elemen
     return r;
 }
 
+// -------------------------------------------------------------------------------------------------
 range *range_copy_of(allocator alloc, range *r)
 {
     const size_t sizeof_copy = sizeof_range(r);
@@ -131,6 +132,20 @@ range *range_copy_of(allocator alloc, range *r)
     return r_copy;
 }
 
+// -------------------------------------------------------------------------------------------------
+range *range_move_of(allocator alloc, range *r)
+{
+    range *moved_range = range_copy_of(alloc, r);
+    if (moved_range == nullptr) {
+        return nullptr;
+    }
+
+    alloc.free(alloc, r);
+
+    return moved_range;
+}
+
+// -------------------------------------------------------------------------------------------------
 range *range_concat(allocator alloc, range *r_left, range *r_right)
 {
     range *r_concat = range_dynamic_create(alloc, r_left->stride, r_left->capacity + r_right->capacity);

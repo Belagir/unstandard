@@ -34,6 +34,16 @@ typedef struct {
                 .length = count_of(((__type[]) {__VA_ARGS__})), \
                 .data = {__VA_ARGS__} \
         }
+/**
+ * @brief Creates a static range from values. This range is created with a length equal to its capacity, which is the count of elements provided.
+ */
+#define range_static_create_fit(__type, ...) \
+        { \
+                .stride = sizeof(__type), \
+                .capacity = count_of(((__type[]) {__VA_ARGS__})),  \
+                .length = count_of(((__type[]) {__VA_ARGS__})), \
+                .data = {__VA_ARGS__} \
+        }
 
 // adding elements
 bool range_insert(range *r, size_t index, void *value);
@@ -60,6 +70,7 @@ void   range_dynamic_destroy(allocator alloc, range *r);
 // ranges & ranges
 range *range_concat(allocator alloc, range *r_left, range *r_right);
 range *range_copy_of(allocator alloc, range *r);
+range *range_move_of(allocator alloc, range *r);
 
 #ifdef UNITTESTING
 void range_execute_unittests(void);
