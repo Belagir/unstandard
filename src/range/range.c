@@ -37,9 +37,9 @@ bool range_insert_value(range *r, size_t index, void *value)
 }
 
 // -------------------------------------------------------------------------------------------------
-bool range_insert_range(range *r, size_t index, range *other)
+bool range_insert_range(range *r, size_t index, const range *other)
 {
-    if ((r->length + other->length) > r->capacity) {
+    if (((r->length + other->length) > r->capacity) || (r->stride != r->stride)) {
         return false;
     }
 
@@ -142,6 +142,10 @@ range *range_move_of(allocator alloc, range *r)
 // -------------------------------------------------------------------------------------------------
 range *range_concat(allocator alloc, range *r_left, range *r_right)
 {
+    if (r_left->stride != r_right->stride) {
+        return nullptr;
+    }
+
     range *r_concat = range_dynamic_create(alloc, r_left->stride, r_left->capacity + r_right->capacity);
     if (r_concat == nullptr) {
         return nullptr;
