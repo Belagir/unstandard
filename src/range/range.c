@@ -18,9 +18,9 @@ static void range_set(range *r, size_t index, void *value);
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-bool range_insert(range *r, size_t index, void *value)
+bool range_insert_value(range *r, size_t index, void *value)
 {
-    if ((r->length == r->capacity) || (index >= r->capacity)) {
+    if (r->length + 1 > r->capacity) {
         return false;
     }
 
@@ -32,19 +32,29 @@ bool range_insert(range *r, size_t index, void *value)
 
     range_set(r, index, value);
     r->length += 1;
+
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------
-bool range_push_back(range *r, void *value)
+bool range_insert_range(range *r, size_t index, range *other)
 {
-    return range_insert(r, r->length, value);
-}
+    if ((r->length + other->length) > r->capacity) {
+        return false;
+    }
 
-// -------------------------------------------------------------------------------------------------
-bool range_push_front(range *r, void *value)
-{
-    return range_insert(r, 0, value);
+    index = min(index, r->length);
+
+    for (size_t i = r->length ; i > index ; i--) {
+        bytewise_copy(r->data + ((i + (other->length - 1)) * r->stride), r->data + (i - 1) * r->stride, r->stride);
+    }
+
+    for (size_t i = 0 ; i < other->length ; i++) {
+        range_set(r, index + i, &range_val(other, i, byte));
+    }
+    r->length += other->length;
+
+    return true;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -66,22 +76,6 @@ bool range_remove(range *r, size_t index)
     r->length -= 1;
 
     return true;
-}
-
-// -------------------------------------------------------------------------------------------------
-bool range_pop_back(range *r)
-{
-    if (r->length == 0) {
-        return false;
-    }
-
-    return range_remove(r, r->length - 1);
-}
-
-// -------------------------------------------------------------------------------------------------
-bool range_pop_front(range *r)
-{
-    return range_remove(r, 0);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -190,7 +184,7 @@ static void range_set(range *r, size_t index, void *value)
 
 #ifdef UNITTESTING
 
-tst_CREATE_TEST_SCENARIO(range_insert,
+tst_CREATE_TEST_SCENARIO(range_insert_value,
         {
             range_static(10, u64) r;
             size_t index_insertion;
@@ -200,79 +194,146 @@ tst_CREATE_TEST_SCENARIO(range_insert,
             range_static(10, u64) r_expected;
         },
         {
-            bool success = range_insert((range *) &data->r, data->index_insertion, &data->inserted_value);
+            bool success = range_insert_value((range *) &data->r, data->index_insertion, &data->inserted_value);
             tst_assert_equal(data->expect_success, success, "success of %d");
 
             tst_assert_equal(data->r_expected.length, data->r.length, "length of %d");
 
             for (size_t i = 0 ; i < data->r_expected.length ; i++) {
-                tst_assert(range_at(&data->r_expected, i, u64) == range_at(&data->r, i, u64), "data at index %d mismatch : expected %d, got %d",
-                        i, range_at(&data->r_expected, i, u64), range_at(&data->r, i, u64));
+                tst_assert(range_val(&data->r_expected, i, u64) == range_val(&data->r, i, u64), "data at index %d mismatch : expected %d, got %d",
+                        i, range_val(&data->r_expected, i, u64), range_val(&data->r, i, u64));
             }
         })
 
-tst_CREATE_TEST_CASE(range_insert_in_empty, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_empty, range_insert_value,
         .r = range_static_create(10, u64),
         .index_insertion = 0,
         .inserted_value = 42,
         .expect_success = true,
         .r_expected = range_static_create(10, u64, 42)
 )
-tst_CREATE_TEST_CASE(range_insert_in_empty_far_index, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_empty_far_index, range_insert_value,
         .r = range_static_create(10, u64),
         .index_insertion = 6,
         .inserted_value = 42,
         .expect_success = true,
         .r_expected = range_static_create(10, u64, 42)
 )
-tst_CREATE_TEST_CASE(range_insert_in_populated_end, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_populated_end, range_insert_value,
         .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
         .index_insertion = 6,
         .inserted_value = 42,
         .expect_success = true,
         .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 42),
 )
-tst_CREATE_TEST_CASE(range_insert_in_populated_end_far, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_populated_end_far, range_insert_value,
         .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
         .index_insertion = 9,
         .inserted_value = 42,
         .expect_success = true,
         .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 42),
 )
-tst_CREATE_TEST_CASE(range_insert_in_populated_start, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_populated_start, range_insert_value,
         .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
         .index_insertion = 0,
         .inserted_value = 42,
         .expect_success = true,
         .r_expected = range_static_create(10, u64, 42, 0, 1, 2, 3, 4, 5)
 )
-tst_CREATE_TEST_CASE(range_insert_in_populated_middle, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_populated_middle, range_insert_value,
         .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5),
         .index_insertion = 3,
         .inserted_value = 42,
         .expect_success = true,
         .r_expected = range_static_create(10, u64, 0, 1, 2, 42, 3, 4, 5)
 )
-tst_CREATE_TEST_CASE(range_insert_in_full, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_full, range_insert_value,
         .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
         .index_insertion = 5,
         .inserted_value = 42,
         .expect_success = false,
         .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 )
-tst_CREATE_TEST_CASE(range_insert_in_full_far, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_full_far, range_insert_value,
         .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
         .index_insertion = 15,
         .inserted_value = 42,
         .expect_success = false,
         .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 )
-tst_CREATE_TEST_CASE(range_insert_in_full_start, range_insert,
+tst_CREATE_TEST_CASE(range_insert_in_full_start, range_insert_value,
         .r = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
         .index_insertion = 0,
         .inserted_value = 42,
         .expect_success = false,
         .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(range_insert_other,
+        {
+            range_static(10, u64) r;
+            size_t index_insertion;
+            range_static(10, u64) other;
+
+            bool expect_success;
+            range_static(10, u64) r_expected;
+        },
+        {
+            bool success = range_insert_range((range *) &data->r, data->index_insertion, (range *) &data->other);
+            tst_assert_equal(data->expect_success, success, "success of %d");
+
+            tst_assert_equal(data->r_expected.length, data->r.length, "length of %d");
+
+            for (size_t i = 0 ; i < data->r_expected.length ; i++) {
+                tst_assert(range_val(&data->r_expected, i, u64) == range_val(&data->r, i, u64), "data at index %d mismatch : expected %d, got %d",
+                        i, range_val(&data->r_expected, i, u64), range_val(&data->r, i, u64));
+            }
+        }
+)
+
+tst_CREATE_TEST_CASE(range_insert_other_simple, range_insert_other,
+        .r = range_static_create(10, u64, 0, 1, 2),
+        .index_insertion = 3,
+        .other = range_static_create(10, u64, 3, 4, 5),
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 0, 1, 2, 3, 4, 5)
+)
+tst_CREATE_TEST_CASE(range_insert_other_in_empty, range_insert_other,
+        .r = range_static_create(10, u64),
+        .index_insertion = 0,
+        .other = range_static_create(10, u64, 3, 4, 5),
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 3, 4, 5)
+)
+tst_CREATE_TEST_CASE(range_insert_other_too_large, range_insert_other,
+        .r = range_static_create(10, u64, 1),
+        .index_insertion = 0,
+        .other = range_static_create(10, u64, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .expect_success = false,
+        .r_expected = range_static_create(10, u64, 1)
+)
+tst_CREATE_TEST_CASE(range_insert_other_empty, range_insert_other,
+        .r = range_static_create(10, u64, 1, 2, 3, 4, 5),
+        .index_insertion = 6,
+        .other = range_static_create(10, u64),
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 1, 2, 3, 4, 5)
+)
+tst_CREATE_TEST_CASE(range_insert_other_start, range_insert_other,
+        .r = range_static_create(10, u64, 1, 2, 3, 4, 5),
+        .index_insertion = 0,
+        .other = range_static_create(10, u64, 8, 7, 6),
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 8, 7, 6, 1, 2, 3, 4, 5)
+)
+tst_CREATE_TEST_CASE(range_insert_other_middle, range_insert_other,
+        .r = range_static_create(10, u64, 1, 2, 3, 4, 5),
+        .index_insertion = 2,
+        .other = range_static_create(10, u64, 8, 7, 6),
+        .expect_success = true,
+        .r_expected = range_static_create(10, u64, 1, 2, 8, 7, 6, 3, 4, 5)
 )
 
 // -------------------------------------------------------------------------------------------------
@@ -292,8 +353,8 @@ tst_CREATE_TEST_SCENARIO(range_remove,
 
             tst_assert_equal(data->r_expected.length, data->r.length, "length of %d");
             for (size_t i = 0 ; i < data->r_expected.length ; i++) {
-                tst_assert(range_at(&data->r_expected, i, u64) == range_at(&data->r, i, u64), "data at index %d mismatch : expected %d, got %d",
-                        i, range_at(&data->r_expected, i, u64), range_at(&data->r, i, u64));
+                tst_assert(range_val(&data->r_expected, i, u64) == range_val(&data->r, i, u64), "data at index %d mismatch : expected %d, got %d",
+                        i, range_val(&data->r_expected, i, u64), range_val(&data->r, i, u64));
             }
         })
 
@@ -352,8 +413,8 @@ tst_CREATE_TEST_SCENARIO(range_create_from,
 
             tst_assert_equal(data->source_length, r->length, "length of %d");
             for (size_t i = 0 ; i < data->expected.length ; i++) {
-                tst_assert(range_at(&data->expected, i, u64) == range_at(r, i, u64), "data at index %d mismatch : expected %d, got %d",
-                        i, range_at(&data->expected, i, u64), range_at(r, i, u64));
+                tst_assert(range_val(&data->expected, i, u64) == range_val(r, i, u64), "data at index %d mismatch : expected %d, got %d",
+                        i, range_val(&data->expected, i, u64), range_val(r, i, u64));
             }
 
             range_dynamic_destroy(make_system_allocator(), r);
@@ -393,8 +454,8 @@ tst_CREATE_TEST_SCENARIO(range_resize,
             }
 
             for (size_t i = 0 ; i < r->length ; i++) {
-                tst_assert(range_at(&data->original_range, i, u32) == range_at(r, i, u32), "data at index %d mismatch : expected %d, got %d",
-                        i, range_at(&data->original_range, i, u32), range_at(r, i, u32));
+                tst_assert(range_val(&data->original_range, i, u32) == range_val(r, i, u32), "data at index %d mismatch : expected %d, got %d",
+                        i, range_val(&data->original_range, i, u32), range_val(r, i, u32));
             }
 
             range_dynamic_destroy(make_system_allocator(), r);
@@ -434,8 +495,8 @@ tst_CREATE_TEST_SCENARIO(range_concat,
 
             tst_assert_equal(data->r_expected.length, r->length, "length of %d");
             for (size_t i = 0 ; i < r->length ; i++) {
-                tst_assert(range_at(&data->r_expected, i, u32) == range_at(r, i, u32), "data at index %d mismatch : expected %d, got %d",
-                        i, range_at(&data->r_expected, i, u32), range_at(r, i, u32));
+                tst_assert(range_val(&data->r_expected, i, u32) == range_val(r, i, u32), "data at index %d mismatch : expected %d, got %d",
+                        i, range_val(&data->r_expected, i, u32), range_val(r, i, u32));
             }
 
             range_dynamic_destroy(make_system_allocator(), r);
@@ -474,6 +535,13 @@ void range_execute_unittests(void)
     tst_run_test_case(range_insert_in_full);
     tst_run_test_case(range_insert_in_full_far);
     tst_run_test_case(range_insert_in_full_start);
+
+    tst_run_test_case(range_insert_other_simple);
+    tst_run_test_case(range_insert_other_in_empty);
+    tst_run_test_case(range_insert_other_too_large);
+    tst_run_test_case(range_insert_other_empty);
+    tst_run_test_case(range_insert_other_start);
+    tst_run_test_case(range_insert_other_middle);
 
     tst_run_test_case(range_remove_unique);
     tst_run_test_case(range_remove_start);

@@ -21,7 +21,7 @@ bool sorted_range_find_in(range *r_haystack, i32 (*comparator)(const void*, cons
     while ((beggining <= end) && (comp_result != 0)) {
         index = (i32) ceil_div(beggining + end, 2);
 
-        comp_result = comparator(needle, (void *) &range_at(r_haystack, index, byte));
+        comp_result = comparator(needle, (void *) &range_val(r_haystack, index, byte));
 
         if (comp_result == 1) {
             beggining = index + 1;
@@ -31,9 +31,9 @@ bool sorted_range_find_in(range *r_haystack, i32 (*comparator)(const void*, cons
         }
     }
 
-    while ((index > 0) && (comparator(needle, (void *) &range_at(r_haystack, index - 1, byte)) == 0)) {
+    while ((index > 0) && (comparator(needle, (void *) &range_val(r_haystack, index - 1, byte)) == 0)) {
         index -= 1;
-        comp_result = comparator(needle, (void *) &range_at(r_haystack, index, byte));
+        comp_result = comparator(needle, (void *) &range_val(r_haystack, index, byte));
     }
 
     if (out_position != NULL) {
@@ -216,9 +216,9 @@ tst_CREATE_TEST_SCENARIO(sorted_array_remove_element,
                         (data->expect_deletion)? "not " : "");
 
             for (size_t i = 0u ; i < (20u - data->expect_deletion) ; i++) {
-                tst_assert(range_at(&data->array, i, u32) == range_at(&data->expected_array, i, u32),
+                tst_assert(range_val(&data->array, i, u32) == range_val(&data->expected_array, i, u32),
                             "element at position %d did not match : expected %d , got %d",
-                            i, range_at(&data->array, i, u32), range_at(&data->expected_array, i, u32));
+                            i, range_val(&data->array, i, u32), range_val(&data->expected_array, i, u32));
             }
         }
 )
@@ -273,9 +273,9 @@ tst_CREATE_TEST_SCENARIO(sorted_array_insert,
             tst_assert_equal(data->expected_position, insertion_pos, "position %d");
 
             for (size_t i = 0u ; i < (data->array.length) ; i++) {
-                tst_assert(range_at(&data->array, i, u32) == range_at(&data->expected_array, i, u32),
+                tst_assert(range_val(&data->array, i, u32) == range_val(&data->expected_array, i, u32),
                             "element at position %d did not match : expected %d , got %d",
-                            i, range_at(&data->array, i, u32), range_at(&data->expected_array, i, u32));
+                            i, range_val(&data->array, i, u32), range_val(&data->expected_array, i, u32));
             }
         }
 )

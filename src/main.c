@@ -6,6 +6,7 @@
 #include <ustd/range.h>
 #include <ustd/res.h>
 #include <ustd/sorting.h>
+#include <ustd/strings.h>
 #include <ustd/testutilities.h>
 #include <ustd/tree.h>
 

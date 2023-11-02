@@ -73,11 +73,11 @@ static void heapify(range *array, size_t length_heap, size_t index, i32 (*compar
 
         imax = index;
 
-        if ((right < length_heap) && (comparator((void *) &range_at(array, right, byte), (void *) &range_at(array, imax, byte)) == 1)) {
+        if ((right < length_heap) && (comparator((void *) &range_val(array, right, byte), (void *) &range_val(array, imax, byte)) == 1)) {
             imax = right;
         }
 
-        if ((left < length_heap) && (comparator((void *) &range_at(array, left, byte), (void *) &range_at(array, imax, byte)) == 1)) {
+        if ((left < length_heap) && (comparator((void *) &range_val(array, left, byte), (void *) &range_val(array, imax, byte)) == 1)) {
             imax = left;
         }
 
@@ -114,7 +114,7 @@ bool is_sorted(range *array, i32 (*comparator)(const void*, const void*))
     }
 
     pos = 1u;
-    while ((pos < array->length) && (comparator((void *) &range_at(array, pos, byte), (void *) &range_at(array, pos-1, byte)) != -1)) {
+    while ((pos < array->length) && (comparator((void *) &range_val(array, pos, byte), (void *) &range_val(array, pos-1, byte)) != -1)) {
         pos += 1u;
     }
 
@@ -139,8 +139,8 @@ tst_CREATE_TEST_SCENARIO(heap_sort,
             heapsort_sort((range *) &data->to_sort, &test_i32_comparator);
 
             for (size_t i = 0 ; i < 10 ; i++) {
-                tst_assert(range_at(&data->expected, i, i32) == range_at(&data->to_sort, i, i32),
-                        "data at index %d mismatch : expected %d, got %d", i, range_at(&data->expected, i, i32) == range_at(&data->to_sort, i, i32));
+                tst_assert(range_val(&data->expected, i, i32) == range_val(&data->to_sort, i, i32),
+                        "data at index %d mismatch : expected %d, got %d", i, range_val(&data->expected, i, i32) == range_val(&data->to_sort, i, i32));
             }
 
             tst_assert(is_sorted((range *) &data->to_sort, &test_i32_comparator), "range is not sorted !");
