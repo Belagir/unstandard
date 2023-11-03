@@ -59,7 +59,7 @@ typedef i32 (*range_comparator)(const void *, const void *);
  * @return true if the element was inserted
  * @return false if the range did not have space
  */
-bool range_insert_value(range *r, size_t index, void *value);
+bool range_insert_value(range *r, size_t index, const void *value);
 
 /**
  * @brief Inserts the values held in a range in another range. Both range should be of the same stride, and the first range should have enough space to store all the values in the second one. Like inserting a value, already present values after the insertion index are shifted to the right.
@@ -122,7 +122,7 @@ range *range_dynamic_create(allocator alloc, size_t size_element, size_t nb_elem
  * @return range* created range containing the values in the array
  */
 [[nodiscard]]
-range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, void *array);
+range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, const void *array);
 
 /**
  * @brief Creates a range from an existing range, but assigns a new size to it. This size can be greater or smaller than the original.
@@ -134,7 +134,7 @@ range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elemen
  * @return range* created range of a new capacity holding the same values as the original range.
  */
 [[nodiscard]]
-range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capacity);
+range *range_dynamic_from_resize_of(allocator alloc, const range *r, size_t new_capacity);
 
 /**
  * @brief Frees a range from the allocator it was created with.
@@ -154,7 +154,7 @@ void range_dynamic_destroy(allocator alloc, range *r);
  * @return range* concatenation of the two ranges
  */
 [[nodiscard]]
-range *range_concat(allocator alloc, range *r_left, range *r_right);
+range *range_concat(allocator alloc, const range *r_left, const range *r_right);
 
 /**
  * @brief Returns a copy of the supplied range.
@@ -164,7 +164,7 @@ range *range_concat(allocator alloc, range *r_left, range *r_right);
  * @return range* copy of the given range
  */
 [[nodiscard]]
-range *range_copy_of(allocator alloc, range *r);
+range *range_copy_of(allocator alloc, const range *r);
 
 /**
  * @brief Returns a copy of the supplied range and frees the original. This can be used to transfer ownership explicitely betwween contexts.
@@ -186,7 +186,7 @@ range *range_move_of(allocator alloc, range *r);
  * @return range* created subrange
  */
 [[nodiscard]]
-range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t end_index);
+range *range_subrange_of(allocator alloc, const range *r, size_t start_index, size_t end_index);
 
 /**
  * @brief Search for an element in the range haystack and returns an index to it. If the element is not found, then the length of the range is returned.
@@ -196,7 +196,7 @@ range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t e
  * @param[in] needle pointer to an element that can compare to an element inside the range
  * @return size_t index of the element if found, length of the range otherwise
  */
-size_t range_index_of(const range *haystack, range_comparator comparator, void *needle)
+size_t range_index_of(const range *haystack, range_comparator comparator, void *needle);
 
 /**
  * @brief Creates a new range from part of another range and removes the copied values from the original range. The returned sub range is constituted of values coming before the first occurence of the separator, plus the separator. So splitting the range "I-love-C" with '-' will return the range "I-" and leave "love-C" in the range.

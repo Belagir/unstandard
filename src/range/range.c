@@ -12,13 +12,13 @@
  * @param index
  * @param value
  */
-static void range_set(range *r, size_t index, void *value);
+static void range_set(range *r, size_t index, const void *value);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-bool range_insert_value(range *r, size_t index, void *value)
+bool range_insert_value(range *r, size_t index, const void *value)
 {
     if (r->length + 1 > r->capacity) {
         return false;
@@ -98,7 +98,7 @@ void range_dynamic_destroy(allocator alloc, range *r)
 }
 
 // -------------------------------------------------------------------------------------------------
-range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, void *array)
+range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, const void *array)
 {
     range *r = range_dynamic_create(alloc, size_element, nb_elements_max);
     if (r == nullptr) {
@@ -112,7 +112,7 @@ range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elemen
 }
 
 // -------------------------------------------------------------------------------------------------
-range *range_copy_of(allocator alloc, range *r)
+range *range_copy_of(allocator alloc, const range *r)
 {
     const size_t sizeof_copy = sizeof_range(r);
 
@@ -140,7 +140,7 @@ range *range_move_of(allocator alloc, range *r)
 }
 
 // -------------------------------------------------------------------------------------------------
-range *range_concat(allocator alloc, range *r_left, range *r_right)
+range *range_concat(allocator alloc, const range *r_left, const range *r_right)
 {
     if (r_left->stride != r_right->stride) {
         return nullptr;
@@ -160,11 +160,11 @@ range *range_concat(allocator alloc, range *r_left, range *r_right)
 }
 
 // -------------------------------------------------------------------------------------------------
-range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capacity)
+range *range_dynamic_from_resize_of(allocator alloc, const range *r, size_t new_capacity)
 {
     range *new_range = range_dynamic_create(alloc, r->stride, new_capacity);
     if (new_range == nullptr) {
-        return r;
+        return nullptr;
     }
 
     new_range->length = min(r->length, new_range->capacity);
@@ -174,7 +174,7 @@ range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capaci
 }
 
 // -------------------------------------------------------------------------------------------------
-range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t end_index)
+range *range_subrange_of(allocator alloc, const range *r, size_t start_index, size_t end_index)
 {
     size_t nb_copied_elements = 0;
 
@@ -192,7 +192,7 @@ range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t e
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-static void range_set(range *r, size_t index, void *value)
+static void range_set(range *r, size_t index, const void *value)
 {
     bytewise_copy(r->data + (index * r->stride), value, r->stride);
 }
