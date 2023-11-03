@@ -94,6 +94,18 @@ bool range_insert_range(range *r, size_t index, const range *other);
 bool range_remove(range *r, size_t index);
 
 /**
+ * @brief Removes several elements fom a range, from the index `from` (included) to the index `to` (excluded).
+ * The function either removes all elements specified or none.
+ *
+ * @param[inout] r target range
+ * @param[in] from index from which to start removing
+ * @param[in] to index up to which the removal goes
+ * @return true if all elements were removed
+ * @return false if the bounds provided were invalid
+ */
+bool range_remove_interval(range *r, size_t from, size_t to);
+
+/**
  * @brief Clears a range of all its content.
  *
  * @param[inout] r cleared range
@@ -194,23 +206,10 @@ range *range_subrange_of(allocator alloc, const range *r, size_t start_index, si
  * @param[in] haystack range searched
  * @param[in] comparator traditional comparator function for the elements of the range
  * @param[in] needle pointer to an element that can compare to an element inside the range
+ * @param[in] from index from which to search for the element
  * @return size_t index of the element if found, length of the range otherwise
  */
-size_t range_index_of(const range *haystack, range_comparator comparator, void *needle);
-
-/**
- * @brief Creates a new range from part of another range and removes the copied values from the original range. The returned sub range is constituted of values coming before the first occurence of the separator, plus the separator. So splitting the range "I-love-C" with '-' will return the range "I-" and leave "love-C" in the range.
- *
- * If the separator is not found in the range, then the range is emptied and the returned range contains all of the original range.
- * No change is made to the original capacity of the original range, and the capacity of the returned range is fitted to its length.
- *
- * @param[inout] r original range
- * @param[in] comparator traditional comparator function for the elements of the range
- * @param[in] sep pointer to an element that can compare to an element inside the range
- * @return range* first split of the range
- */
-[[nodiscard]]
-range *range_split(range *r, range_comparator comparator, void *sep);
+size_t range_index_of(const range *haystack, range_comparator comparator, const void *needle, size_t from);
 
 #ifdef UNITTESTING
 void range_execute_unittests(void);

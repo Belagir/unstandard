@@ -66,14 +66,26 @@ void range_clear(range *r)
 // -------------------------------------------------------------------------------------------------
 bool range_remove(range *r, size_t index)
 {
-    if (index >= r->length) {
+    return range_remove_interval(r, index, index + 1);
+}
+
+// -------------------------------------------------------------------------------------------------
+bool range_remove_interval(range *r, size_t from, size_t to)
+{
+    size_t nb_shifted_elements = { 0 };
+    size_t nb_removed_elements = { 0 };
+
+    if ((from >= to) || (to > r->length)) {
         return false;
     }
 
-    for (size_t i = index + 1 ; i < r->length ; i++) {
-        bytewise_copy(r->data + (i - 1) * r->stride, r->data + (i * r->stride), r->stride);
+    nb_shifted_elements = r->length - to;
+    nb_removed_elements = to - from;
+
+    for (size_t i = 0 ; i <= nb_shifted_elements ; i++) {
+        bytewise_copy(range_at(r, from + i), range_at(r, from + i + nb_removed_elements), r->stride);
     }
-    r->length -= 1;
+    r->length -= (to - from);
 
     return true;
 }
@@ -176,7 +188,7 @@ range *range_dynamic_from_resize_of(allocator alloc, const range *r, size_t new_
 // -------------------------------------------------------------------------------------------------
 range *range_subrange_of(allocator alloc, const range *r, size_t start_index, size_t end_index)
 {
-    size_t nb_copied_elements = 0;
+    size_t nb_copied_elements = { 0 };
 
     if ((start_index >= end_index) || (end_index > r->length)) {
         return nullptr;
@@ -186,6 +198,20 @@ range *range_subrange_of(allocator alloc, const range *r, size_t start_index, si
     range *sub_range = range_dynamic_from(alloc, r->stride, nb_copied_elements, nb_copied_elements, range_at(r, start_index));
 
     return sub_range;
+}
+
+// -------------------------------------------------------------------------------------------------
+size_t range_index_of(const range *haystack, range_comparator comparator, const void *needle, size_t from)
+{
+    bool found = { false };
+    size_t pos = { min(from, haystack->length) };
+
+    while ((pos < haystack->length) && !found) {
+        found = (comparator(range_at(haystack, pos), needle) == 0);
+        pos += !found;
+    }
+
+    return pos;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -202,6 +228,13 @@ static void range_set(range *r, size_t index, const void *value)
 // -------------------------------------------------------------------------------------------------
 
 #ifdef UNITTESTING
+
+static i32 test_compare_u32(const void *el1, const void *el2) {
+    u32 val1 = *((u32 *) el1);
+    u32 val2 = *((u32 *) el2);
+
+    return (val1 > val2) - (val1 < val2);
+}
 
 tst_CREATE_TEST_SCENARIO(range_insert_value,
         {
@@ -620,6 +653,120 @@ tst_CREATE_TEST_CASE(range_get_bad_subrange_indexes_2, range_get_subrange,
         .r_expected = range_static_create(10, u32),
 )
 
+tst_CREATE_TEST_SCENARIO(range_search_index,
+        {
+            range_static(10, u32) r_haystack;
+            u32 needle;
+            size_t from;
+
+            size_t expected_pos;
+        },
+        {
+            size_t pos = range_index_of((range *) &data->r_haystack, &test_compare_u32, &data->needle, data->from);
+            tst_assert_equal(data->expected_pos, pos, "position of %d");
+        }
+)
+
+tst_CREATE_TEST_CASE(range_search_index_start, range_search_index,
+        .r_haystack = range_static_create(10, u32, 99, 42, 55, 1, 5, 128, 5, 42, 3, 2 ),
+        .needle = 99,
+        .from = 0,
+        .expected_pos = 0
+)
+tst_CREATE_TEST_CASE(range_search_index_end, range_search_index,
+        .r_haystack = range_static_create(10, u32, 99, 42, 55, 1, 5, 128, 5, 42, 3, 2 ),
+        .needle = 2,
+        .from = 0,
+        .expected_pos = 9
+)
+tst_CREATE_TEST_CASE(range_search_index_middle, range_search_index,
+        .r_haystack = range_static_create(10, u32, 99, 42, 55, 1, 5, 128, 5, 42, 3, 2 ),
+        .needle = 128,
+        .from = 0,
+        .expected_pos = 5
+)
+tst_CREATE_TEST_CASE(range_search_index_not_found, range_search_index,
+        .r_haystack = range_static_create(10, u32, 99, 42, 55, 1, 5, 128, 5, 42, 3, 2 ),
+        .needle = 66,
+        .from = 0,
+        .expected_pos = 10
+)
+tst_CREATE_TEST_CASE(range_search_index_from_searched, range_search_index,
+        .r_haystack = range_static_create(10, u32, 99, 42, 55, 1, 5, 128, 5, 42, 3, 2 ),
+        .needle = 55,
+        .from = 2,
+        .expected_pos = 2
+)
+tst_CREATE_TEST_CASE(range_search_index_second_iter, range_search_index,
+        .r_haystack = range_static_create(10, u32, 99, 42, 55, 1, 5, 128, 5, 42, 3, 2 ),
+        .needle = 5,
+        .from = 5,
+        .expected_pos = 6
+)
+tst_CREATE_TEST_CASE(range_search_index_from_beyond, range_search_index,
+        .r_haystack = range_static_create(10, u32, 99, 42, 55, 1, 5, 128, 5, 42, 3, 2 ),
+        .needle = 2,
+        .from = 15,
+        .expected_pos = 10
+)
+
+tst_CREATE_TEST_SCENARIO(range_remove_interval,
+        {
+            range_static(10, u32) r;
+            size_t from;
+            size_t to;
+
+            bool expect_success;
+            range_static(10, u32) r_expected;
+        },
+        {
+            bool success = range_remove_interval((range *) &data->r, data->from, data->to);
+            tst_assert_equal(data->expect_success, success, "success of %d");
+
+            tst_assert_equal(data->r_expected.length, data->r.length, "length of %d");
+            for (size_t i = 0 ; i < data->r_expected.length ; i++) {
+                tst_assert(range_val(&data->r_expected, i, u32) == range_val(&data->r, i, u32), "data at index %d mismatch : expected %d, got %d",
+                        i, range_val(&data->r_expected, i, u32), range_val(&data->r, i, u32));
+            }
+        }
+)
+
+tst_CREATE_TEST_CASE(range_remove_interval_middle, range_remove_interval,
+        .r = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from = 2,
+        .to = 4,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 0, 1, 4, 5, 6, 7, 8, 9)
+)
+tst_CREATE_TEST_CASE(range_remove_interval_start, range_remove_interval,
+        .r = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from = 0,
+        .to = 5,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 5, 6, 7, 8, 9)
+)
+tst_CREATE_TEST_CASE(range_remove_interval_end, range_remove_interval,
+        .r = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from = 9,
+        .to = 10,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+)
+tst_CREATE_TEST_CASE(range_remove_interval_whole, range_remove_interval,
+        .r = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from = 0,
+        .to = 10,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32)
+)
+tst_CREATE_TEST_CASE(range_remove_interval_fail, range_remove_interval,
+        .r = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from = 5,
+        .to = 4,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+)
+
 void range_execute_unittests(void)
 {
     tst_run_test_case(range_insert_in_empty);
@@ -670,6 +817,20 @@ void range_execute_unittests(void)
 
     tst_run_test_case(range_get_bad_subrange_indexes);
     tst_run_test_case(range_get_bad_subrange_indexes_2);
+
+    tst_run_test_case(range_search_index_start);
+    tst_run_test_case(range_search_index_end);
+    tst_run_test_case(range_search_index_middle);
+    tst_run_test_case(range_search_index_not_found);
+    tst_run_test_case(range_search_index_from_searched);
+    tst_run_test_case(range_search_index_second_iter);
+    tst_run_test_case(range_search_index_from_beyond);
+
+    tst_run_test_case(range_remove_interval_middle);
+    tst_run_test_case(range_remove_interval_start);
+    tst_run_test_case(range_remove_interval_end);
+    tst_run_test_case(range_remove_interval_whole);
+    tst_run_test_case(range_remove_interval_fail);
 }
 
 #endif
