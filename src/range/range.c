@@ -50,7 +50,7 @@ bool range_insert_range(range *r, size_t index, const range *other)
     }
 
     for (size_t i = 0 ; i < other->length ; i++) {
-        range_set(r, index + i, &range_val(other, i, byte));
+        range_set(r, index + i, range_at(other, i));
     }
     r->length += other->length;
 

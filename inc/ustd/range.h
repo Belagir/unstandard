@@ -5,18 +5,15 @@
 #include <ustd/common.h>
 #include <ustd/allocation.h>
 
+#define range_of(__type) struct { size_t stride; size_t capacity; size_t length; __type data[]; }
+
 /**
  * @brief Type of a fixed-size range of arbitrary values.
  */
-typedef struct {
-    size_t stride;      /** size, in bytes, of each individual element in the range */
-    size_t capacity;    /** maximum length, in number of elements, of the range */
-    size_t length;      /** current number of elements in the range */
-    byte data[];        /** actual data in the range as a byte array */
-} range;
+typedef range_of(byte) range;
 
 // accession
-#define range_at(__r, __i)       ( (byte *) (__r)->data) + ((size_t) (__i) * (__r)->stride )
+#define range_at(__r, __i)       ( ((byte *) (__r)->data) + ((size_t) (__i) * (__r)->stride) )
 #define range_val(__r, __i, __t) ( *((__t *) (range_at(__r, __i))) )
 
 /**
@@ -140,7 +137,7 @@ range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capaci
  * @param[inout] alloc allocator that was used to create the range
  * @param[inout] r freed range
  */
-void   range_dynamic_destroy(allocator alloc, range *r);
+void range_dynamic_destroy(allocator alloc, range *r);
 
 // ranges & ranges
 /**
@@ -170,6 +167,19 @@ range *range_copy_of(allocator alloc, range *r);
  * @return range* copy of the given range
  */
 range *range_move_of(allocator alloc, range *r);
+
+/**
+ * @brief Creates a new range from part of another range. Indexes are brought back in bounds if they are beyond the length of the range.
+ *
+ * @param[inout] alloc allocator to use for the operation
+ * @param[in] r target range
+ * @param[in] start_index index from which to copy values, included
+ * @param[in] end_index  index to which values are copied, excluded
+ * @return range* created subrange
+ */
+range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t end_index);
+
+range *range_split(range *r, void *sep);
 
 #ifdef UNITTESTING
 void range_execute_unittests(void);

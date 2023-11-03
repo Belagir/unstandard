@@ -73,11 +73,11 @@ static void heapify(range *array, size_t length_heap, size_t index, i32 (*compar
 
         imax = index;
 
-        if ((right < length_heap) && (comparator((void *) &range_val(array, right, byte), (void *) &range_val(array, imax, byte)) == 1)) {
+        if ((right < length_heap) && (comparator((void *) range_at(array, right), (void *) range_at(array, imax)) == 1)) {
             imax = right;
         }
 
-        if ((left < length_heap) && (comparator((void *) &range_val(array, left, byte), (void *) &range_val(array, imax, byte)) == 1)) {
+        if ((left < length_heap) && (comparator((void *) range_at(array, left), (void *) range_at(array, imax)) == 1)) {
             imax = left;
         }
 
@@ -114,7 +114,7 @@ bool is_sorted(range *array, i32 (*comparator)(const void*, const void*))
     }
 
     pos = 1u;
-    while ((pos < array->length) && (comparator((void *) &range_val(array, pos, byte), (void *) &range_val(array, pos-1, byte)) != -1)) {
+    while ((pos < array->length) && (comparator((void *) range_at(array, pos), (void *) range_at(array, pos-1)) != -1)) {
         pos += 1u;
     }
 

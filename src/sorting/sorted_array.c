@@ -21,7 +21,7 @@ bool sorted_range_find_in(range *r_haystack, i32 (*comparator)(const void*, cons
     while ((beggining <= end) && (comp_result != 0)) {
         index = (i32) ceil_div(beggining + end, 2);
 
-        comp_result = comparator(needle, (void *) &range_val(r_haystack, index, byte));
+        comp_result = comparator(needle, (void *) range_at(r_haystack, index));
 
         if (comp_result == 1) {
             beggining = index + 1;
@@ -31,9 +31,9 @@ bool sorted_range_find_in(range *r_haystack, i32 (*comparator)(const void*, cons
         }
     }
 
-    while ((index > 0) && (comparator(needle, (void *) &range_val(r_haystack, index - 1, byte)) == 0)) {
+    while ((index > 0) && (comparator(needle, (void *) range_at(r_haystack, index - 1)) == 0)) {
         index -= 1;
-        comp_result = comparator(needle, (void *) &range_val(r_haystack, index, byte));
+        comp_result = comparator(needle, (void *) range_at(r_haystack, index));
     }
 
     if (out_position != NULL) {
