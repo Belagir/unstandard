@@ -16,15 +16,15 @@
 
 static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize);
 
-static void heapify(range *array, size_t length_heap, size_t index, i32 (*comparator)(const void*, const void*));
+static void heapify(range *array, size_t length_heap, size_t index, range_comparator comparator);
 
-static void build_heap(range *array, i32 (*comparator)(const void*, const void*));
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+static void build_heap(range *array, range_comparator comparator);
 
 // -------------------------------------------------------------------------------------------------
-void heapsort_sort(range *array, i32 (*comparator)(const void*, const void*))
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+void heapsort_sort(range *array, range_comparator comparator)
 {
     if (array->length == 0) {
         return;
@@ -59,7 +59,7 @@ static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize)
 }
 
 // -------------------------------------------------------------------------------------------------
-static void heapify(range *array, size_t length_heap, size_t index, i32 (*comparator)(const void*, const void*))
+static void heapify(range *array, size_t length_heap, size_t index, range_comparator comparator)
 {
     size_t imax;
     size_t left;
@@ -91,7 +91,7 @@ static void heapify(range *array, size_t length_heap, size_t index, i32 (*compar
 }
 
 // -------------------------------------------------------------------------------------------------
-static void build_heap(range *array, i32 (*comparator)(const void*, const void*))
+static void build_heap(range *array, range_comparator comparator)
 {
     const size_t start_at = (size_t) ceil((f64) array->length / 2.0F);
 
@@ -105,7 +105,7 @@ static void build_heap(range *array, i32 (*comparator)(const void*, const void*)
 }
 
 // -------------------------------------------------------------------------------------------------
-bool is_sorted(range *array, i32 (*comparator)(const void*, const void*))
+bool is_sorted(range *array, range_comparator comparator)
 {
     size_t pos = { 0u };
 

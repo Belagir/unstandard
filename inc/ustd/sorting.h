@@ -11,7 +11,7 @@
  * @param[inout] array a valid range.
  * @param[in] comparator a comparison function for the type of the element.
  */
-void heapsort_sort(range *array, i32 (*comparator)(const void*, const void*));
+void heapsort_sort(range *array, range_comparator comparator);
 
 /**
  * @brief Returns wether a section of memory is sorted (depending on info given by the user).
@@ -20,7 +20,7 @@ void heapsort_sort(range *array, i32 (*comparator)(const void*, const void*));
  * @param[in] comparator a comparison function for the type of the element.
  * @return i32
  */
-bool is_sorted(range *array, i32 (*comparator)(const void*, const void*));
+bool is_sorted(range *array, range_comparator comparator);
 
 #ifdef UNITTESTING
 void heapsort_execute_unittests(void);
@@ -35,7 +35,7 @@ void heapsort_execute_unittests(void);
  * @param[out] out_position theorical (when not found) or real (when found) position of the needle.
  * @return bool 1 if the elment was found, 0 otherwise.
  */
-bool sorted_range_find_in(range *haystack, i32 (*comparator)(const void*, const void*), void *needle, size_t *out_position);
+bool sorted_range_find_in(range *haystack, range_comparator comparator, void *needle, size_t *out_position);
 
 /**
  * @brief Removes the first occurence of an element (needle) from an anonymous array (haystack) that is assumed to be sorted.
@@ -45,7 +45,7 @@ bool sorted_range_find_in(range *haystack, i32 (*comparator)(const void*, const 
  * @param[in] needle element equal to the one to remove.
  * @return size_t The position of the deleted element, or the length of the array if not found.
  */
-size_t sorted_range_remove_from(range *haystack, i32 (*comparator)(const void*, const void*), void *needle);
+size_t sorted_range_remove_from(range *haystack, range_comparator comparator, void *needle);
 
 /**
  * @brief Adds an element (needle) in an anonymous array (haystack) that is assumed to be sorted and to have enough free space after it for one more element.
@@ -55,7 +55,7 @@ size_t sorted_range_remove_from(range *haystack, i32 (*comparator)(const void*, 
  * @param[in] needle element to add (by shallow copy).
  * @return size_t The new position of the element.
  */
-size_t sorted_range_insert_in(range *haystack, i32 (*comparator)(const void*, const void*), void *inserted_needle);
+size_t sorted_range_insert_in(range *haystack, range_comparator comparator, void *inserted_needle);
 
 #ifdef UNITTESTING
 void sorted_range_execute_unittests(void);
