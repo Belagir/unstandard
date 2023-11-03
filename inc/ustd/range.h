@@ -46,6 +46,8 @@ typedef range_of(byte) range;
                 .data = {__VA_ARGS__} \
         }
 
+typedef i32 (*range_comparator)(const void *, const void *);
+
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
  * If the index is greater than the current length of the range, the element is inserted at the back of the range at the first free space.
@@ -186,8 +188,29 @@ range *range_move_of(allocator alloc, range *r);
 [[nodiscard]]
 range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t end_index);
 
+/**
+ * @brief Search for an element in the range haystack and returns an index to it. If the element is not found, then the length of the range is returned.
+ *
+ * @param[in] haystack range searched
+ * @param[in] comparator traditional comparator function for the elements of the range
+ * @param[in] needle pointer to an element that can compare to an element inside the range
+ * @return size_t index of the element if found, length of the range otherwise
+ */
+size_t range_index_of(const range *haystack, range_comparator comparator, void *needle)
+
+/**
+ * @brief Creates a new range from part of another range and removes the copied values from the original range. The returned sub range is constituted of values coming before the first occurence of the separator, plus the separator. So splitting the range "I-love-C" with '-' will return the range "I-" and leave "love-C" in the range.
+ *
+ * If the separator is not found in the range, then the range is emptied and the returned range contains all of the original range.
+ * No change is made to the original capacity of the original range, and the capacity of the returned range is fitted to its length.
+ *
+ * @param[inout] r original range
+ * @param[in] comparator traditional comparator function for the elements of the range
+ * @param[in] sep pointer to an element that can compare to an element inside the range
+ * @return range* first split of the range
+ */
 [[nodiscard]]
-range *range_split(range *r, void *sep);
+range *range_split(range *r, range_comparator comparator, void *sep);
 
 #ifdef UNITTESTING
 void range_execute_unittests(void);
