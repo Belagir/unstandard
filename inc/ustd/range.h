@@ -106,6 +106,7 @@ void range_clear(range *r);
  * @param[in] nb_elements_max maximum number of elements the range will hold
  * @return range* created range
  */
+[[nodiscard]]
 range *range_dynamic_create(allocator alloc, size_t size_element, size_t nb_elements_max);
 
 /**
@@ -118,6 +119,7 @@ range *range_dynamic_create(allocator alloc, size_t size_element, size_t nb_elem
  * @param[in] array source array to be copied into the range
  * @return range* created range containing the values in the array
  */
+[[nodiscard]]
 range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, void *array);
 
 /**
@@ -129,6 +131,7 @@ range *range_dynamic_from(allocator alloc, size_t size_element, size_t nb_elemen
  * @param[in] new_capacity new capacity of the range
  * @return range* created range of a new capacity holding the same values as the original range.
  */
+[[nodiscard]]
 range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capacity);
 
 /**
@@ -148,6 +151,7 @@ void range_dynamic_destroy(allocator alloc, range *r);
  * @param[in] r_right range  to compose the end of the returned range
  * @return range* concatenation of the two ranges
  */
+[[nodiscard]]
 range *range_concat(allocator alloc, range *r_left, range *r_right);
 
 /**
@@ -157,6 +161,7 @@ range *range_concat(allocator alloc, range *r_left, range *r_right);
  * @param[in] r source range
  * @return range* copy of the given range
  */
+[[nodiscard]]
 range *range_copy_of(allocator alloc, range *r);
 
 /**
@@ -166,6 +171,7 @@ range *range_copy_of(allocator alloc, range *r);
  * @param[inout] r source range, freed by the operation
  * @return range* copy of the given range
  */
+[[nodiscard]]
 range *range_move_of(allocator alloc, range *r);
 
 /**
@@ -177,8 +183,10 @@ range *range_move_of(allocator alloc, range *r);
  * @param[in] end_index  index to which values are copied, excluded
  * @return range* created subrange
  */
+[[nodiscard]]
 range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t end_index);
 
+[[nodiscard]]
 range *range_split(range *r, void *sep);
 
 #ifdef UNITTESTING

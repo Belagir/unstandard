@@ -16,10 +16,9 @@ int main(int argc, char const *argv[])
     quaternion_execute_unittests();
     heapsort_execute_unittests();
     sorted_range_execute_unittests();
-    range_execute_unittests();
     ttree_execute_unittests();
+    range_execute_unittests();
 #endif
-
 
     return 0;
 }

@@ -174,6 +174,21 @@ range *range_dynamic_from_resize_of(allocator alloc, range *r, size_t new_capaci
 }
 
 // -------------------------------------------------------------------------------------------------
+range *range_subrange_of(allocator alloc, range *r, size_t start_index, size_t end_index)
+{
+    size_t nb_copied_elements = 0;
+
+    if ((start_index >= end_index) || (end_index > r->length)) {
+        return nullptr;
+    }
+
+    nb_copied_elements = end_index - start_index + 1;
+    range *sub_range = range_dynamic_from(alloc, r->stride, nb_copied_elements, nb_copied_elements, range_at(r, start_index));
+
+    return sub_range;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -528,6 +543,83 @@ tst_CREATE_TEST_CASE(range_concat_two_empty, range_concat,
         .r_expected = range_static_create(20, u32),
 )
 
+tst_CREATE_TEST_SCENARIO(range_get_subrange,
+        {
+            range_static(10, u32) r_source;
+            size_t begin;
+            size_t end;
+
+            bool expect_success;
+            range_static(10, u32) r_expected;
+        },
+        {
+            range *sub_rg = range_subrange_of(make_system_allocator(), (range *) &data->r_source, data->begin, data->end);
+
+            if (data->expect_success && (sub_rg == nullptr)) {
+                tst_assert(false, "sub range is null but shouldn't");
+            } else if (!data->expect_success && (sub_rg != nullptr)){
+                tst_assert(false, "sub range is not null but should be (length of %d)", sub_rg->length);
+            } else if (data->expect_success) {
+                for (size_t i = 0 ; i < data->r_expected.length ; i++ ) {
+                    tst_assert(range_val(&data->r_expected, i, u32) == range_val(sub_rg, i, u32), "data at index %i mismatch : expected %d, got %d",
+                            i, range_val(&data->r_expected, i, u32), range_val(sub_rg, i, u32));
+                }
+
+                range_dynamic_destroy(make_system_allocator(), sub_rg);
+            }
+        }
+)
+
+tst_CREATE_TEST_CASE(range_get_subrange_middle, range_get_subrange,
+        .r_source = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .begin = 3,
+        .end = 6,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 3, 4, 5),
+)
+tst_CREATE_TEST_CASE(range_get_subrange_whole, range_get_subrange,
+        .r_source = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .begin = 0,
+        .end = 10,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+)
+tst_CREATE_TEST_CASE(range_get_one_element_middle, range_get_subrange,
+        .r_source = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .begin = 4,
+        .end = 5,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 4),
+)
+tst_CREATE_TEST_CASE(range_get_one_element_beggining, range_get_subrange,
+        .r_source = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .begin = 0,
+        .end = 1,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 0),
+)
+tst_CREATE_TEST_CASE(range_get_one_element_end, range_get_subrange,
+        .r_source = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .begin = 9,
+        .end = 10,
+        .expect_success = true,
+        .r_expected = range_static_create(10, u32, 9),
+)
+tst_CREATE_TEST_CASE(range_get_bad_subrange_indexes, range_get_subrange,
+        .r_source = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .begin = 5,
+        .end = 3,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u32),
+)
+tst_CREATE_TEST_CASE(range_get_bad_subrange_indexes_2, range_get_subrange,
+        .r_source = range_static_create(10, u32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .begin = 2,
+        .end = 11,
+        .expect_success = false,
+        .r_expected = range_static_create(10, u32),
+)
+
 void range_execute_unittests(void)
 {
     tst_run_test_case(range_insert_in_empty);
@@ -569,6 +661,15 @@ void range_execute_unittests(void)
     tst_run_test_case(range_concat_notfull);
     tst_run_test_case(range_concat_one_empty);
     tst_run_test_case(range_concat_two_empty);
+
+    tst_run_test_case(range_get_subrange_middle);
+    tst_run_test_case(range_get_subrange_whole);
+    tst_run_test_case(range_get_one_element_middle);
+    tst_run_test_case(range_get_one_element_beggining);
+    tst_run_test_case(range_get_one_element_end);
+
+    tst_run_test_case(range_get_bad_subrange_indexes);
+    tst_run_test_case(range_get_bad_subrange_indexes_2);
 }
 
 #endif
