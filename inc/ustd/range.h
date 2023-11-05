@@ -35,6 +35,9 @@ typedef range_of(byte) range;
                 .length = count_of(((__type[]) {__VA_ARGS__})), \
                 .data = {__VA_ARGS__} \
         }
+
+#define range_from_static(__capacity, __type, ...) ((range *) &(range_static(__capacity, __type)) range_static_create(__capacity, __type, __VA_ARGS__))
+
 /**
  * @brief Creates a static range from values. This range is created with a length equal to its capacity, which is the count of elements provided.
  */
