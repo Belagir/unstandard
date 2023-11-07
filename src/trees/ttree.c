@@ -347,9 +347,9 @@ static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(t
 // -------------------------------------------------------------------------------------------------
 static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
 {
-	const size_t index_end = subtree.pos;
+	const i64 index_end = (i64) subtree.pos;
 
-	for (size_t i = subtree.pos + subtree.parent_tree[subtree.pos].nb_nodes ; i >= index_end ; i--) {
+	for (i64 i = (i64) (subtree.pos + subtree.parent_tree[subtree.pos].nb_nodes) ; i > (i64) index_end ; i--) {
 		apply_f(subtree.parent_tree + i, additional_args);
 	}
 }
