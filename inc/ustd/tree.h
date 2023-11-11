@@ -4,6 +4,7 @@
 
 #include <ustd/common.h>
 #include <ustd/allocation.h>
+#include <ustd/range.h>
 
 /**
  * @brief
@@ -37,6 +38,7 @@ typedef struct ttree ttree;
 typedef struct {
 	ttree *parent_tree;
 	size_t pos;
+    range_static(TTREE_MAX_DEPTH, void *) parents;
 } subttree;
 
 /**

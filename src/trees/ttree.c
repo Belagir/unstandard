@@ -3,7 +3,6 @@
 
 #include <ustd/common.h>
 #include <ustd/tree.h>
-#include <ustd/range.h>
 
 #ifdef UNITTESTING
 #include <ustd/testutilities.h>
@@ -13,10 +12,6 @@
 typedef struct ttree {
 	///
 	size_t nb_nodes;
-
-    ///
-    range_static(TTREE_MAX_DEPTH, void *) parents;
-
 	///
 	void *data;
 } ttree;
@@ -279,7 +274,7 @@ static size_t find_direct_subtree_index(ttree *tree, const void *node, i32 (*nod
 
 static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
 {
-    subttree out_subtree = { .parent_tree = tree };
+    subttree out_subtree = { .parent_tree = tree, .pos = 0, .parents = range_static_create(TTREE_MAX_DEPTH, void *) };
 	bool path_is_correct = { true };
 	size_t pos_path = { 0u };
 	size_t pos_tree = { 0u };
@@ -287,12 +282,17 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
     while ((pos_path < node_path_length) && path_is_correct) {
         pos_tree = find_direct_subtree_index(tree + out_subtree.pos, node_path[pos_path], node_comparator);
         path_is_correct = (pos_tree < tree[out_subtree.pos].nb_nodes + 1u);
+
         out_subtree.pos += pos_tree;
         pos_path += path_is_correct;
+
+        if ((pos_path < node_path_length) && path_is_correct) {
+            range_insert_value((range *) &out_subtree.parents, out_subtree.parents.length, &tree[out_subtree.pos].data);
+        }
     }
 
     if (!path_is_correct) {
-        out_subtree = (subttree) { .parent_tree = NULL, .pos = tree->nb_nodes + 1u };
+        out_subtree = (subttree) { .parent_tree = NULL, .pos = tree->nb_nodes + 1u, .parents = range_static_create(TTREE_MAX_DEPTH, void *) };
     }
     return out_subtree;
 }
@@ -429,6 +429,7 @@ tst_CREATE_TEST_SCENARIO(tree_find,
 
 			u32 expect_found;
 			size_t expected_position;
+            range_static(TTREE_MAX_DEPTH, void *) expected_parents;
 		},
 		{
 			ttree tree[11u] = { 0u };
@@ -446,6 +447,12 @@ tst_CREATE_TEST_SCENARIO(tree_find,
 				tst_assert(subtree.parent_tree == NULL, "tree found !");
 				tst_assert_equal(data->expected_position, subtree.pos, "subtree index of %d");
 			}
+
+            tst_assert_equal(data->expected_parents.length, subtree.parents.length, "parent stack of length %d");
+            for (size_t i = 0 ; i < data->expected_parents.length ; i++) {
+                tst_assert(range_val(&data->expected_parents, i, void *) == range_val(&subtree.parents, i, void *),
+                        "data at index %i mismatch : expected %d, got %d", i, range_val(&data->expected_parents, i, void *), range_val(&subtree.parents, i, void *));
+            }
 		}
 )
 
@@ -456,6 +463,7 @@ tst_CREATE_TEST_CASE(tree_find_leaf, tree_find,
 		.path_length = 2u,
 		.expect_found = 1u,
 		.expected_position = 2u,
+        .expected_parents = range_static_create(TTREE_MAX_DEPTH, void *, (void *) 1),
 )
 
 tst_CREATE_TEST_CASE(tree_find_node, tree_find,
@@ -465,6 +473,7 @@ tst_CREATE_TEST_CASE(tree_find_node, tree_find,
 		.path_length = 2u,
 		.expect_found = 1u,
 		.expected_position = 8u,
+        .expected_parents = range_static_create(TTREE_MAX_DEPTH, void *, (void *) 3),
 )
 
 tst_CREATE_TEST_CASE(tree_find_node_at_end, tree_find,
@@ -474,6 +483,7 @@ tst_CREATE_TEST_CASE(tree_find_node_at_end, tree_find,
 		.path_length = 1u,
 		.expect_found = 1u,
 		.expected_position = 10u,
+        .expected_parents = range_static_create(TTREE_MAX_DEPTH, void *),
 )
 
 tst_CREATE_TEST_CASE(tree_find_whole_tree, tree_find,
@@ -483,6 +493,7 @@ tst_CREATE_TEST_CASE(tree_find_whole_tree, tree_find,
 		.path_length = 0u,
 		.expect_found = 1u,
 		.expected_position = 0u,
+        .expected_parents = range_static_create(TTREE_MAX_DEPTH, void *),
 )
 
 tst_CREATE_TEST_CASE(tree_find_bad_path, tree_find,
@@ -492,6 +503,7 @@ tst_CREATE_TEST_CASE(tree_find_bad_path, tree_find,
 		.path_length = 3u,
 		.expect_found = 0u,
 		.expected_position = 11u,
+        .expected_parents = range_static_create(TTREE_MAX_DEPTH, void *),
 )
 
 tst_CREATE_TEST_CASE(tree_find_bad_path_began_right, tree_find,
@@ -501,6 +513,7 @@ tst_CREATE_TEST_CASE(tree_find_bad_path_began_right, tree_find,
 		.path_length = 3u,
 		.expect_found = 0u,
 		.expected_position = 11u,
+        .expected_parents = range_static_create(TTREE_MAX_DEPTH, void *),
 )
 
 tst_CREATE_TEST_CASE(tree_find_path_too_long, tree_find,
@@ -510,6 +523,7 @@ tst_CREATE_TEST_CASE(tree_find_path_too_long, tree_find,
 		.path_length = 3u,
 		.expect_found = 0u,
 		.expected_position = 11u,
+        .expected_parents = range_static_create(TTREE_MAX_DEPTH, void *),
 )
 
 // -------------------------------------------------------------------------------------------------
