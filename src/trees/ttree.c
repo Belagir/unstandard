@@ -16,17 +16,6 @@ typedef struct ttree {
 	void *data;
 } ttree;
 
-/**
- * @brief
- *
- */
-struct apply_other_function_on_data_additional_args {
-	///
-	void (*other_function)(void **node_data, void *additional_args);
-	///
-	void *other_function_args;
-};
-
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -58,7 +47,7 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
  * @param apply_f
  * @param additional_args
  */
-static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
+static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
 
 /**
  * @brief
@@ -67,7 +56,7 @@ static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(
  * @param apply_f
  * @param additional_args
  */
-static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
+static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
 
 /**
  * @brief
@@ -76,7 +65,7 @@ static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(t
  * @param apply_f
  * @param additional_args
  */
-static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
+static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
 
 /**
  * @brief
@@ -85,7 +74,7 @@ static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(t
  * @param apply_f
  * @param additional_args
  */
-static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
+static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
 
 /**
  * @brief
@@ -93,15 +82,7 @@ static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(
  * @param tree
  * @param additional_args
  */
-static void increment_tree_nb_nodes(ttree *tree, void *additional_args);
-
-/**
- * @brief
- *
- * @param tree
- * @param additional_args
- */
-static void apply_other_function_on_data(ttree *tree, void *additional_args);
+static void increment_tree_nb_nodes(void **data, void *additional_args);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -229,17 +210,12 @@ i32 ttree_remove(subttree target)
 // -------------------------------------------------------------------------------------------------
 void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additional_args), void *additional_args, u32 config_flags)
 {
-	struct apply_other_function_on_data_additional_args apply_f_wrapper = { 0u };
-
-	apply_f_wrapper.other_function = apply_f;
-	apply_f_wrapper.other_function_args = additional_args;
-
 	if (config_flags & TTREE_FOREACH_FLAG_DIRECTION_DOWN_UP) {
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_down_up(target, &apply_other_function_on_data, &apply_f_wrapper);
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_down_up(target, &apply_other_function_on_data, &apply_f_wrapper);
+		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_down_up(target, apply_f, &additional_args);
+		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_down_up(target, apply_f, &additional_args);
 	} else if (config_flags & TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN) {
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_up_down(target, &apply_other_function_on_data, &apply_f_wrapper);
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_up_down(target, &apply_other_function_on_data, &apply_f_wrapper);
+		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_up_down(target, apply_f, &additional_args);
+		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_up_down(target, apply_f, &additional_args);
 	}
 }
 
@@ -298,7 +274,7 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
+static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
 {
 	size_t pos = { 0u };
 
@@ -306,7 +282,7 @@ static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(
 	while (pos <= subtree.pos) {
 		if ((pos + subtree.parent_tree[pos].nb_nodes) >= subtree.pos) {
 			// the subtree includes the target subtree :
-			apply_f(subtree.parent_tree + pos, additional_args);
+			apply_f(&subtree.parent_tree[pos].data, additional_args);
 			pos += 1u;
 		} else {
 			// the subtree doesn't include the target subtree :
@@ -316,50 +292,43 @@ static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
+static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
 {
 	size_t dist = { 0u };
 	for (size_t i = subtree.pos ; i > 0u ; i--) {
 		if (subtree.parent_tree[i].nb_nodes <= dist) {
-			apply_f(subtree.parent_tree + i, additional_args);
+			apply_f(&subtree.parent_tree[i].data, additional_args);
 		}
 		dist += 1u;
 	}
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
+static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
 {
 	const size_t index_end = { subtree.pos + subtree.parent_tree[subtree.pos].nb_nodes };
 
 	for (size_t i = subtree.pos + 1u ; i <= index_end ; i++) {
-		apply_f(subtree.parent_tree + i, additional_args);
+		apply_f(&subtree.parent_tree[i].data, additional_args);
 	}
 
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
+static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
 {
 	const i64 index_end = { (i64) subtree.pos };
 
 	for (i64 i = (i64) (subtree.pos + subtree.parent_tree[subtree.pos].nb_nodes) ; i > (i64) index_end ; i--) {
-		apply_f(subtree.parent_tree + i, additional_args);
+		apply_f(&subtree.parent_tree[i].data, additional_args);
 	}
 }
 
 // -------------------------------------------------------------------------------------------------
-static void increment_tree_nb_nodes(ttree *tree, void *additional_args)
+static void increment_tree_nb_nodes(void **data, void *additional_args)
 {
-	tree->nb_nodes = (size_t) ((i32) tree->nb_nodes + *((i32 *) additional_args));
-}
-
-// -------------------------------------------------------------------------------------------------
-static void apply_other_function_on_data(ttree *tree, void *additional_args)
-{
-	struct apply_other_function_on_data_additional_args *args = (struct apply_other_function_on_data_additional_args *) additional_args;
-
-	args->other_function(&tree->data, args->other_function_args);
+    ttree *target_tree = (ttree *) container_of(data, data, ttree);
+	target_tree->nb_nodes = (size_t) ((i32) target_tree->nb_nodes + *((i32 *) additional_args));
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -873,7 +842,7 @@ tst_CREATE_TEST_CASE(tree_foreach_all_tree_incr, tree_foreach,
 
 static void tree_test_incr_with_args_apply(void **node, void *additional_args) {
 	size_t *data = (size_t *) node;
-	*data += (size_t) additional_args;
+	*data += *((size_t *) additional_args);
 }
 
 tst_CREATE_TEST_CASE(tree_foreach_all_tree_incr_with_args, tree_foreach,
