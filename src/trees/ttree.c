@@ -3,6 +3,7 @@
 
 #include <ustd/common.h>
 #include <ustd/tree.h>
+#include <ustd/range.h>
 
 #ifdef UNITTESTING
 #include <ustd/testutilities.h>
@@ -12,6 +13,9 @@
 typedef struct ttree {
 	///
 	size_t nb_nodes;
+
+    ///
+    range_static(TTREE_MAX_DEPTH, void *) parents;
 
 	///
 	void *data;
@@ -50,7 +54,7 @@ static size_t find_direct_subtree_index(ttree *tree, const void *node, i32 (*nod
  * @param node_comparator
  * @return size_t
  */
-static size_t find_subtree_index(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2));
+static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2));
 
 /**
  * @brief
@@ -148,15 +152,7 @@ subttree ttree_get_subtree_subtree(subttree target, const void *node_path[], siz
 		return subtree;
 	}
 
-	found_index = find_subtree_index(subtree.parent_tree, node_path, node_path_length, node_comparator);
-
-	if (found_index == (subtree.parent_tree->nb_nodes + 1u)) {
-		return (subttree) { .parent_tree = NULL, .pos = (subtree.parent_tree->nb_nodes + 1u) };
-	}
-
-	subtree.pos = found_index;
-
-	return subtree;
+    return find_subtree(subtree.parent_tree, node_path, node_path_length, node_comparator);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -282,25 +278,24 @@ static size_t find_direct_subtree_index(ttree *tree, const void *node, i32 (*nod
 	return pos;
 }
 
-// -------------------------------------------------------------------------------------------------
-static size_t find_subtree_index(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
+static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
 {
-	i32 path_is_incorrect = 0;
-	size_t pos_path = 0u;
-	size_t tmp_pos_tree = 0u;
-	size_t pos_tree = 0u;
+    subttree out_subtree = { .parent_tree = tree };
+	bool path_is_correct = { true };
+	size_t pos_path = { 0u };
+	size_t pos_tree = { 0u };
 
-	while ((pos_path < node_path_length) && (!path_is_incorrect)) {
-		tmp_pos_tree = find_direct_subtree_index(tree + pos_tree, node_path[pos_path], node_comparator);
-		path_is_incorrect = (tmp_pos_tree == tree[pos_tree].nb_nodes + 1u);
-		pos_tree += tmp_pos_tree;
-		pos_path += !path_is_incorrect;
-	}
+    while ((pos_path < node_path_length) && path_is_correct) {
+        pos_tree = find_direct_subtree_index(tree + out_subtree.pos, node_path[pos_path], node_comparator);
+        path_is_correct = (pos_tree < tree[out_subtree.pos].nb_nodes + 1u);
+        out_subtree.pos += pos_tree;
+        pos_path += path_is_correct;
+    }
 
-	if (path_is_incorrect) {
-		return tree->nb_nodes + 1u;
-	}
-	return pos_tree;
+    if (!path_is_correct) {
+        out_subtree = (subttree) { .parent_tree = NULL, .pos = tree->nb_nodes + 1u };
+    }
+    return out_subtree;
 }
 
 // -------------------------------------------------------------------------------------------------

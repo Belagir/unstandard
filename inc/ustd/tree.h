@@ -20,6 +20,10 @@ typedef enum {
 #define TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN (0x04u)
 #define TTREE_FOREACH_FLAG_DIRECTION_DOWN_UP (0x08u)
 
+#ifndef TTREE_MAX_DEPTH
+#define TTREE_MAX_DEPTH (16)
+#endif
+
 /**
  * @brief Opaque type to pass around a tree stored contiguously in an array.
  *
