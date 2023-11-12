@@ -112,7 +112,7 @@ ttree * ttree_create(allocator alloc, size_t nb_nodes)
 // -------------------------------------------------------------------------------------------------
 subttree ttree_get_subtree(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
 {
-    subttree subtree  = { .parent_tree = tree, .pos = 0u };
+    subttree subtree  = { .parent_tree = tree, .pos = 0u, .parents = range_static_create(TTREE_MAX_DEPTH, void **) };
     return ttree_get_subtree_subtree(subtree, node_path, node_path_length, node_comparator);
 }
 
@@ -251,7 +251,7 @@ static size_t find_direct_subtree_index(ttree *tree, const void *node, i32 (*nod
 // -------------------------------------------------------------------------------------------------
 static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
 {
-    subttree out_subtree = { .parent_tree = tree, .pos = 0, .parents = range_static_create(TTREE_MAX_DEPTH, void *) };
+    subttree out_subtree = { .parent_tree = tree, .pos = 0, .parents = range_static_create(TTREE_MAX_DEPTH, void **) };
     bool path_is_correct = { true };
     size_t pos_path = { 0u };
     size_t pos_tree = { 0u };
@@ -271,7 +271,7 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
     }
 
     if (!path_is_correct) {
-        out_subtree = (subttree) { .parent_tree = NULL, .pos = tree->nb_nodes + 1u, .parents = range_static_create(TTREE_MAX_DEPTH, void *) };
+        out_subtree = (subttree) { .parent_tree = NULL, .pos = tree->nb_nodes + 1u, .parents = range_static_create(TTREE_MAX_DEPTH, void **) };
     }
     return out_subtree;
 }
@@ -282,32 +282,21 @@ static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(
     for (size_t i = 0 ; i < subtree.parents.length ; i++) {
         apply_f(subtree.parents.data[i], additional_args);
     }
-    apply_f(&subtree.parent_tree[subtree.pos].data, additional_args);
 
-    // size_t pos = { 0u };
-
-    // pos = 1u;
-    // while (pos <= subtree.pos) {
-    //     if ((pos + subtree.parent_tree[pos].nb_nodes) >= subtree.pos) {
-    //         // the subtree includes the target subtree :
-    //         apply_f(&subtree.parent_tree[pos].data, additional_args);
-    //         pos += 1u;
-    //     } else {
-    //         // the subtree doesn't include the target subtree :
-    //         pos += subtree.parent_tree[pos].nb_nodes + 1u;
-    //     }
-    // }
+    if (subtree.pos != 0u) {
+        apply_f(&subtree.parent_tree[subtree.pos].data, additional_args);
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
 static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
 {
-    size_t dist = { 0u };
-    for (size_t i = subtree.pos ; i > 0u ; i--) {
-        if (subtree.parent_tree[i].nb_nodes <= dist) {
-            apply_f(&subtree.parent_tree[i].data, additional_args);
-        }
-        dist += 1u;
+    for (i64 i = (i64) subtree.parents.length - 1 ; i >= 0 ; i--) {
+        apply_f(&subtree.parent_tree[i].data, additional_args);
+    }
+
+    if (subtree.pos != 0u) {
+        apply_f(&subtree.parent_tree[subtree.pos].data, additional_args);
     }
 }
 
