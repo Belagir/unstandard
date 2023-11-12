@@ -255,6 +255,7 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
     bool path_is_correct = { true };
     size_t pos_path = { 0u };
     size_t pos_tree = { 0u };
+    void **parent_data = { };
 
     while ((pos_path < node_path_length) && path_is_correct) {
         pos_tree = find_direct_subtree_index(tree + out_subtree.pos, node_path[pos_path], node_comparator);
@@ -264,7 +265,8 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
         pos_path += path_is_correct;
 
         if ((pos_path < node_path_length) && path_is_correct) {
-            range_insert_value((range *) &out_subtree.parents, out_subtree.parents.length, &tree[out_subtree.pos].data);
+            parent_data = &(tree + out_subtree.pos)->data;
+            range_insert_value((range *) &out_subtree.parents, out_subtree.parents.length, &parent_data);
         }
     }
 
@@ -275,22 +277,26 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
+static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args)
 {
-
-    size_t pos = { 0u };
-
-    pos = 1u;
-    while (pos <= subtree.pos) {
-        if ((pos + subtree.parent_tree[pos].nb_nodes) >= subtree.pos) {
-            // the subtree includes the target subtree :
-            apply_f(&subtree.parent_tree[pos].data, additional_args);
-            pos += 1u;
-        } else {
-            // the subtree doesn't include the target subtree :
-            pos += subtree.parent_tree[pos].nb_nodes + 1u;
-        }
+    for (size_t i = 0 ; i < subtree.parents.length ; i++) {
+        apply_f(subtree.parents.data[i], additional_args);
     }
+    apply_f(&subtree.parent_tree[subtree.pos].data, additional_args);
+
+    // size_t pos = { 0u };
+
+    // pos = 1u;
+    // while (pos <= subtree.pos) {
+    //     if ((pos + subtree.parent_tree[pos].nb_nodes) >= subtree.pos) {
+    //         // the subtree includes the target subtree :
+    //         apply_f(&subtree.parent_tree[pos].data, additional_args);
+    //         pos += 1u;
+    //     } else {
+    //         // the subtree doesn't include the target subtree :
+    //         pos += subtree.parent_tree[pos].nb_nodes + 1u;
+    //     }
+    // }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -421,8 +427,8 @@ tst_CREATE_TEST_SCENARIO(tree_find,
 
             tst_assert_equal(data->expected_parents.length, subtree.parents.length, "parent stack of length %d");
             for (size_t i = 0 ; i < data->expected_parents.length ; i++) {
-                tst_assert(range_val(&data->expected_parents, i, void *) == range_val(&subtree.parents, i, void *),
-                        "data at index %i mismatch : expected %d, got %d", i, range_val(&data->expected_parents, i, void *), range_val(&subtree.parents, i, void *));
+                tst_assert(range_val(&data->expected_parents, i, void *) == *range_val(&subtree.parents, i, void **),
+                        "parent data at index %i mismatch : expected %d, got %d", i, range_val(&data->expected_parents, i, void *), *range_val(&subtree.parents, i, void **));
             }
         }
 )
