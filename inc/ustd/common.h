@@ -28,6 +28,9 @@ typedef float  f32; ///< convenience type redefinition
 typedef double f64; ///< convenience type redefinition
 
 #define force_cast(__TYPE, __variable) (*((__TYPE*) &(__variable)))
+
+#define offset_of(__member, __struct) ((size_t) &(((__struct *) NULL)->__member))
+#define container_of(__ptr, __member, __struct) ((__struct *) (((char *) __ptr) - offset_of(__member, __struct)))
 /// returns the sign bitfield of a 32-bit signed integer
 #define sgn_i32(_v) ((_v) >> 31)
 

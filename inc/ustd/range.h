@@ -32,7 +32,7 @@ typedef range_of(byte) range;
         { \
                 .stride = sizeof(__type), \
                 .capacity = __capacity,  \
-                .length = count_of(((__type[]) {__VA_ARGS__})), \
+                .length = min(__capacity, count_of(((__type[]) {__VA_ARGS__}))), \
                 .data = {__VA_ARGS__} \
         }
 
