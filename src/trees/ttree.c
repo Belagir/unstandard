@@ -208,14 +208,14 @@ i32 ttree_remove(subttree target)
 }
 
 // -------------------------------------------------------------------------------------------------
-void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additional_args), void *additional_args, u32 config_flags)
+void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additional_args), void *additional_args, subttree_part part, subttree_foreach_direction direction)
 {
-    if (config_flags & TTREE_FOREACH_FLAG_DIRECTION_DOWN_UP) {
-        if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_down_up(target, apply_f, &additional_args);
-        if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_down_up(target, apply_f, &additional_args);
-    } else if (config_flags & TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN) {
-        if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_up_down(target, apply_f, &additional_args);
-        if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_up_down(target, apply_f, &additional_args);
+    if (direction == SUBTREE_FOREACH_DIRECTION_BOTTOM_UP) {
+        if ((part == SUBTREE_PART_WHOLE) || (part == SUBTREE_PART_CHILDREN)) foreach_child_of_subtree_down_up(target, apply_f, &additional_args);
+        if ((part == SUBTREE_PART_WHOLE) || (part == SUBTREE_PART_PARENTS))  foreach_parent_of_subtree_down_up(target, apply_f, &additional_args);
+    } else if (direction == SUBTREE_FOREACH_DIRECTION_TOP_DOWN) {
+        if ((part == SUBTREE_PART_WHOLE) || (part == SUBTREE_PART_PARENTS))  foreach_parent_of_subtree_up_down(target, apply_f, &additional_args);
+        if ((part == SUBTREE_PART_WHOLE) || (part == SUBTREE_PART_CHILDREN)) foreach_child_of_subtree_up_down(target, apply_f, &additional_args);
     }
 }
 
@@ -291,12 +291,12 @@ static void foreach_parent_of_subtree_up_down(subttree subtree, node_mutation_fu
 // -------------------------------------------------------------------------------------------------
 static void foreach_parent_of_subtree_down_up(subttree subtree, node_mutation_function apply_f, void *additional_args)
 {
-    for (i64 i = (i64) subtree.parents.length - 1 ; i >= 0 ; i--) {
-        apply_f(&subtree.parent_tree[i].data, additional_args);
-    }
-
     if (subtree.pos != 0u) {
         apply_f(&subtree.parent_tree[subtree.pos].data, additional_args);
+    }
+
+    for (i64 i = (i64) subtree.parents.length - 1 ; i >= 0 ; i--) {
+        apply_f(&subtree.parent_tree[i].data, additional_args);
     }
 }
 
@@ -794,7 +794,8 @@ tst_CREATE_TEST_SCENARIO(tree_foreach,
             const void * path[10u];
             size_t path_length;
 
-            u32 tree_division;
+            subttree_part part;
+            subttree_foreach_direction direction;
         },
         {
             ttree tree[11u] = { 0u };
@@ -806,7 +807,7 @@ tst_CREATE_TEST_SCENARIO(tree_foreach,
             ttree_test_improvise_tree(&data->expected_tree_lengths, &data->expected_tree_contents, &expected_tree);
 
             subtree = ttree_get_subtree(tree, data->path, data->path_length, &ttree_test_comparator);
-            ttree_foreach(subtree, data->apply_f, (void *) ((size_t) 5), data->tree_division);
+            ttree_foreach(subtree, data->apply_f, (void *) ((size_t) 5), data->part, data->direction);
 
             for (size_t i = 0u ; i < 10u ; i++) {
                 tst_assert(tree[i].data == expected_tree[i].data, "data at index %d mismatch : expected %d, got %d", i, expected_tree[i].data, tree[i].data);
@@ -833,7 +834,8 @@ tst_CREATE_TEST_CASE(tree_foreach_all_tree_incr, tree_foreach,
         .path = { NULL },
         .path_length = 0u,
 
-        .tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
+        .part = SUBTREE_PART_CHILDREN,
+        .direction = SUBTREE_FOREACH_DIRECTION_TOP_DOWN,
 )
 
 static void tree_test_incr_with_args_apply(void **node, void *additional_args) {
@@ -853,7 +855,8 @@ tst_CREATE_TEST_CASE(tree_foreach_all_tree_incr_with_args, tree_foreach,
         .path = { NULL },
         .path_length = 0u,
 
-        .tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
+        .part = SUBTREE_PART_CHILDREN,
+        .direction = SUBTREE_FOREACH_DIRECTION_TOP_DOWN,
 )
 
 tst_CREATE_TEST_CASE(tree_foreach_subtree_children_incr, tree_foreach,
@@ -868,7 +871,8 @@ tst_CREATE_TEST_CASE(tree_foreach_subtree_children_incr, tree_foreach,
         .path = { (void *) 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
         .path_length = 1u,
 
-        .tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
+        .part = SUBTREE_PART_CHILDREN,
+        .direction = SUBTREE_FOREACH_DIRECTION_TOP_DOWN,
 )
 
 tst_CREATE_TEST_CASE(tree_foreach_multi_level_subtree_children_incr, tree_foreach,
@@ -883,7 +887,8 @@ tst_CREATE_TEST_CASE(tree_foreach_multi_level_subtree_children_incr, tree_foreac
         .path = { (void *) 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
         .path_length = 1u,
 
-        .tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
+        .part = SUBTREE_PART_CHILDREN,
+        .direction = SUBTREE_FOREACH_DIRECTION_TOP_DOWN,
 )
 
 tst_CREATE_TEST_CASE(tree_foreach_parent_incr, tree_foreach,
@@ -898,7 +903,8 @@ tst_CREATE_TEST_CASE(tree_foreach_parent_incr, tree_foreach,
         .path = { (void *) 3, (void *) 8, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
         .path_length = 2u,
 
-        .tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_PARENTS,
+        .part = SUBTREE_PART_PARENTS,
+        .direction = SUBTREE_FOREACH_DIRECTION_TOP_DOWN,
 )
 
 // -------------------------------------------------------------------------------------------------

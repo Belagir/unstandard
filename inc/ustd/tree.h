@@ -10,16 +10,22 @@
  * @brief
  *
  */
-typedef enum {
+typedef enum ttree_mishap {
 	TTREE_NO_MISHAP,
 
 	TTREE_INCORRECT_PATH
 } ttree_mishap;
 
-#define TTREE_FOREACH_FLAG_INCLUDE_CHILDREN  (0x01u)
-#define TTREE_FOREACH_FLAG_INCLUDE_PARENTS   (0x02u)
-#define TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN (0x04u)
-#define TTREE_FOREACH_FLAG_DIRECTION_DOWN_UP (0x08u)
+typedef enum subttree_part {
+    SUBTREE_PART_CHILDREN,
+    SUBTREE_PART_PARENTS,
+    SUBTREE_PART_WHOLE,
+} subttree_part;
+
+typedef enum subttree_foreach_direction {
+    SUBTREE_FOREACH_DIRECTION_BOTTOM_UP,
+    SUBTREE_FOREACH_DIRECTION_TOP_DOWN,
+} subttree_foreach_direction;
 
 #ifndef TTREE_MAX_DEPTH
 #define TTREE_MAX_DEPTH (16)
@@ -105,7 +111,7 @@ i32 ttree_insert(subttree target, void *node);
  * @param[in] apply_f applied function
  * @param[in] additional_args pointer to additional arguments passed to the applied function
  */
-void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additional_args), void *additional_args, u32 config_flags);
+void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additional_args), void *additional_args, subttree_part part, subttree_foreach_direction direction);
 
 /**
  * @brief Removes a subtree from the tree.
