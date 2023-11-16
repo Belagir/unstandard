@@ -4,15 +4,19 @@
 
 #include <ustd/range.h>
 
-#define STRING_TYPE const char
+typedef const char string_base_type;
 
-#define string range_of(STRING_TYPE)
-#define string_static(__length) range_static(__length, STRING_TYPE)
+typedef range_of(string_base_type) string;
+#define string_static(__length) range_static(__length, string_base_type)
 
 #define string_create_static(__s) range_static_create(count_of(((string_base_type[]) {__s})) - 1, string_base_type, __s)
 
-#define string_val(__s, __i) range_val(__s, __i, STRING_TYPE)
+#define string_from_static(__s) ((string *) &(string_static(count_of(((string_base_type[]) {__s})))) string_create_static(__s))
 
-#define string_destroy(__alloc, __s) range_dynamic_destroy(__alloc, __s)
+#define string_val(__s, __i) range_val(__s, __i, string_base_type)
+
+#define string_destroy(__alloc, __s) range_dynamic_destroy(__alloc, (range *) __s)
+
+i32 string_cmp(const string *str1, const string *str2);
 
 #endif
