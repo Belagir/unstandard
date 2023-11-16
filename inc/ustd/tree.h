@@ -37,17 +37,23 @@ typedef enum subttree_foreach_direction {
  */
 typedef struct ttree ttree;
 
-typedef void (*node_mutation_function)(void **data, void *additional_args);
+typedef struct subttree subttree;
 
 /**
  * @brief
  * TODO : add a hash to identify the original state of the parent tree and invalidate the subtree if it changed
  */
-typedef struct {
-	ttree *parent_tree;
-	size_t pos;
-    range_static(TTREE_MAX_DEPTH, void **) parents;
+typedef struct subttree {
+	ttree *parent_tree;     /// pointer to the parent tree. IF NULL, then the subttree is invalid
+	size_t pos;             /// position in the parent tree. The subtree is the data at .parent_tree + .pos
+    range_static(TTREE_MAX_DEPTH, void **) parents;     /// range of the parents as subttrees
 } subttree;
+
+/**
+ * @brief Type of a function that can modify nodes of the tree
+ *
+ */
+typedef void (*node_mutation_function)(void **data, void *additional_args);
 
 /**
  * @brief Creates an array-packed tree on the heap.
