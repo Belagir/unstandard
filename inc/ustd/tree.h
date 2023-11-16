@@ -31,6 +31,8 @@ typedef enum {
  */
 typedef struct ttree ttree;
 
+typedef void (*node_mutation_function)(void **data, void *additional_args);
+
 /**
  * @brief
  * TODO : add a hash to identify the original state of the parent tree and invalidate the subtree if it changed

@@ -47,7 +47,7 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
  * @param apply_f
  * @param additional_args
  */
-static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
+static void foreach_parent_of_subtree_up_down(subttree subtree, node_mutation_function apply_f, void *additional_args);
 
 /**
  * @brief
@@ -56,7 +56,7 @@ static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(
  * @param apply_f
  * @param additional_args
  */
-static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
+static void foreach_child_of_subtree_up_down(subttree subtree, node_mutation_function apply_f, void *additional_args);
 
 /**
  * @brief
@@ -65,7 +65,7 @@ static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(v
  * @param apply_f
  * @param additional_args
  */
-static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
+static void foreach_child_of_subtree_down_up(subttree subtree, node_mutation_function apply_f, void *additional_args);
 
 /**
  * @brief
@@ -74,7 +74,7 @@ static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(v
  * @param apply_f
  * @param additional_args
  */
-static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args);
+static void foreach_parent_of_subtree_down_up(subttree subtree, node_mutation_function apply_f, void *additional_args);
 
 /**
  * @brief
@@ -277,7 +277,7 @@ static subttree find_subtree(ttree *tree, const void *node_path[], size_t node_p
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(void **data, void *additional_args), void *additional_args)
+static void foreach_parent_of_subtree_up_down(subttree subtree, node_mutation_function apply_f, void *additional_args)
 {
     for (size_t i = 0 ; i < subtree.parents.length ; i++) {
         apply_f(subtree.parents.data[i], additional_args);
@@ -289,7 +289,7 @@ static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
+static void foreach_parent_of_subtree_down_up(subttree subtree, node_mutation_function apply_f, void *additional_args)
 {
     for (i64 i = (i64) subtree.parents.length - 1 ; i >= 0 ; i--) {
         apply_f(&subtree.parent_tree[i].data, additional_args);
@@ -301,18 +301,17 @@ static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
+static void foreach_child_of_subtree_up_down(subttree subtree, node_mutation_function apply_f, void *additional_args)
 {
     const size_t index_end = { subtree.pos + subtree.parent_tree[subtree.pos].nb_nodes };
 
     for (size_t i = subtree.pos + 1u ; i <= index_end ; i++) {
         apply_f(&subtree.parent_tree[i].data, additional_args);
     }
-
 }
 
 // -------------------------------------------------------------------------------------------------
-static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(void **tree, void *additional_args), void *additional_args)
+static void foreach_child_of_subtree_down_up(subttree subtree, node_mutation_function apply_f, void *additional_args)
 {
     const i64 index_end = { (i64) subtree.pos };
 
