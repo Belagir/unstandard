@@ -20,10 +20,11 @@ typedef enum ttree_mishap {
  */
 typedef struct ttree ttree;
 
-typedef struct ttree_path {
-    ttree *target;
-    range *tokens_indexes;
-} ttree_path;
+/**
+ * @brief
+ *
+ */
+typedef struct ttree_path ttree_path;
 
 /**
  * @brief Creates a tree of a with an allocator.
@@ -42,6 +43,25 @@ ttree *ttree_create(allocator alloc, size_t capacity, size_t element_size);
  * @param[inout] tree
  */
 ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
+
+/**
+ * @brief
+ *
+ * @param alloc
+ * @param tree
+ * @param elements_range
+ * @return ttree_path
+ */
+ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_range, i32 (*comparator_f)(const void *elt_left,const void *elt_right));
+
+/**
+ * @brief
+ *
+ * @param alloc
+ * @param path
+ * @return ttree_mishap
+ */
+ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path);
 
 #ifdef UNITTESTING
 void ttree_execute_unittests(void);
