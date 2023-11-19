@@ -77,6 +77,15 @@ ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value);
 /**
  * @brief
  *
+ * @param tree
+ * @param path
+ * @return ttree_mishap
+ */
+ttree_mishap ttree_remove(ttree *tree, const ttree_path *path);
+
+/**
+ * @brief
+ *
  * @param alloc
  * @param path
  * @return ttree_mishap

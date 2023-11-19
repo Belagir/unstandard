@@ -148,6 +148,38 @@ ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value)
 }
 
 // -------------------------------------------------------------------------------------------------
+ttree_mishap ttree_remove(ttree *tree, const ttree_path *path)
+{
+    size_t removal_pos = { };
+    size_t removal_length = { };
+
+    if (!tree) {
+        return TTREE_INVALID_OBJECT;
+    } else if (!path || (path->target != tree)) {
+        return TTREE_BAD_PATH;
+    }
+
+    if (path->tokens_indexes->length == 0) {
+        range_clear(tree->tree_contents);
+        range_clear(tree->tree_children);
+        return TTREE_NO_MISHAP;
+    }
+
+    removal_pos = range_val_back(path->tokens_indexes, size_t);
+    removal_length = range_val(tree->tree_children, removal_pos, size_t);
+
+    range_remove_interval(tree->tree_contents, removal_pos, removal_pos + removal_length);
+    range_remove_interval(tree->tree_children, removal_pos, removal_pos + removal_length);
+
+    // increment all of the parents' children count
+    for (size_t i = 0 ; i < path->tokens_indexes->length ; i++) {
+        range_val(tree->tree_children, range_val(path->tokens_indexes, i, size_t), size_t) -= 1;
+    }
+
+    return TTREE_NO_MISHAP;
+}
+
+// -------------------------------------------------------------------------------------------------
 ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path)
 {
     if (!path || !*path) {
@@ -417,7 +449,6 @@ tst_CREATE_TEST_CASE(tree_add_element_bad_path, tree_add_element,
         .tree_end_state_children   = range_static_create(10, size_t, 2,  1,  0,  3,  0,  0,  0,  1,  0),
 
 )
-
 tst_CREATE_TEST_CASE(tree_add_element_full, tree_add_element,
         .tree_start_state_contents = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
         .tree_start_state_children = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
@@ -426,7 +457,56 @@ tst_CREATE_TEST_CASE(tree_add_element_full, tree_add_element,
         .expect_addition           = false,
         .tree_end_state_contents   = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
         .tree_end_state_children   = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
+)
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_remove_element,
+        {
+            range_static(10, u32)    tree_start_state_contents;
+            range_static(10, size_t) tree_start_state_children;
+            range_static(10, u32) removal_path;
+
+            bool expect_removal;
+            range_static(10, u32)    tree_end_state_contents;
+            range_static(10, size_t) tree_end_state_children;
+
+        },
+        {
+            ttree tree = {};
+            ttree_mishap result = {};
+
+            tree.tree_contents = (range *) &data->tree_start_state_contents;
+            tree.tree_children = (range *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path(make_system_allocator(), &tree, (range *) &data->removal_path, &test_comparator_u32);
+
+            result = ttree_remove(&tree, path);
+
+            if (data->expect_removal) {
+                tst_assert(result == TTREE_NO_MISHAP, "removal failed !");
+            } else {
+                tst_assert(result != TTREE_NO_MISHAP, "removal passed anyway !");
+            }
+
+            for (size_t i = 0 ; i < tree.tree_contents->length ; i++) {
+                tst_assert_equal(range_val(tree.tree_contents, i, u32),    range_val(&data->tree_end_state_contents, i, u32),    "tree content of %d");
+                tst_assert_equal(range_val(tree.tree_children, i, size_t), range_val(&data->tree_end_state_children, i, size_t), "children count of %d");
+            }
+
+            if (path) {
+                ttree_path_destroy(make_system_allocator(), &path);
+            }
+
+        }
+)
+tst_CREATE_TEST_CASE(tree_remove_element_whole_empty, tree_remove_element,
+        .tree_start_state_contents = range_static_create(10, u32),
+        .tree_start_state_children = range_static_create(10, size_t),
+        .removal_path              = range_static_create(10, u32),
+        .expect_removal            = true,
+        .tree_end_state_contents   = range_static_create(10, u32),
+        .tree_end_state_children   = range_static_create(10, size_t),
 )
 
 // -------------------------------------------------------------------------------------------------
@@ -452,6 +532,8 @@ void ttree_execute_unittests(void)
     tst_run_test_case(tree_add_element_at_node_far);
     tst_run_test_case(tree_add_element_bad_path);
     tst_run_test_case(tree_add_element_full);
+
+    tst_run_test_case(tree_remove_element_whole_empty);
 }
 
 #endif
