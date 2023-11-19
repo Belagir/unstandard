@@ -12,6 +12,8 @@ typedef enum ttree_mishap {
 	TTREE_NO_MISHAP,
 
     TTREE_INVALID_OBJECT,
+    TTREE_BAD_PATH,
+    TTREE_OUT_OF_MEM,
 } ttree_mishap;
 
 /**
@@ -53,6 +55,24 @@ ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
  * @return ttree_path
  */
 ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_range, i32 (*comparator_f)(const void *elt_left,const void *elt_right));
+
+/**
+ * @brief
+ *
+ * @param path
+ * @return void*
+ */
+byte *ttree_path_content(const ttree_path *path);
+
+/**
+ * @brief
+ *
+ * @param tree
+ * @param path
+ * @param value
+ * @return ttree_mishap
+ */
+ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value);
 
 /**
  * @brief

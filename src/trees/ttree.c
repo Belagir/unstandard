@@ -107,6 +107,47 @@ ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_r
 }
 
 // -------------------------------------------------------------------------------------------------
+byte *ttree_path_content(const ttree_path *path)
+{
+    if (!path || (path->tokens_indexes->length == 0)) {
+        return NULL;
+    }
+
+    return range_at(path->target->tree_contents, range_val_back(path->tokens_indexes, size_t));
+}
+
+// -------------------------------------------------------------------------------------------------
+ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value)
+{
+    size_t insertion_pos = { };
+
+    if (!tree || !value) {
+        return TTREE_INVALID_OBJECT;
+    } else if (!path || (path->target != tree)) {
+        return TTREE_BAD_PATH;
+    } else if (tree->tree_children->length == tree->tree_children->capacity) {
+        return TTREE_OUT_OF_MEM;
+    }
+
+    if (path->tokens_indexes->length > 0) {
+        insertion_pos = range_val_back(path->tokens_indexes, size_t) + 1;
+    } else {
+        insertion_pos = 0;
+    }
+
+    // insert a new entry in both ranges for the new element
+    range_insert_value(tree->tree_contents, insertion_pos, value);
+    range_insert_value(tree->tree_children, insertion_pos, &(size_t) { 0 });
+
+    // increment all of the parents' children count
+    for (size_t i = 0 ; i < path->tokens_indexes->length ; i++) {
+        range_val(tree->tree_children, range_val(path->tokens_indexes, i, size_t), size_t) += 1;
+    }
+
+    return TTREE_NO_MISHAP;
+}
+
+// -------------------------------------------------------------------------------------------------
 ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path)
 {
     if (!path || !*path) {
@@ -203,7 +244,7 @@ static i32 test_comparator_u32(const void *elt_right, const void *elt_left) {
     return (v_left > v_right) - (v_left < v_right);
 }
 
-tst_CREATE_TEST_SCENARIO(search_path,
+tst_CREATE_TEST_SCENARIO(tree_search_path,
         {
             range_static(10, u32)    tree_start_state_contents;
             range_static(10, size_t) tree_start_state_children;
@@ -239,54 +280,153 @@ tst_CREATE_TEST_SCENARIO(search_path,
         }
 )
 
-tst_CREATE_TEST_CASE(search_present, search_path,
+tst_CREATE_TEST_CASE(tree_search_present, tree_search_path,
         .tree_start_state_contents = range_static_create(10, u32,   80, 81, 82, 83, 84, 85, 86, 87, 88, 89),
         .tree_start_state_children = range_static_create(10, size_t, 2,  0,  0,  3,  2,  0,  0,  2,  1,  0),
         .searched_path             = range_static_create(10, u32, 83, 84, 86),
         .expect_found              = true,
         .expected_indexes          = range_static_create(10, size_t, 3, 4, 6),
 )
-tst_CREATE_TEST_CASE(search_present_node, search_path,
+tst_CREATE_TEST_CASE(tree_search_present_node, tree_search_path,
         .tree_start_state_contents = range_static_create(10, u32,   80, 81, 82, 83, 84, 85, 86, 87, 88, 89),
         .tree_start_state_children = range_static_create(10, size_t, 2,  0,  0,  3,  2,  0,  0,  2,  1,  0),
         .searched_path             = range_static_create(10, u32, 87, 88),
         .expect_found              = true,
         .expected_indexes          = range_static_create(10, size_t, 7, 8),
 )
-tst_CREATE_TEST_CASE(search_absent, search_path,
+tst_CREATE_TEST_CASE(tree_search_absent, tree_search_path,
         .tree_start_state_contents = range_static_create(10, u32,   80, 81, 82, 83, 84, 85, 86, 87, 88, 89),
         .tree_start_state_children = range_static_create(10, size_t, 2,  0,  0,  3,  2,  0,  0,  2,  1,  0),
         .searched_path             = range_static_create(10, u32, 83, 88, 86),
         .expect_found              = false,
         .expected_indexes          = range_static_create(10, size_t),
 )
-tst_CREATE_TEST_CASE(search_too_far, search_path,
+tst_CREATE_TEST_CASE(tree_search_too_far, tree_search_path,
         .tree_start_state_contents = range_static_create(10, u32,   80, 81, 82, 83, 84, 85, 86, 87, 88, 89),
         .tree_start_state_children = range_static_create(10, size_t, 2,  0,  0,  3,  2,  0,  0,  2,  1,  0),
         .searched_path             = range_static_create(10, u32, 83, 84, 86, 91),
         .expect_found              = false,
         .expected_indexes          = range_static_create(10, size_t),
 )
-tst_CREATE_TEST_CASE(search_empty_path, search_path,
+tst_CREATE_TEST_CASE(tree_search_empty_path, tree_search_path,
         .tree_start_state_contents = range_static_create(10, u32,   80, 81, 82, 83, 84, 85, 86, 87, 88, 89),
         .tree_start_state_children = range_static_create(10, size_t, 2,  0,  0,  3,  2,  0,  0,  2,  1,  0),
         .searched_path             = range_static_create(10, u32),
         .expect_found              = true,
         .expected_indexes          = range_static_create(10, size_t),
 )
-tst_CREATE_TEST_CASE(search_empty_tree, search_path,
+tst_CREATE_TEST_CASE(tree_search_empty_tree, tree_search_path,
         .tree_start_state_contents = range_static_create(10, u32),
         .tree_start_state_children = range_static_create(10, size_t),
         .searched_path             = range_static_create(10, u32, 1),
         .expect_found              = false,
         .expected_indexes          = range_static_create(10, size_t),
 )
-tst_CREATE_TEST_CASE(search_empty_and_empty, search_path,
+tst_CREATE_TEST_CASE(tree_search_empty_and_empty, tree_search_path,
         .tree_start_state_contents = range_static_create(10, u32),
         .tree_start_state_children = range_static_create(10, size_t),
         .searched_path             = range_static_create(10, u32),
         .expect_found              = true,
         .expected_indexes          = range_static_create(10, size_t),
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_add_element,
+        {
+            range_static(10, u32)    tree_start_state_contents;
+            range_static(10, size_t) tree_start_state_children;
+            range_static(10, u32) addition_path;
+            u32 added_value;
+
+            bool expect_addition;
+            range_static(10, u32)    tree_end_state_contents;
+            range_static(10, size_t) tree_end_state_children;
+        },
+        {
+            ttree tree = {};
+            ttree_mishap result = {};
+
+            tree.tree_contents = (range *) &data->tree_start_state_contents;
+            tree.tree_children = (range *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path(make_system_allocator(), &tree, (range *) &data->addition_path, &test_comparator_u32);
+
+            result = ttree_add(&tree, path, (const byte *) &data->added_value);
+
+            if (data->expect_addition) {
+                tst_assert(result == TTREE_NO_MISHAP, "addition failed !");
+            } else {
+                tst_assert(result != TTREE_NO_MISHAP, "addition passed anyway !");
+            }
+
+            for (size_t i = 0 ; i < tree.tree_contents->length ; i++) {
+                tst_assert_equal(range_val(tree.tree_contents, i, u32),    range_val(&data->tree_end_state_contents, i, u32),    "tree content of %d");
+                tst_assert_equal(range_val(tree.tree_children, i, size_t), range_val(&data->tree_end_state_children, i, size_t), "children count of %d");
+            }
+
+            if (path) {
+                ttree_path_destroy(make_system_allocator(), &path);
+            }
+        }
+)
+
+tst_CREATE_TEST_CASE(tree_add_element_in_empty, tree_add_element,
+        .tree_start_state_contents = range_static_create(10, u32),
+        .tree_start_state_children = range_static_create(10, size_t),
+        .addition_path             = range_static_create(10, u32),
+        .added_value               = 42,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_static_create(10, u32,   42),
+        .tree_end_state_children   = range_static_create(10, size_t, 0),
+)
+tst_CREATE_TEST_CASE(tree_add_element_at_root, tree_add_element,
+        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43),
+        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0),
+        .addition_path             = range_static_create(10, u32),
+        .added_value               = 99,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_static_create(10, u32,   99, 41, 42, 43),
+        .tree_end_state_children   = range_static_create(10, size_t, 0,  2,  1,  0),
+)
+tst_CREATE_TEST_CASE(tree_add_element_at_node, tree_add_element,
+        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43),
+        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0),
+        .addition_path             = range_static_create(10, u32, 41),
+        .added_value               = 99,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_static_create(10, u32,   41, 99, 42, 43),
+        .tree_end_state_children   = range_static_create(10, size_t, 3,  0,  1,  0),
+)
+tst_CREATE_TEST_CASE(tree_add_element_at_node_far, tree_add_element,
+        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .addition_path             = range_static_create(10, u32, 44, 45),
+        .added_value               = 99,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_static_create(10, u32,   41, 42, 43, 44, 45, 99, 46, 47, 48, 49),
+        .tree_end_state_children   = range_static_create(10, size_t, 2,  1,  0,  4,  1,  0,  0,  0,  1,  0),
+)
+tst_CREATE_TEST_CASE(tree_add_element_bad_path, tree_add_element,
+        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .addition_path             = range_static_create(10, u32, 41, 45),
+        .added_value               = 99,
+        .expect_addition           = false,
+        .tree_end_state_contents   = range_static_create(10, u32,   41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_end_state_children   = range_static_create(10, size_t, 2,  1,  0,  3,  0,  0,  0,  1,  0),
+
+)
+
+tst_CREATE_TEST_CASE(tree_add_element_full, tree_add_element,
+        .tree_start_state_contents = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_start_state_children = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .addition_path             = range_static_create(10, u32),
+        .added_value               = 99,
+        .expect_addition           = false,
+        .tree_end_state_contents   = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_end_state_children   = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
+
 )
 
 // -------------------------------------------------------------------------------------------------
@@ -298,13 +438,20 @@ void ttree_execute_unittests(void)
     tst_run_test_case(tree_lifetime_bad_size);
     tst_run_test_case(tree_lifetime_bad_count);
 
-    tst_run_test_case(search_present);
-    tst_run_test_case(search_present_node);
-    tst_run_test_case(search_absent);
-    tst_run_test_case(search_too_far);
-    tst_run_test_case(search_empty_path);
-    tst_run_test_case(search_empty_tree);
-    tst_run_test_case(search_empty_and_empty);
+    tst_run_test_case(tree_search_present);
+    tst_run_test_case(tree_search_present_node);
+    tst_run_test_case(tree_search_absent);
+    tst_run_test_case(tree_search_too_far);
+    tst_run_test_case(tree_search_empty_path);
+    tst_run_test_case(tree_search_empty_tree);
+    tst_run_test_case(tree_search_empty_and_empty);
+
+    tst_run_test_case(tree_add_element_in_empty);
+    tst_run_test_case(tree_add_element_at_root);
+    tst_run_test_case(tree_add_element_at_node);
+    tst_run_test_case(tree_add_element_at_node_far);
+    tst_run_test_case(tree_add_element_bad_path);
+    tst_run_test_case(tree_add_element_full);
 }
 
 #endif
