@@ -27,6 +27,8 @@ typedef uint64_t u64; ///< convenience type redefinition
 typedef float  f32; ///< convenience type redefinition
 typedef double f64; ///< convenience type redefinition
 
+typedef i32 (*comparator_f)(const void * rhs, const void *lhs);
+
 #define force_cast(__TYPE, __variable) (*((__TYPE*) &(__variable)))
 
 #define offset_of(__member, __struct) ((size_t) &(((__struct *) NULL)->__member))

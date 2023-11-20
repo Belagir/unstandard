@@ -54,7 +54,7 @@ typedef range_of(byte) range;
                 .data = {__VA_ARGS__} \
         }
 
-typedef i32 (*range_comparator)(const void *, const void *);
+typedef comparator_f range_comparator_f;
 
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
@@ -217,7 +217,7 @@ range *range_subrange_of(allocator alloc, const range *r, size_t start_index, si
  * @param[in] from index from which to search for the element
  * @return size_t index of the element if found, length of the range otherwise
  */
-size_t range_index_of(const range *haystack, range_comparator comparator, const void *needle, size_t from);
+size_t range_index_of(const range *haystack, range_comparator_f comparator, const void *needle, size_t from);
 
 #ifdef UNITTESTING
 void range_execute_unittests(void);

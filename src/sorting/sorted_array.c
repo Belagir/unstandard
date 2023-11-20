@@ -8,7 +8,7 @@
 #endif
 
 // -------------------------------------------------------------------------------------------------
-bool sorted_range_find_in(range *r_haystack, range_comparator comparator, void *needle, size_t *out_position)
+bool sorted_range_find_in(range *r_haystack, range_comparator_f comparator, void *needle, size_t *out_position)
 {
     i32 beggining = 0u;
     i32 end = 0u;
@@ -49,7 +49,7 @@ bool sorted_range_find_in(range *r_haystack, range_comparator comparator, void *
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t sorted_range_remove_from(range *haystack, range_comparator comparator, void *needle)
+size_t sorted_range_remove_from(range *haystack, range_comparator_f comparator, void *needle)
 {
     u32 found = 0u;
     size_t found_pos = 0u;
@@ -70,7 +70,7 @@ size_t sorted_range_remove_from(range *haystack, range_comparator comparator, vo
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t sorted_range_insert_in(range *haystack, range_comparator comparator, void *inserted_needle)
+size_t sorted_range_insert_in(range *haystack, range_comparator_f comparator, void *inserted_needle)
 {
     size_t theorical_position = 0u;
 

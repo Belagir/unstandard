@@ -56,7 +56,7 @@ ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
  * @param elements_range
  * @return ttree_path
  */
-ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_range, i32 (*comparator_f)(const void *elt_left,const void *elt_right));
+ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_range, comparator_f comp);
 
 /**
  * @brief

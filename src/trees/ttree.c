@@ -72,14 +72,14 @@ ttree_mishap ttree_destroy(allocator alloc, ttree **tree)
 }
 
 // -------------------------------------------------------------------------------------------------
-ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_range, i32 (*comparator_f)(const void *elt_left,const void *elt_right))
+ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_range, comparator_f comp)
 {
     ttree_path *path = { };
     size_t pos_elements = { 0u };
     size_t pos   = { 0u };
     size_t limit = { 0u };
 
-    if (!tree || !elements_range || !comparator_f) {
+    if (!tree || !elements_range || !comp) {
         return NULL;
     }
 
@@ -90,7 +90,7 @@ ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_r
 
     limit = tree->tree_contents->length;
     while ((pos < limit) && (pos_elements < elements_range->length)) {
-        if (comparator_f(range_at(elements_range, pos_elements), range_at(tree->tree_contents, pos)) == 0) {
+        if (comp(range_at(elements_range, pos_elements), range_at(tree->tree_contents, pos)) == 0) {
             range_insert(path->tokens_indexes, path->tokens_indexes->length, (void *) &pos);
             limit = pos + range_val(tree->tree_children, pos, size_t) + 1;
             pos += 1u;
