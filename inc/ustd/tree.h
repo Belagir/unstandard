@@ -14,6 +14,8 @@ typedef enum ttree_mishap {
     TTREE_INVALID_OBJECT,
     TTREE_BAD_PATH,
     TTREE_OUT_OF_MEM,
+
+    TTREE_OTHER_MISHAP,
 } ttree_mishap;
 
 /**
