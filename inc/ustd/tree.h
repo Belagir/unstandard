@@ -56,7 +56,20 @@ ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
  * @param elements_range
  * @return ttree_path
  */
-ttree_path *ttree_get_path(allocator alloc, ttree *tree, const range *elements_range, comparator_f comp);
+ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, const range *elements_range, comparator_f comp);
+
+/**
+ * @brief
+ *
+ * @param alloc
+ * @param path
+ * @param elements_range
+ * @param comp
+ * @return ttree_path*
+ */
+ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, const range *elements_range, comparator_f comp);
+
+#define ttree_get_path(__alloc, X, __elements_range, __comp) ( _Generic(X, ttree * : ttree_get_path_absolute, ttree_path * : ttree_get_path_relative) )(__alloc, X, __elements_range, __comp)
 
 /**
  * @brief
