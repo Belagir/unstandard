@@ -39,6 +39,10 @@
 #define tst_assert_equal(val1, val2, format_mod) \
         tst_assert((val1) == (val2), "values mismatch : expected " format_mod ", got " format_mod, (val1), (val2))
 
+
+#define tst_assert_equal_ext(val1, val2, format_mod, format_ext, ...) \
+        tst_assert((val1) == (val2), "values mismatch : expected " format_mod ", got " format_mod " " format_ext, (val1), (val2) __VA_OPT__(,) __VA_ARGS__)
+
 /**
  * @brief Creates a unit named test scenario.
  *
