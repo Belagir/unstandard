@@ -228,6 +228,42 @@ ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path)
 }
 
 // -------------------------------------------------------------------------------------------------
+ttree_iterator ttree_path_get_child_start(ttree_path *path)
+{
+    ttree_iterator ite = { .kind = TTREE_ITERATOR_CHILDREN, .path = path };
+
+    if (!path || !(path->target)) {
+        return (ttree_iterator) { };
+    }
+
+    if (path->tokens_indexes->length > 0) {
+        ite.index = range_val_back(path->tokens_indexes, size_t) + 1u;
+    } else {
+        ite.index = 0;
+    }
+
+    return ite;
+}
+
+// -------------------------------------------------------------------------------------------------
+ttree_iterator ttree_path_get_child_end(ttree_path *path)
+{
+    ttree_iterator ite = ttree_path_get_child_start(path);
+
+    if (!ite.path) {
+        return (ttree_iterator) { };
+    }
+
+    if (path->tokens_indexes->length > 0) {
+        ite.index += range_val(path->target->tree_children, (ite.index - 1), size_t);
+    } else {
+        ite.index = path->target->tree_children->length;
+    }
+
+    return ite;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -702,6 +738,67 @@ tst_CREATE_TEST_CASE(tree_remove_bad_path, tree_remove_element,
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_iterator_children,
+        {
+            range_static(10, u32)    tree_start_state_contents;
+            range_static(10, size_t) tree_start_state_children;
+            range_static(10, u32) path;
+
+            size_t children_start;
+            size_t children_end;
+        },
+        {
+            ttree tree = {};
+            tree.tree_contents = (range *) &data->tree_start_state_contents;
+            tree.tree_children = (range *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, (range *) &data->path, &test_comparator_u32);
+            tst_assert_equal(data->children_start, ttree_path_get_child_start(path).index, "children start of %d");
+            tst_assert_equal(data->children_end,   ttree_path_get_child_end(path).index,   "children end of %d");
+
+            if (path) {
+                ttree_path_destroy(make_system_allocator(), &path);
+            }
+        }
+)
+tst_CREATE_TEST_CASE(tree_iterator_children_whole_tree, tree_iterator_children,
+        .tree_start_state_contents = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_start_state_children = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .path                      = range_static_create(10, u32),
+        .children_start            = 0,
+        .children_end              = 10,
+)
+tst_CREATE_TEST_CASE(tree_iterator_children_empty_tree, tree_iterator_children,
+        .tree_start_state_contents = range_static_create(10, u32),
+        .tree_start_state_children = range_static_create(10, size_t),
+        .path                      = range_static_create(10, u32),
+        .children_start            = 0,
+        .children_end              = 0,
+)
+tst_CREATE_TEST_CASE(tree_iterator_children_of_node, tree_iterator_children,
+        .tree_start_state_contents = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_start_state_children = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .path                      = range_static_create(10, u32, 44),
+        .children_start            = 5,
+        .children_end              = 8,
+)
+tst_CREATE_TEST_CASE(tree_iterator_children_of_node_to_end, tree_iterator_children,
+        .tree_start_state_contents = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_start_state_children = range_static_create(10, size_t, 0,  2,  1,  0,  5,  0,  0,  0,  1,  0),
+        .path                      = range_static_create(10, u32, 44),
+        .children_start            = 5,
+        .children_end              = 10,
+)
+tst_CREATE_TEST_CASE(tree_iterator_children_of_leaf, tree_iterator_children,
+        .tree_start_state_contents = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
+        .tree_start_state_children = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .path                      = range_static_create(10, u32, 41, 42, 43),
+        .children_start            = 4,
+        .children_end              = 4,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 void ttree_execute_unittests(void)
 {
     tst_run_test_case(tree_lifetime_u32);
@@ -740,6 +837,12 @@ void ttree_execute_unittests(void)
     tst_run_test_case(tree_remove_leaf);
     tst_run_test_case(tree_remove_node);
     tst_run_test_case(tree_remove_bad_path);
+
+    tst_run_test_case(tree_iterator_children_whole_tree);
+    tst_run_test_case(tree_iterator_children_empty_tree);
+    tst_run_test_case(tree_iterator_children_of_node);
+    tst_run_test_case(tree_iterator_children_of_node_to_end);
+    tst_run_test_case(tree_iterator_children_of_leaf);
 }
 
 #endif
