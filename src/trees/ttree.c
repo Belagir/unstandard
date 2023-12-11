@@ -127,7 +127,7 @@ subttree ttree_get_subtree_subtree(subttree target, const void *node_path[], siz
         return subtree;
     } else if (node_path_length + target.parents.length >= TTREE_MAX_DEPTH) {
         subtree.pos = 0u;
-        subtree.parent = NULL;
+        // subtree.parent = NULL;
         return subtree;
     }
 
