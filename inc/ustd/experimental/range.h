@@ -52,6 +52,17 @@ typedef i32 (*rrange_comparator)(const void *, const void *);
  */
 bool rrange_insert_value(rrange_any target, size_t index, const void *value);
 
+/**
+ * @brief Inserts the values held in a range in another range. Both range should be of the same stride, and the first range should have enough space to store all the values in the second one. Like inserting a value, already present values after the insertion index are shifted to the right.
+ *
+ * @param[inout] r target range
+ * @param[in] index insertion index
+ * @param[in] other pointer to the other range
+ * @return true if the range's values could be inserted
+ * @return false if the target range did not have enough space
+ */
+bool rrange_insert_range(rrange_any target, size_t index, const rrange_any other);
+
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);
 #endif
