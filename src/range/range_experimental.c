@@ -23,18 +23,18 @@ static void rrange_set(rrange_any target, size_t index, const void *value);
 // -------------------------------------------------------------------------------------------------
 bool rrange_insert_value(rrange_any target, size_t index, const void *value)
 {
-    if (target.range_impl->length + 1 > target.range_impl->capacity) {
+    if (target.r->length + 1 > target.r->capacity) {
         return false;
     }
 
-    index = min(index, target.range_impl->length);
+    index = min(index, target.r->length);
 
-    for (size_t i = target.range_impl->length ; i > index ; i--) {
-        bytewise_copy(target.range_impl->data + (i * target.stride), target.range_impl->data + (i - 1) * target.stride, target.stride);
+    for (size_t i = target.r->length ; i > index ; i--) {
+        bytewise_copy(target.r->data + (i * target.stride), target.r->data + (i - 1) * target.stride, target.stride);
     }
 
     rrange_set(target, index, value);
-    target.range_impl->length += 1;
+    target.r->length += 1;
 
     return true;
 }
@@ -42,20 +42,20 @@ bool rrange_insert_value(rrange_any target, size_t index, const void *value)
 // -------------------------------------------------------------------------------------------------
 bool rrange_insert_range(rrange_any target, size_t index, const rrange_any other)
 {
-    if (((target.range_impl->length + other.range_impl->length) > target.range_impl->capacity) || (target.stride != other.stride)) {
+    if (((target.r->length + other.r->length) > target.r->capacity) || (target.stride != other.stride)) {
         return false;
     }
 
-    index = min(index, target.range_impl->length);
+    index = min(index, target.r->length);
 
-    for (size_t i = target.range_impl->length ; i > index ; i--) {
-        bytewise_copy(target.range_impl->data + ((i + (other.range_impl->length - 1)) * target.stride), target.range_impl->data + (i - 1) * target.stride, target.stride);
+    for (size_t i = target.r->length ; i > index ; i--) {
+        bytewise_copy(target.r->data + ((i + (other.r->length - 1)) * target.stride), target.r->data + (i - 1) * target.stride, target.stride);
     }
 
-    for (size_t i = 0 ; i < other.range_impl->length ; i++) {
-        rrange_set(target, index + i, other.range_impl->data + (i * other.stride));
+    for (size_t i = 0 ; i < other.r->length ; i++) {
+        rrange_set(target, index + i, other.r->data + (i * other.stride));
     }
-    target.range_impl->length += other.range_impl->length;
+    target.r->length += other.r->length;
 
     return true;
 }
@@ -72,20 +72,20 @@ bool rrange_remove_interval(rrange_any target, size_t from, size_t to)
     size_t nb_shifted_elements = { 0 };
     size_t nb_removed_elements = { 0 };
 
-    if ((from >= to) || (to > target.range_impl->length)) {
+    if ((from >= to) || (to > target.r->length)) {
         return false;
     }
 
-    nb_shifted_elements = target.range_impl->length - to;
+    nb_shifted_elements = target.r->length - to;
     nb_removed_elements = to - from;
 
     for (size_t i = 0 ; i <= nb_shifted_elements ; i++) {
         bytewise_copy(
-                target.range_impl->data + (from + i) * target.stride,
-                target.range_impl->data + (from + i + nb_removed_elements) * target.stride,
+                target.r->data + (from + i) * target.stride,
+                target.r->data + (from + i + nb_removed_elements) * target.stride,
                 target.stride);
     }
-    target.range_impl->length -= (to - from);
+    target.r->length -= (to - from);
 
     return true;
 }
@@ -96,7 +96,7 @@ bool rrange_remove_interval(rrange_any target, size_t from, size_t to)
 // -------------------------------------------------------------------------------------------------
 static void rrange_set(rrange_any target, size_t index, const void *value)
 {
-    bytewise_copy(target.range_impl->data + (index * target.stride), value, target.stride);
+    bytewise_copy(target.r->data + (index * target.stride), value, target.stride);
 }
 
 // -------------------------------------------------------------------------------------------------

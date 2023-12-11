@@ -9,6 +9,9 @@
  */
 #define rrange(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
 
+/**
+ * @brief Basic range of bytes.
+ */
 typedef rrange(byte) rrange_of_bytes;
 
 /**
@@ -27,7 +30,7 @@ typedef rrange(byte) rrange_of_bytes;
  */
 typedef struct {
     /// actual target range as an incomplete range of bytes.
-    rrange_of_bytes *range_impl;
+    rrange_of_bytes *r;
     /// size of the original type. Change this to create bugs.
     size_t stride;
 } rrange_any;
