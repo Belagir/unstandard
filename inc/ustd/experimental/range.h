@@ -44,7 +44,7 @@ typedef i32 (*rrange_comparator)(const void *, const void *);
  * If the index is greater than the current length of the range, the element is inserted at the back of the range at the first free space.
  * If however the range is at maximum capacity, the element is not inserted and false is returned.
  *
- * @param[inout] r target range
+ * @param[inout] target target range
  * @param[in] index insertion index
  * @param[in] value pointer to the inserted value
  * @return true if the element was inserted
@@ -55,13 +55,35 @@ bool rrange_insert_value(rrange_any target, size_t index, const void *value);
 /**
  * @brief Inserts the values held in a range in another range. Both range should be of the same stride, and the first range should have enough space to store all the values in the second one. Like inserting a value, already present values after the insertion index are shifted to the right.
  *
- * @param[inout] r target range
+ * @param[inout] target target range
  * @param[in] index insertion index
  * @param[in] other pointer to the other range
  * @return true if the range's values could be inserted
  * @return false if the target range did not have enough space
  */
 bool rrange_insert_range(rrange_any target, size_t index, const rrange_any other);
+
+/**
+ * @brief Removes an element from a range by index.
+ *
+ * @param[inout] target target range
+ * @param[in] index deletion index
+ * @return true if an element was removed at the index
+ * @return false if the index was out of bounds
+ */
+bool rrange_remove(rrange_any target, size_t index);
+
+/**
+ * @brief Removes several elements fom a range, from the index `from` (included) to the index `to` (excluded).
+ * The function either removes all elements specified or none.
+ *
+ * @param[inout] target target range
+ * @param[in] from index from which to start removing
+ * @param[in] to index up to which the removal goes
+ * @return true if all elements were removed
+ * @return false if the bounds provided were invalid
+ */
+bool rrange_remove_interval(rrange_any target, size_t from, size_t to);
 
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);

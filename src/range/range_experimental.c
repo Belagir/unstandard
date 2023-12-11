@@ -61,6 +61,36 @@ bool rrange_insert_range(rrange_any target, size_t index, const rrange_any other
 }
 
 // -------------------------------------------------------------------------------------------------
+bool rrange_remove(rrange_any target, size_t index)
+{
+    return rrange_remove_interval(target, index, index + 1);
+}
+
+// -------------------------------------------------------------------------------------------------
+bool rrange_remove_interval(rrange_any target, size_t from, size_t to)
+{
+    size_t nb_shifted_elements = { 0 };
+    size_t nb_removed_elements = { 0 };
+
+    if ((from >= to) || (to > target.range_impl->length)) {
+        return false;
+    }
+
+    nb_shifted_elements = target.range_impl->length - to;
+    nb_removed_elements = to - from;
+
+    for (size_t i = 0 ; i <= nb_shifted_elements ; i++) {
+        bytewise_copy(
+                target.range_impl->data + (from + i) * target.stride,
+                target.range_impl->data + (from + i + nb_removed_elements) * target.stride,
+                target.stride);
+    }
+    target.range_impl->length -= (to - from);
+
+    return true;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -75,6 +105,8 @@ static void rrange_set(rrange_any target, size_t index, const void *value)
 
 #ifdef UNITTESTING
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(rrange_insert_value,
         {
             rrange(u32, 10u) array;
@@ -151,6 +183,8 @@ tst_CREATE_TEST_CASE(rrange_insert_in_full_start, rrange_insert_value,
         .expect_insertion   = false,
 )
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(rrange_insert_other_range,
         {
             rrange(u32, 10u) array;
@@ -213,6 +247,88 @@ tst_CREATE_TEST_CASE(rrange_insert_other_at_middle, rrange_insert_other_range,
         .expect_insertion   = true,
 )
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(rrange_remove_interval,
+        {
+            rrange(u32, 10) array;
+            size_t remove_from;
+            size_t remove_to;
+
+            rrange(u32, 10) expected_array;
+            bool expect_removal;
+        },
+        {
+            bool success = rrange_remove_interval(rrange_to_any(&data->array), data->remove_from, data->remove_to);
+
+            tst_assert_equal(data->expect_removal, success, "success of %d");
+
+            tst_assert_equal(data->expected_array.length, data->array.length, "length of %d");
+            for (size_t i = 0 ; i < data->expected_array.length ; i++) {
+                tst_assert_equal_ext(data->expected_array.data[i], data->array.data[i], "%d", "at index %d", i);
+            }
+        }
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_whole, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 0,
+        .remove_to      = 10,
+        .expected_array = rrange_create_static(u32, 10),
+        .expect_removal = true,
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_beginning, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 0,
+        .remove_to      = 3,
+        .expected_array = rrange_create_static(u32, 10, 3, 4, 5, 6, 7, 8, 9),
+        .expect_removal = true,
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_end, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 4,
+        .remove_to      = 10,
+        .expected_array = rrange_create_static(u32, 10, 0, 1, 2, 3),
+        .expect_removal = true,
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_middle, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 3,
+        .remove_to      = 8,
+        .expected_array = rrange_create_static(u32, 10, 0, 1, 2, 8, 9),
+        .expect_removal = true,
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_too_far, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 5,
+        .remove_to      = 11,
+        .expected_array = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .expect_removal = false,
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_one_element, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 2,
+        .remove_to      = 3,
+        .expected_array = rrange_create_static(u32, 10, 0, 1, 3, 4, 5, 6, 7, 8, 9),
+        .expect_removal = true,
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_bad_interval, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 4,
+        .remove_to      = 3,
+        .expected_array = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .expect_removal = false,
+)
+tst_CREATE_TEST_CASE(rrange_remove_interval_empty_interval, rrange_remove_interval,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .remove_from    = 4,
+        .remove_to      = 4,
+        .expected_array = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .expect_removal = false,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 void rrange_experimental_execute_unittests(void)
 {
     tst_run_test_case(rrange_insert_in_empty);
@@ -230,6 +346,15 @@ void rrange_experimental_execute_unittests(void)
     tst_run_test_case(rrange_insert_other_empty);
     tst_run_test_case(rrange_insert_other_at_start);
     tst_run_test_case(rrange_insert_other_at_middle);
+
+    tst_run_test_case(rrange_remove_interval_whole);
+    tst_run_test_case(rrange_remove_interval_beginning);
+    tst_run_test_case(rrange_remove_interval_end);
+    tst_run_test_case(rrange_remove_interval_middle);
+    tst_run_test_case(rrange_remove_interval_too_far);
+    tst_run_test_case(rrange_remove_interval_one_element);
+    tst_run_test_case(rrange_remove_interval_bad_interval);
+    tst_run_test_case(rrange_remove_interval_empty_interval);
 }
 
 #endif
