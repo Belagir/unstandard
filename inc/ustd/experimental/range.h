@@ -13,13 +13,17 @@
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
-#define rrange_create_static(__type, __capacity, ...) { .length = count_of(((__type[]) {__VA_ARGS__})), .capacity = __capacity, .data = { __VA_ARGS__ } }
+#define rrange_create_static(__type, __capacity, ...) { .length = count_of(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
 
 /**
  * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
-#define rrange_create_static_fit(__type, ...) { .length = count_of(((__type[]) {__VA_ARGS__})), .capacity = count_of(((__type[]) {__VA_ARGS__})), .data = { __VA_ARGS__ } }
+#define rrange_create_static_fit(__type, ...) { .length = count_of(((__type[]) __VA_ARGS__)), .capacity = count_of(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
 
+/**
+ * @brief Anonymous range used for the methods' abstraction layer.
+ *
+ */
 typedef struct range_anonymous range_anonymous;
 
 /**
@@ -157,7 +161,7 @@ void *rrange_create_dynamic_from_resize_of(allocator alloc, const rrange_any tar
  * @return range* concatenation of the two ranges
  */
 [[nodiscard]]
-void *rrange_concat(allocator alloc, const rrange_any r_left, const rrange_any r_right);
+void *rrange_create_dynamic_from_concat(allocator alloc, const rrange_any r_left, const rrange_any r_right);
 
 /**
  * @brief Returns a copy of the supplied range.
@@ -167,7 +171,7 @@ void *rrange_concat(allocator alloc, const rrange_any r_left, const rrange_any r
  * @return range* copy of the given range
  */
 [[nodiscard]]
-void *rrange_copy_of(allocator alloc, const rrange_any target);
+void *rrange_create_dynamic_from_copy_of(allocator alloc, const rrange_any target);
 
 /**
  * @brief Creates a new range from part of another range. Indexes are brought back in bounds if they are beyond the length of the range.
@@ -179,7 +183,7 @@ void *rrange_copy_of(allocator alloc, const rrange_any target);
  * @return range* created subrange
  */
 [[nodiscard]]
-void *rrange_subrange_of(allocator alloc, const rrange_any target, size_t start_index, size_t end_index);
+void *rrange_create_dynamic_from_subrange_of(allocator alloc, const rrange_any target, size_t start_index, size_t end_index);
 
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);
