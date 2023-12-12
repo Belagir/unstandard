@@ -2,6 +2,7 @@
 #ifndef __RRANGE_H__
 #define __RRANGE_H__
 
+#include <ustd/allocation.h>
 #include <ustd/common.h>
 
 /**
@@ -19,7 +20,7 @@
  */
 #define rrange_create_static_fit(__type, ...) { .length = count_of(((__type[]) {__VA_ARGS__})), .capacity = count_of(((__type[]) {__VA_ARGS__})), .data = { __VA_ARGS__ } }
 
-typedef struct range_targeted range_targeted;
+typedef struct range_anonymous range_anonymous;
 
 /**
  * @brief Any kind of range can be represented by this data structure.
@@ -27,7 +28,7 @@ typedef struct range_targeted range_targeted;
  */
 typedef struct {
     /// actual target range as an incomplete range of bytes.
-    range_targeted *r;
+    range_anonymous *r;
     /// size of the original type.
     const size_t stride;
 } rrange_any;
@@ -35,7 +36,7 @@ typedef struct {
 /**
  * @brief Converts a range into a data structure that can be passed to this module's methods. The value created lives on the scope of creation.
  */
-#define rrange_to_any(__rrange) (rrange_any) { .r = (range_targeted *) __rrange, .stride = sizeof(*(__rrange)->data) }
+#define rrange_to_any(__rrange) (rrange_any) { .r = (range_anonymous *) __rrange, .stride = sizeof(*(__rrange)->data) }
 
 typedef i32 (*rrange_comparator)(const void *, const void *);
 
@@ -102,6 +103,38 @@ void rrange_clear(rrange_any target);
  * @return size_t index of the element if found, length of the range otherwise
  */
 size_t rrange_index_of(const rrange_any haystack, rrange_comparator comparator, const void *needle, size_t from);
+
+/**
+ * @brief Creates a range of a certain size dynamically with an allocator.
+ *
+ * @param[inout] alloc allocator to use for the operation
+ * @param[in] size_element size, in bytes, of a single element
+ * @param[in] nb_elements_max maximum number of elements the range will hold
+ * @return range* created range
+ */
+[[nodiscard]]
+void *rrange_create_dynamic(allocator alloc, size_t size_element, size_t nb_elements_max);
+
+/**
+ * @brief Frees a range from the allocator it was created with.
+ *
+ * @param[inout] alloc allocator that was used to create the range
+ * @param[inout] r freed range
+ */
+void rrange_destroy_dynamic(allocator alloc, rrange_any *target);
+
+/**
+ * @brief Creates a range from existing data. The array is assumed to hold enough elements of the right size in memory to be copied into the range.
+ *
+ * @param[inout] alloc allocator to use for the operation
+ * @param[in] size_element size, in bytes, of a single element
+ * @param[in] nb_elements_max maximum number of elements the range will hold
+ * @param[in] nb_elements number of elements in the array
+ * @param[in] array source array to be copied into the range
+ * @return range* created range containing the values in the array
+ */
+[[nodiscard]]
+void *rrange_create_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, const void *array);
 
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);

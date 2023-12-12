@@ -5,11 +5,11 @@
 #include <ustd/testutilities.h>
 #endif
 
-typedef struct range_targeted {
+typedef struct range_anonymous {
     size_t length;
     size_t capacity;
     byte data[];
-} range_targeted;
+} range_anonymous;
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -114,6 +114,56 @@ size_t rrange_index_of(const rrange_any haystack, rrange_comparator comparator, 
     }
 
     return pos;
+}
+
+// -------------------------------------------------------------------------------------------------
+void *rrange_create_dynamic(allocator alloc, size_t size_element, size_t nb_elements_max)
+{
+    range_anonymous *new_range = { };
+
+    if ((size_element == 0u) || (nb_elements_max == 0u)) {
+        return NULL;
+    }
+
+    new_range = alloc.malloc(alloc, size_element * nb_elements_max);
+    if (!new_range) {
+        return NULL;
+    }
+
+    *new_range = (range_anonymous) { .capacity = nb_elements_max, .length = 0u };
+
+    return new_range;
+}
+
+// -------------------------------------------------------------------------------------------------
+void rrange_destroy_dynamic(allocator alloc, rrange_any *target)
+{
+    if (!target || !target->r) {
+        return;
+    }
+
+    alloc.free(alloc, target->r);
+    target->r = NULL;
+}
+
+// -------------------------------------------------------------------------------------------------
+void *rrange_create_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, const void *array)
+{
+    range_anonymous *new_range = { };
+
+    if ((array == NULL) || (nb_elements_max < nb_elements)) {
+        return NULL;
+    }
+
+    new_range = rrange_create_dynamic(alloc, size_element, nb_elements_max);
+    if (!new_range) {
+        return NULL;
+    }
+
+    bytewise_copy(new_range->data, array, nb_elements * size_element);
+    new_range->length = nb_elements;
+
+    return new_range;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -419,6 +469,44 @@ tst_CREATE_TEST_CASE(rrange_search_not_found_after, rrange_search,
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(rrange_create_from,
+        {
+            u32 source[10];
+            size_t source_length;
+
+            rrange(u32, 10) expected_range;
+        },
+        {
+            rrange(u32) *created_range = rrange_create_dynamic_from(make_system_allocator(), sizeof(*data->source), 10, data->source_length, data->source);
+
+            tst_assert_equal(data->expected_range.length, created_range->length, "length of %d");
+            for (size_t i = 0 ; i < data->expected_range.length ; i++) {
+                tst_assert_equal_ext(data->expected_range.data[i], created_range->data[i], "value of %d", "at index %d", i);
+            }
+
+            if (created_range) {
+                rrange_destroy_dynamic(make_system_allocator(), &rrange_to_any(created_range));
+            }
+        }
+)
+tst_CREATE_TEST_CASE(rrange_create_from_full, rrange_create_from,
+        .source = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, },
+        .source_length = 10,
+        .expected_range = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+)
+tst_CREATE_TEST_CASE(rrange_create_from_part, rrange_create_from,
+        .source = { 0, 1, 2, 3, 4, 5, 6, 7 },
+        .source_length = 6,
+        .expected_range = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5),
+)
+tst_CREATE_TEST_CASE(rrange_create_from_empty, rrange_create_from,
+        .source = { },
+        .source_length = 0,
+        .expected_range = rrange_create_static(u32, 10),
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void rrange_experimental_execute_unittests(void)
 {
@@ -454,6 +542,10 @@ void rrange_experimental_execute_unittests(void)
     tst_run_test_case(rrange_search_first_occurence);
     tst_run_test_case(rrange_search_not_found);
     tst_run_test_case(rrange_search_not_found_after);
+
+    tst_run_test_case(rrange_create_from_full);
+    tst_run_test_case(rrange_create_from_part);
+    tst_run_test_case(rrange_create_from_empty);
 }
 
 #endif
