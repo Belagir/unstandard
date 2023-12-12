@@ -148,6 +148,17 @@ void *rrange_create_dynamic_from(allocator alloc, size_t size_element, size_t nb
 [[nodiscard]]
 void *rrange_create_dynamic_from_resize_of(allocator alloc, const rrange_any target, size_t new_capacity);
 
+/**
+ * @brief Creates a range from the concatenation of two other ranges. Both ranges should be of the same stride.
+ *
+ * @param[inout] alloc allocator to use for the operation
+ * @param[in] r_left range to compose the start of the returned range
+ * @param[in] r_right range  to compose the end of the returned range
+ * @return range* concatenation of the two ranges
+ */
+[[nodiscard]]
+void *rrange_concat(allocator alloc, const rrange_any r_left, const rrange_any r_right);
+
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);
 #endif

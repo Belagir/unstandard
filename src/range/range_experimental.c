@@ -184,6 +184,29 @@ void *rrange_create_dynamic_from_resize_of(allocator alloc, const rrange_any tar
 }
 
 // -------------------------------------------------------------------------------------------------
+void *rrange_concat(allocator alloc, const rrange_any r_left, const rrange_any r_right)
+{
+    range_anonymous *new_range = { };
+
+    if (r_left.stride != r_left.stride) {
+        return NULL;
+    }
+
+    new_range = rrange_create_dynamic(alloc, r_left.stride, r_left.r->length + r_right.r->length);
+
+    if (!new_range) {
+        return NULL;
+    }
+
+    new_range->length = r_left.r->length + r_right.r->length;
+
+    bytewise_copy(new_range->data, r_left.r->data, r_left.stride * r_left.r->length);
+    bytewise_copy(new_range->data + (r_left.stride * r_left.r->length), r_right.r->data, r_right.stride * r_right.r->length);
+
+    return new_range;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -575,6 +598,43 @@ tst_CREATE_TEST_CASE(rrange_resize_to_nothing, rrange_resize,
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(rrange_concat,
+        {
+            rrange(u32, 10) range_left;
+            rrange(u32, 10) range_right;
+
+            rrange(u32, 20) expected_range;
+        },
+        {
+            rrange(u32) *new_range = rrange_concat(make_system_allocator(), rrange_to_any(&data->range_left), rrange_to_any(&data->range_right));
+
+            tst_assert_equal(data->expected_range.length, new_range->length, "length of %d");
+            for (size_t i = 0 ; i < data->expected_range.length ; i++) {
+                tst_assert_equal_ext(data->expected_range.data[i], new_range->data[i], "value of %d", "at index %d", i);
+            }
+
+            rrange_destroy_dynamic(make_system_allocator(), &rrange_to_any(new_range));
+        }
+)
+tst_CREATE_TEST_CASE(rrange_concat_two_populated, rrange_concat,
+        .range_left     = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .range_right    = rrange_create_static(u32, 10, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19),
+        .expected_range = rrange_create_static(u32, 20, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19),
+)
+tst_CREATE_TEST_CASE(rrange_concat_left_empty, rrange_concat,
+        .range_left     = rrange_create_static(u32, 10),
+        .range_right    = rrange_create_static(u32, 10, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19),
+        .expected_range = rrange_create_static(u32, 20, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19),
+)
+tst_CREATE_TEST_CASE(rrange_concat_right_empty, rrange_concat,
+        .range_left     = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .range_right    = rrange_create_static(u32, 10),
+        .expected_range = rrange_create_static(u32, 20, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+)
+
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void rrange_experimental_execute_unittests(void)
 {
@@ -619,6 +679,10 @@ void rrange_experimental_execute_unittests(void)
     tst_run_test_case(rrange_resize_to_bigger);
     tst_run_test_case(rrange_resize_to_same_size);
     tst_run_test_case(rrange_resize_to_nothing);
+
+    tst_run_test_case(rrange_concat_two_populated);
+    tst_run_test_case(rrange_concat_left_empty);
+    tst_run_test_case(rrange_concat_right_empty);
 }
 
 #endif
