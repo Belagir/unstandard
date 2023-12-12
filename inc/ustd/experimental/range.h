@@ -159,6 +159,16 @@ void *rrange_create_dynamic_from_resize_of(allocator alloc, const rrange_any tar
 [[nodiscard]]
 void *rrange_concat(allocator alloc, const rrange_any r_left, const rrange_any r_right);
 
+/**
+ * @brief Returns a copy of the supplied range.
+ *
+ * @param[inout] alloc allocator to use for the operation
+ * @param[in] target source range
+ * @return range* copy of the given range
+ */
+[[nodiscard]]
+void *rrange_copy_of(allocator alloc, const rrange_any target);
+
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);
 #endif
