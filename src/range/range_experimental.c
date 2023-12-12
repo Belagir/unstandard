@@ -224,6 +224,22 @@ void *rrange_copy_of(allocator alloc, const rrange_any target)
 }
 
 // -------------------------------------------------------------------------------------------------
+void *rrange_subrange_of(allocator alloc, const rrange_any target, size_t start_index, size_t end_index)
+{
+    range_anonymous *new_range = { };
+    size_t nb_copied_elements = { };
+
+    if ((start_index >= end_index) || (end_index > target.r->length)) {
+        return NULL;
+    }
+
+    nb_copied_elements = end_index - start_index;
+    new_range = rrange_create_dynamic_from(alloc, target.stride, nb_copied_elements, nb_copied_elements, target.r->data + (start_index * target.stride));
+
+    return new_range;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -679,6 +695,64 @@ tst_CREATE_TEST_CASE(rrange_copy_empty, rrange_copy,
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(rrange_get_subrange,
+        {
+            rrange(u32, 10) array;
+            size_t from;
+            size_t to;
+
+            rrange(u32, 10) expected_array;
+            bool expect_success;
+        },
+        {
+            rrange(u32) *subrange = rrange_subrange_of(make_system_allocator(), rrange_to_any(&data->array), data->from, data->to);
+
+            if (data->expect_success) {
+                tst_assert(subrange != NULL, "subrange was not created");
+
+                tst_assert_equal(data->expected_array.length, subrange->length, "length of %d");
+                for (size_t i = 0 ; i < data->expected_array.length ; i++) {
+                    tst_assert_equal_ext(data->expected_array.data[i], subrange->data[i], "value of %d", "at index %d", i);
+                }
+            } else {
+                tst_assert(subrange == NULL, "subrange was still created");
+            }
+
+            rrange_destroy_dynamic(make_system_allocator(), &rrange_to_any(subrange));
+        }
+)
+tst_CREATE_TEST_CASE(rrange_get_subrange_whole, rrange_get_subrange,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from           = 0,
+        .to             = 10,
+        .expected_array = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .expect_success = true,
+)
+tst_CREATE_TEST_CASE(rrange_get_subrange_part, rrange_get_subrange,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from           = 3,
+        .to             = 6,
+        .expected_array = rrange_create_static(u32, 10, 3, 4, 5),
+        .expect_success = true,
+)
+tst_CREATE_TEST_CASE(rrange_get_subrange_empty, rrange_get_subrange,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from           = 5,
+        .to             = 4,
+        .expected_array = rrange_create_static(u32, 10),
+        .expect_success = false,
+)
+tst_CREATE_TEST_CASE(rrange_get_subrange_beyond, rrange_get_subrange,
+        .array          = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .from           = 2,
+        .to             = 12,
+        .expected_array = rrange_create_static(u32, 10),
+        .expect_success = false,
+)
+
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void rrange_experimental_execute_unittests(void)
 {
@@ -731,6 +805,11 @@ void rrange_experimental_execute_unittests(void)
     tst_run_test_case(rrange_copy_full);
     tst_run_test_case(rrange_copy_not_full);
     tst_run_test_case(rrange_copy_empty);
+
+    tst_run_test_case(rrange_get_subrange_whole);
+    tst_run_test_case(rrange_get_subrange_part);
+    tst_run_test_case(rrange_get_subrange_empty);
+    tst_run_test_case(rrange_get_subrange_beyond);
 }
 
 #endif

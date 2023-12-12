@@ -169,6 +169,18 @@ void *rrange_concat(allocator alloc, const rrange_any r_left, const rrange_any r
 [[nodiscard]]
 void *rrange_copy_of(allocator alloc, const rrange_any target);
 
+/**
+ * @brief Creates a new range from part of another range. Indexes are brought back in bounds if they are beyond the length of the range.
+ *
+ * @param[inout] alloc allocator to use for the operation
+ * @param[in] r target range
+ * @param[in] start_index index from which to copy values, included
+ * @param[in] end_index  index to which values are copied, excluded
+ * @return range* created subrange
+ */
+[[nodiscard]]
+void *rrange_subrange_of(allocator alloc, const rrange_any target, size_t start_index, size_t end_index);
+
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);
 #endif
