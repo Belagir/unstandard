@@ -125,7 +125,7 @@ void *rrange_create_dynamic(allocator alloc, size_t size_element, size_t nb_elem
         return NULL;
     }
 
-    new_range = alloc.malloc(alloc, size_element * nb_elements_max);
+    new_range = alloc.malloc(alloc, sizeof(*new_range) +  size_element * nb_elements_max);
     if (!new_range) {
         return NULL;
     }
@@ -162,6 +162,23 @@ void *rrange_create_dynamic_from(allocator alloc, size_t size_element, size_t nb
 
     bytewise_copy(new_range->data, array, nb_elements * size_element);
     new_range->length = nb_elements;
+
+    return new_range;
+}
+
+// -------------------------------------------------------------------------------------------------
+void *rrange_create_dynamic_from_resize_of(allocator alloc, const rrange_any target, size_t new_capacity)
+{
+    range_anonymous *new_range = { };
+
+    new_range = rrange_create_dynamic(alloc, target.stride, new_capacity);
+
+    if (!new_range) {
+        return NULL;
+    }
+
+    new_range->length = min(new_capacity, target.r->length);
+    bytewise_copy(new_range->data, target.r->data, new_range->length * target.stride);
 
     return new_range;
 }
@@ -507,6 +524,57 @@ tst_CREATE_TEST_CASE(rrange_create_from_empty, rrange_create_from,
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(rrange_resize,
+        {
+            rrange(u32, 10) array;
+            size_t new_size;
+
+            rrange(u32, 20) expected_array;
+            bool expect_success;
+        },
+        {
+            rrange(u32) *new_range = rrange_create_dynamic_from_resize_of(make_system_allocator(), rrange_to_any(&data->array), data->new_size);
+
+            if (data->expect_success) {
+                tst_assert(new_range, "range was not created");
+                tst_assert_equal(data->new_size, new_range->capacity, "capacity of %d");
+                for (size_t i = 0 ; i < data->expected_array.length ; i++) {
+                    tst_assert_equal_ext(data->expected_array.data[i], new_range->data[i], "value of %d", "at index %d", i);
+                }
+            } else {
+                tst_assert(!new_range, "range was still created");
+            }
+
+            rrange_destroy_dynamic(make_system_allocator(), &rrange_to_any(new_range));
+        }
+)
+tst_CREATE_TEST_CASE(rrange_resize_to_smaller, rrange_resize,
+        .array          = rrange_create_static(u32, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18),
+        .new_size       = 6,
+        .expected_array = rrange_create_static(u32, 20, 0, 2, 4, 6, 8, 10),
+        .expect_success = true,
+)
+tst_CREATE_TEST_CASE(rrange_resize_to_bigger, rrange_resize,
+        .array          = rrange_create_static(u32, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18),
+        .new_size       = 15,
+        .expected_array = rrange_create_static(u32, 20, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18),
+        .expect_success = true,
+)
+tst_CREATE_TEST_CASE(rrange_resize_to_same_size, rrange_resize,
+        .array          = rrange_create_static(u32, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18),
+        .new_size       = 10,
+        .expected_array = rrange_create_static(u32, 20, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18),
+        .expect_success = true,
+)
+tst_CREATE_TEST_CASE(rrange_resize_to_nothing, rrange_resize,
+        .array          = rrange_create_static(u32, 10, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18),
+        .new_size       = 0,
+        .expected_array = rrange_create_static(u32, 20),
+        .expect_success = false,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void rrange_experimental_execute_unittests(void)
 {
@@ -546,6 +614,11 @@ void rrange_experimental_execute_unittests(void)
     tst_run_test_case(rrange_create_from_full);
     tst_run_test_case(rrange_create_from_part);
     tst_run_test_case(rrange_create_from_empty);
+
+    tst_run_test_case(rrange_resize_to_smaller);
+    tst_run_test_case(rrange_resize_to_bigger);
+    tst_run_test_case(rrange_resize_to_same_size);
+    tst_run_test_case(rrange_resize_to_nothing);
 }
 
 #endif

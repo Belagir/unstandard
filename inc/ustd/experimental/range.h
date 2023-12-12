@@ -136,6 +136,18 @@ void rrange_destroy_dynamic(allocator alloc, rrange_any *target);
 [[nodiscard]]
 void *rrange_create_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, const void *array);
 
+/**
+ * @brief Creates a range from an existing range, but assigns a new size to it. This size can be greater or smaller than the original.
+ * If the new capacity is smaller than the current length of the source range, the values are truncated.
+ *
+ * @param[inout] alloc allocator to use for the operation
+ * @param[in] target source range
+ * @param[in] new_capacity new capacity of the range
+ * @return range* created range of a new capacity holding the same values as the original range.
+ */
+[[nodiscard]]
+void *rrange_create_dynamic_from_resize_of(allocator alloc, const rrange_any target, size_t new_capacity);
+
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);
 #endif
