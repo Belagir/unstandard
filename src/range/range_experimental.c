@@ -5,6 +5,12 @@
 #include <ustd/testutilities.h>
 #endif
 
+typedef struct range_targeted {
+    size_t length;
+    size_t capacity;
+    byte data[];
+} range_targeted;
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -91,6 +97,26 @@ bool rrange_remove_interval(rrange_any target, size_t from, size_t to)
 }
 
 // -------------------------------------------------------------------------------------------------
+void rrange_clear(rrange_any target)
+{
+    target.r->length = 0u;
+}
+
+// -------------------------------------------------------------------------------------------------
+size_t rrange_index_of(const rrange_any haystack, rrange_comparator comparator, const void *needle, size_t from)
+{
+    bool found = { false };
+    size_t pos = { min(from, haystack.r->length) };
+
+    while ((pos < haystack.r->length) && !found) {
+        found = (comparator(haystack.r->data + (pos * haystack.stride), needle) == 0);
+        pos += !found;
+    }
+
+    return pos;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -104,6 +130,13 @@ static void rrange_set(rrange_any target, size_t index, const void *value)
 // -------------------------------------------------------------------------------------------------
 
 #ifdef UNITTESTING
+
+static i32 test_compare_u32(const void *el1, const void *el2) {
+    u32 val1 = *((u32 *) el1);
+    u32 val2 = *((u32 *) el2);
+
+    return (val1 > val2) - (val1 < val2);
+}
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -328,6 +361,64 @@ tst_CREATE_TEST_CASE(rrange_remove_interval_empty_interval, rrange_remove_interv
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(rrange_search,
+        {
+            rrange(u32, 10) array;
+            u32 searched_for;
+            size_t search_from;
+
+            size_t expected_position;
+        },
+        {
+            size_t pos = rrange_index_of(rrange_to_any(&data->array), &test_compare_u32, &data->searched_for, data->search_from);
+            tst_assert_equal(data->expected_position, pos, "position of %d");
+        }
+)
+tst_CREATE_TEST_CASE(rrange_search_for_head, rrange_search,
+        .array              = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .searched_for       = 0,
+        .search_from        = 0,
+        .expected_position  = 0,
+)
+tst_CREATE_TEST_CASE(rrange_search_for_end, rrange_search,
+        .array              = rrange_create_static(u32, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+        .searched_for       = 9,
+        .search_from        = 0,
+        .expected_position  = 9,
+)
+tst_CREATE_TEST_CASE(rrange_search_in_middle, rrange_search,
+        .array              = rrange_create_static(u32, 10, 0, 5, 6, 7, 1, 2, 3, 4, 8, 9),
+        .searched_for       = 3,
+        .search_from        = 0,
+        .expected_position  = 6,
+)
+tst_CREATE_TEST_CASE(rrange_search_second_occurence, rrange_search,
+        .array              = rrange_create_static(u32, 10, 0, 5, 6, 7, 1, 2, 6, 4, 8, 9),
+        .searched_for       = 6,
+        .search_from        = 3,
+        .expected_position  = 6,
+)
+tst_CREATE_TEST_CASE(rrange_search_first_occurence, rrange_search,
+        .array              = rrange_create_static(u32, 10, 0, 5, 6, 7, 1, 2, 6, 4, 8, 9),
+        .searched_for       = 6,
+        .search_from        = 2,
+        .expected_position  = 2,
+)
+tst_CREATE_TEST_CASE(rrange_search_not_found, rrange_search,
+        .array              = rrange_create_static(u32, 10, 0, 5, 6, 7, 1, 2, 6, 4, 8, 9),
+        .searched_for       = 99,
+        .search_from        = 0,
+        .expected_position  = 10,
+)
+tst_CREATE_TEST_CASE(rrange_search_not_found_after, rrange_search,
+        .array              = rrange_create_static(u32, 10, 0, 5, 6, 7, 1, 2, 5, 4, 8, 9),
+        .searched_for       = 6,
+        .search_from        = 3,
+        .expected_position  = 10,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void rrange_experimental_execute_unittests(void)
 {
@@ -355,6 +446,14 @@ void rrange_experimental_execute_unittests(void)
     tst_run_test_case(rrange_remove_interval_one_element);
     tst_run_test_case(rrange_remove_interval_bad_interval);
     tst_run_test_case(rrange_remove_interval_empty_interval);
+
+    tst_run_test_case(rrange_search_for_head);
+    tst_run_test_case(rrange_search_for_end);
+    tst_run_test_case(rrange_search_in_middle);
+    tst_run_test_case(rrange_search_second_occurence);
+    tst_run_test_case(rrange_search_first_occurence);
+    tst_run_test_case(rrange_search_not_found);
+    tst_run_test_case(rrange_search_not_found_after);
 }
 
 #endif

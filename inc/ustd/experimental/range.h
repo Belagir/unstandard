@@ -10,19 +10,16 @@
 #define rrange(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
 
 /**
- * @brief Basic range of bytes.
- */
-typedef rrange(byte) rrange_of_bytes;
-
-/**
- * @brief Declaration of a range of a certain size that will live in the scope it was created in.
+ * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
 #define rrange_create_static(__type, __capacity, ...) { .length = count_of(((__type[]) {__VA_ARGS__})), .capacity = __capacity, .data = { __VA_ARGS__ } }
 
 /**
- * @brief Declaration of a range of a size determined by the number of passed elements that will live in the scope it was created in.
+ * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
 #define rrange_create_static_fit(__type, ...) { .length = count_of(((__type[]) {__VA_ARGS__})), .capacity = count_of(((__type[]) {__VA_ARGS__})), .data = { __VA_ARGS__ } }
+
+typedef struct range_targeted range_targeted;
 
 /**
  * @brief Any kind of range can be represented by this data structure.
@@ -30,15 +27,15 @@ typedef rrange(byte) rrange_of_bytes;
  */
 typedef struct {
     /// actual target range as an incomplete range of bytes.
-    rrange_of_bytes *r;
-    /// size of the original type. Change this to create bugs.
-    size_t stride;
+    range_targeted *r;
+    /// size of the original type.
+    const size_t stride;
 } rrange_any;
 
 /**
  * @brief Converts a range into a data structure that can be passed to this module's methods. The value created lives on the scope of creation.
  */
-#define rrange_to_any(__rrange) (rrange_any) { .range_impl = (rrange_of_bytes *) __rrange, .stride = sizeof(*(__rrange)->data) }
+#define rrange_to_any(__rrange) (rrange_any) { .r = (range_targeted *) __rrange, .stride = sizeof(*(__rrange)->data) }
 
 typedef i32 (*rrange_comparator)(const void *, const void *);
 
@@ -87,6 +84,24 @@ bool rrange_remove(rrange_any target, size_t index);
  * @return false if the bounds provided were invalid
  */
 bool rrange_remove_interval(rrange_any target, size_t from, size_t to);
+
+/**
+ * @brief Clears a range of all its content.
+ *
+ * @param[inout] r cleared range
+ */
+void rrange_clear(rrange_any target);
+
+/**
+ * @brief Search for an element in the range haystack and returns an index to it. If the element is not found, then the length of the range is returned.
+ *
+ * @param[in] haystack range searched
+ * @param[in] comparator traditional comparator function for the elements of the range
+ * @param[in] needle pointer to an element that can compare to an element inside the range
+ * @param[in] from index from which to search for the element
+ * @return size_t index of the element if found, length of the range otherwise
+ */
+size_t rrange_index_of(const rrange_any haystack, rrange_comparator comparator, const void *needle, size_t from);
 
 #ifdef UNITTESTING
 void rrange_experimental_execute_unittests(void);
