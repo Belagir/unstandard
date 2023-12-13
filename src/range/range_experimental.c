@@ -1,5 +1,6 @@
 
 #include <ustd/experimental/range.h>
+#include <ustd_impl/range_impl.h>
 
 #ifdef UNITTESTING
 #include <ustd/testutilities.h>
@@ -7,15 +8,6 @@
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
-
-/**
- * @brief
- *
- * @param target
- * @param index
- * @param value
- */
-static void rrange_set(rrange_any target, size_t index, const void *value);
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -114,6 +106,7 @@ size_t rrange_index_of(const rrange_any haystack, rrange_comparator comparator, 
 void *rrange_create_dynamic(allocator alloc, size_t size_element, size_t nb_elements_max)
 {
     range_anonymous *new_range = { };
+    range_anonymous model_range = { .capacity = nb_elements_max, .length = 0u };
 
     if ((size_element == 0u) || (nb_elements_max == 0u)) {
         return NULL;
@@ -124,7 +117,7 @@ void *rrange_create_dynamic(allocator alloc, size_t size_element, size_t nb_elem
         return NULL;
     }
 
-    *new_range = (range_anonymous) { .capacity = nb_elements_max, .length = 0u };
+    bytewise_copy(new_range, &model_range, sizeof(model_range));
 
     return new_range;
 }
@@ -137,7 +130,6 @@ void rrange_destroy_dynamic(allocator alloc, rrange_any *target)
     }
 
     alloc.free(alloc, target->r);
-    target->r = NULL;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -237,7 +229,7 @@ void *rrange_create_dynamic_from_subrange_of(allocator alloc, const rrange_any t
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-static void rrange_set(rrange_any target, size_t index, const void *value)
+void rrange_set(rrange_any target, size_t index, const void *value)
 {
     bytewise_copy(target.r->data + (index * target.stride), value, target.stride);
 }

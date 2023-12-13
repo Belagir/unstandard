@@ -8,7 +8,7 @@
 /**
  * @brief Type definition of a range holding contiguous, typed values.
  */
-#define rrange(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
+#define rrange(__type, ...) struct { size_t length; const size_t capacity; __type data[__VA_ARGS__]; }
 
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
@@ -24,7 +24,7 @@
  * @brief Anonymous range used for the methods' abstraction layer.
  *
  */
-typedef rrange(byte) range_anonymous;
+typedef struct range_anonymous range_anonymous;
 
 /**
  * @brief Any kind of range can be represented by this data structure.
@@ -32,7 +32,7 @@ typedef rrange(byte) range_anonymous;
  */
 typedef struct {
     /// actual target range as an incomplete range of bytes.
-    range_anonymous *r;
+    range_anonymous *const r;
     /// size of the original type.
     const size_t stride;
 } rrange_any;
