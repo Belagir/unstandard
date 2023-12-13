@@ -5,12 +5,6 @@
 #include <ustd/testutilities.h>
 #endif
 
-typedef struct range_anonymous {
-    size_t length;
-    size_t capacity;
-    byte data[];
-} range_anonymous;
-
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 

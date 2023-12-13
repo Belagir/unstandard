@@ -24,7 +24,7 @@
  * @brief Anonymous range used for the methods' abstraction layer.
  *
  */
-typedef struct range_anonymous range_anonymous;
+typedef rrange(byte) range_anonymous;
 
 /**
  * @brief Any kind of range can be represented by this data structure.
