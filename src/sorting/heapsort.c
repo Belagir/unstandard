@@ -104,24 +104,22 @@ static void build_heap(rrange_any array, rrange_comparator comparator)
     }
 }
 
-#if 0
 // -------------------------------------------------------------------------------------------------
-bool is_sorted(range *array, range_comparator comparator)
+bool is_sorted(rrange_any array, rrange_comparator comparator)
 {
     size_t pos = { 0u };
 
-    if (array->length == 0) {
+    if (array.r->length == 0u) {
         return true;
     }
 
     pos = 1u;
-    while ((pos < array->length) && (comparator((void *) range_at(array, pos), (void *) range_at(array, pos-1)) != -1)) {
+    while ((pos < array.r->length) && (comparator((void *) (array.r->data + (pos * array.stride)), (void *) (array.r->data + ((pos - 1) * array.stride))) != -1)) {
         pos += 1u;
     }
 
-    return (pos == array->length);
+    return (pos == array.r->length);
 }
-#endif
 
 #ifdef UNITTESTING
 
@@ -144,7 +142,7 @@ tst_CREATE_TEST_SCENARIO(heap_sort,
                 tst_assert_equal_ext(data->expected.data[i], data->to_sort.data[i], "value of %d", "at index %d", i);
             }
 
-            // tst_assert(is_sorted((range *) &data->to_sort, &test_i32_comparator), "range is not sorted !");
+            tst_assert(is_sorted(rrange_to_any(&data->to_sort), &test_i32_comparator), "range is not sorted !");
         }
 )
 

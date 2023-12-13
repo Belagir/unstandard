@@ -13,7 +13,6 @@
  */
 void heapsort_sort(rrange_any array, rrange_comparator comparator);
 
-#if 0
 /**
  * @brief Returns wether a section of memory is sorted (depending on info given by the user).
  *
@@ -21,8 +20,7 @@ void heapsort_sort(rrange_any array, rrange_comparator comparator);
  * @param[in] comparator a comparison function for the type of the element.
  * @return i32
  */
-bool is_sorted(range *array, range_comparator comparator);
-#endif
+bool is_sorted(rrange_any array, rrange_comparator comparator);
 
 #ifdef UNITTESTING
 void heapsort_execute_unittests(void);
