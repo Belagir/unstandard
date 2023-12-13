@@ -3,7 +3,7 @@
 #define __SORTING_H__
 
 #include <ustd/common.h>
-#include <ustd/range.h>
+#include <ustd_impl/range_impl.h>
 
 /**
  * @brief Sorts an array of data through the heaps sort. Not stable, but in place.
@@ -11,8 +11,9 @@
  * @param[inout] array a valid range.
  * @param[in] comparator a comparison function for the type of the element.
  */
-void heapsort_sort(range *array, range_comparator comparator);
+void heapsort_sort(rrange_any array, rrange_comparator comparator);
 
+#if 0
 /**
  * @brief Returns wether a section of memory is sorted (depending on info given by the user).
  *
@@ -21,10 +22,13 @@ void heapsort_sort(range *array, range_comparator comparator);
  * @return i32
  */
 bool is_sorted(range *array, range_comparator comparator);
+#endif
 
 #ifdef UNITTESTING
 void heapsort_execute_unittests(void);
 #endif
+
+#if 0
 
 /**
  * @brief Find the position of an element (needle) in an anonymous array (haystack) that is assumed to be sorted.
@@ -57,6 +61,7 @@ size_t sorted_range_remove_from(range *haystack, range_comparator comparator, vo
  */
 size_t sorted_range_insert_in(range *haystack, range_comparator comparator, void *inserted_needle);
 
+#endif
 #ifdef UNITTESTING
 void sorted_range_execute_unittests(void);
 #endif

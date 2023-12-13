@@ -7,6 +7,7 @@
 #include <ustd/testutilities.h>
 #endif
 
+#if 0
 // -------------------------------------------------------------------------------------------------
 bool sorted_range_find_in(range *r_haystack, range_comparator comparator, void *needle, size_t *out_position)
 {
@@ -84,6 +85,7 @@ size_t sorted_range_insert_in(range *haystack, range_comparator comparator, void
 
     return theorical_position;
 }
+#endif
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -91,6 +93,7 @@ size_t sorted_range_insert_in(range *haystack, range_comparator comparator, void
 
 #ifdef UNITTESTING
 
+#if 0
 i32 test_u32_comparator(const void *v1, const void *v2) {
     u32 val1 = *((u32 *) v1);
     u32 val2 = *((u32 *) v2);
@@ -331,10 +334,12 @@ tst_CREATE_TEST_CASE(sorted_array_u32_insert_in_empty, sorted_array_insert,
 )
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+#endif
 
 void
 sorted_range_execute_unittests(void)
 {
+#if 0
     tst_run_test_case(sorted_array_u32_find_nominal);
     tst_run_test_case(sorted_array_u32_find_nominal_2);
 
@@ -368,6 +373,7 @@ sorted_range_execute_unittests(void)
     tst_run_test_case(sorted_array_insert_at_end);
     tst_run_test_case(sorted_array_u32_insert_other);
     tst_run_test_case(sorted_array_u32_insert_in_empty);
+#endif
 }
 
 #endif
