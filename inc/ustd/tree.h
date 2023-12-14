@@ -107,6 +107,24 @@ ttree_mishap ttree_remove(ttree *tree, const ttree_path *path);
  */
 ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path);
 
+/**
+ * @brief
+ *
+ * @param path
+ * @param apply_f
+ * @param additional_args
+ */
+void ttree_foreach_element(const ttree_path *path, void (apply_f)(void *element, void *additional_args), void *additional_args);
+
+/**
+ * @brief
+ *
+ * @param path
+ * @param apply_f
+ * @param additional_args
+ */
+void ttree_foreach_path(const ttree_path *path, void (apply_f)(ttree_path *some_path, void *additional_args), void *additional_args);
+
 #ifdef UNITTESTING
 void ttree_execute_unittests(void);
 #endif
