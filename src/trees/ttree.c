@@ -26,6 +26,8 @@ typedef struct ttree_path {
     range *tokens_indexes;
 } ttree_path;
 
+#if 0 && DEACTIVATED
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -244,12 +246,15 @@ static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length
 
     return path;
 }
+#endif
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 #ifdef UNITTESTING
+
+#if 0 && DEACTIVATED
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -700,10 +705,14 @@ tst_CREATE_TEST_CASE(tree_remove_bad_path, tree_remove_element,
         .tree_end_state_children   = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
 )
 
+#endif
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 void ttree_execute_unittests(void)
 {
+#if 0 && DEACTIVATED
+
     tst_run_test_case(tree_lifetime_u32);
     tst_run_test_case(tree_lifetime_1ko);
     tst_run_test_case(tree_lifetime_bad_size);
@@ -740,6 +749,7 @@ void ttree_execute_unittests(void)
     tst_run_test_case(tree_remove_leaf);
     tst_run_test_case(tree_remove_node);
     tst_run_test_case(tree_remove_bad_path);
+#endif
 }
 
 #endif

@@ -30,6 +30,8 @@ typedef struct ttree ttree;
  */
 typedef struct ttree_path ttree_path;
 
+#if 0 && DEACTIVATED
+
 /**
  * @brief Creates a tree of a with an allocator.
  *
@@ -125,8 +127,11 @@ void ttree_foreach_element(const ttree_path *path, void (apply_f)(void *element,
  */
 void ttree_foreach_path(const ttree_path *path, void (apply_f)(ttree_path *some_path, void *additional_args), void *additional_args);
 
+#endif
+
 #ifdef UNITTESTING
 void ttree_execute_unittests(void);
 #endif
+
 
 #endif
