@@ -10,11 +10,7 @@
 #include <ustd/testutilities.h>
 #include <ustd/tree.h>
 
-typedef struct containing {
-    int contained_a;
-    int contained_b;
-    int contained_c;
-} containing;
+#include <ustd/experimental/range.h>
 
 int main(int argc, char const *argv[])
 {
@@ -24,7 +20,6 @@ int main(int argc, char const *argv[])
     sorted_range_execute_unittests();
     range_execute_unittests();
     ttree_execute_unittests();
+    rrange_experimental_execute_unittests();
 #endif
-
-    return 0;
 }
