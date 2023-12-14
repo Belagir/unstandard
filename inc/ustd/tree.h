@@ -18,11 +18,6 @@ typedef enum ttree_mishap {
     TTREE_OTHER_MISHAP,
 } ttree_mishap;
 
-typedef enum ttree_iterator_kind {
-    TTREE_ITERATOR_CHILDREN,
-    TTREE_ITERATOR_PARENTS,
-} ttree_iterator_kind;
-
 /**
  * @brief Opaque type to pass around a tree stored contiguously in an array.
  *
@@ -34,13 +29,6 @@ typedef struct ttree ttree;
  *
  */
 typedef struct ttree_path ttree_path;
-
-typedef struct ttree_iterator {
-    const ttree_iterator_kind kind;
-    const ttree_path *path;
-    size_t index;
-} ttree_iterator;
-
 
 /**
  * @brief Creates a tree of a with an allocator.
@@ -118,16 +106,6 @@ ttree_mishap ttree_remove(ttree *tree, const ttree_path *path);
  * @return ttree_mishap
  */
 ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path);
-
-ttree_iterator ttree_path_get_child_start(ttree_path *path);
-ttree_iterator ttree_path_get_child_end(ttree_path *path);
-
-void ttree_iterator_incr(ttree_iterator *ite);
-void ttree_iterator_decr(ttree_iterator *ite);
-i32 ttree_iterator_compare(ttree_iterator *lhs, ttree_iterator *rhs);
-
-ttree_path *ttree_iterator_path(allocator alloc, ttree_iterator ite);
-void *ttree_iterator_element(ttree_iterator ite);
 
 #ifdef UNITTESTING
 void ttree_execute_unittests(void);
