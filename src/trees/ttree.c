@@ -1,6 +1,6 @@
 
 #include <ustd/common.h>
-#include <ustd/range.h>
+#include <ustd_impl/range_impl.h>
 #include <ustd/tree.h>
 
 #ifdef UNITTESTING
@@ -14,19 +14,18 @@
 // -------------------------------------------------------------------------------------------------
 typedef struct ttree {
     /// range of whatever memory
-    range *tree_contents;
+    rrange_any tree_contents;
     /// range of unsigned long integers
-    range *tree_children;
+    rrange(size_t) *tree_children;
 } ttree;
 
 // -------------------------------------------------------------------------------------------------
 typedef struct ttree_path {
     ttree *target;
     /// range of indexes
-    range *tokens_indexes;
+    rrange(size_t) *tokens_indexes;
 } ttree_path;
 
-#if 0 && DEACTIVATED
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -42,6 +41,7 @@ static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length
 ttree *ttree_create(allocator alloc, size_t capacity, size_t element_size)
 {
     ttree *tree = { };
+    rrange_any tree_impl_contents = rrange_create_dynamic_as_any(alloc, element_size, capacity);
 
     if ((capacity == 0u) || (element_size == 0u)) {
         return NULL;
@@ -50,8 +50,8 @@ ttree *ttree_create(allocator alloc, size_t capacity, size_t element_size)
     tree = alloc.malloc(alloc, sizeof(*tree));
 
     if (tree) {
-        tree->tree_contents = range_dynamic_create(alloc, element_size, capacity);
-        tree->tree_children = range_dynamic_create(alloc, sizeof(size_t), capacity);
+        bytewise_copy(&tree->tree_contents, &tree_impl_contents, sizeof(tree->tree_contents));
+        tree->tree_children = rrange_create_dynamic(alloc, sizeof(size_t), capacity);
     }
 
     return tree;
@@ -64,8 +64,8 @@ ttree_mishap ttree_destroy(allocator alloc, ttree **tree)
         return TTREE_INVALID_OBJECT;
     }
 
-    range_dynamic_destroy(alloc, (*tree)->tree_contents);
-    range_dynamic_destroy(alloc, (*tree)->tree_children);
+    rrange_destroy_dynamic(alloc, &((*tree)->tree_contents));
+    rrange_destroy_dynamic(alloc, &rrange_to_any((*tree)->tree_children));
 
     alloc.free(alloc, *tree);
     *tree = NULL;
@@ -73,6 +73,7 @@ ttree_mishap ttree_destroy(allocator alloc, ttree **tree)
     return TTREE_NO_MISHAP;
 }
 
+#if 0 && DEACTIVATED
 // -------------------------------------------------------------------------------------------------
 ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, const range *elements_range, comparator_f comp)
 {
@@ -232,6 +233,7 @@ ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path)
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+#endif
 
 // -------------------------------------------------------------------------------------------------
 static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length)
@@ -241,12 +243,11 @@ static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length
     path = alloc.malloc(alloc, sizeof(*path));
 
     if (path) {
-        *path = (ttree_path) { .target = tree, .tokens_indexes = range_dynamic_create(alloc, sizeof(size_t), length) };
+        *path = (ttree_path) { .target = tree, .tokens_indexes = rrange_create_dynamic(alloc, sizeof(size_t), length) };
     }
 
     return path;
 }
-#endif
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -254,7 +255,6 @@ static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length
 
 #ifdef UNITTESTING
 
-#if 0 && DEACTIVATED
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -304,6 +304,7 @@ tst_CREATE_TEST_CASE(tree_lifetime_bad_count, tree_lifetime,
         .expect_success = false,
 )
 
+#if 0 && DEACTIVATED
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -711,13 +712,13 @@ tst_CREATE_TEST_CASE(tree_remove_bad_path, tree_remove_element,
 // -------------------------------------------------------------------------------------------------
 void ttree_execute_unittests(void)
 {
-#if 0 && DEACTIVATED
 
     tst_run_test_case(tree_lifetime_u32);
     tst_run_test_case(tree_lifetime_1ko);
     tst_run_test_case(tree_lifetime_bad_size);
     tst_run_test_case(tree_lifetime_bad_count);
 
+#if 0 && DEACTIVATED
     tst_run_test_case(tree_search_present);
     tst_run_test_case(tree_search_present_node);
     tst_run_test_case(tree_search_absent);

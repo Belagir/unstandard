@@ -19,7 +19,7 @@ int main(int argc, char const *argv[])
     heapsort_execute_unittests();
     sorted_range_execute_unittests();
     range_execute_unittests();
-    ttree_execute_unittests();
     rrange_experimental_execute_unittests();
+    ttree_execute_unittests();
 #endif
 }

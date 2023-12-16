@@ -35,4 +35,23 @@ typedef struct range_anonymous {
  */
 void rrange_set(rrange_any target, size_t index, const void *value);
 
+/**
+ * @brief
+ *
+ * @param alloc
+ * @param element_size
+ * @param capacity
+ * @return rrange_any
+ */
+rrange_any rrange_create_dynamic_as_any(allocator alloc, size_t element_size, size_t capacity);
+
+/**
+ * @brief
+ *
+ * @param target
+ * @param index
+ * @return void*
+ */
+void *rrange_at(rrange_any target, size_t index);
+
 #endif

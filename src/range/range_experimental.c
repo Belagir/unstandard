@@ -235,6 +235,22 @@ void rrange_set(rrange_any target, size_t index, const void *value)
 }
 
 // -------------------------------------------------------------------------------------------------
+rrange_any rrange_create_dynamic_as_any(allocator alloc, size_t element_size, size_t capacity)
+{
+    return (rrange_any) { .r = rrange_create_dynamic(alloc, element_size, capacity), .stride = element_size };
+}
+
+// -------------------------------------------------------------------------------------------------
+void *rrange_at(rrange_any target, size_t index)
+{
+    if (!target.r || (index >= target.r->length)) {
+        return NULL;
+    }
+
+    return target.r->data + (index * target.stride);
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 

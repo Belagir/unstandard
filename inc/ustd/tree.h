@@ -4,6 +4,8 @@
 
 #include <ustd/allocation.h>
 
+#include <ustd/experimental/range.h>
+
 /**
  * @brief
  *
@@ -30,7 +32,6 @@ typedef struct ttree ttree;
  */
 typedef struct ttree_path ttree_path;
 
-#if 0 && DEACTIVATED
 
 /**
  * @brief Creates a tree of a with an allocator.
@@ -50,6 +51,7 @@ ttree *ttree_create(allocator alloc, size_t capacity, size_t element_size);
  */
 ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
 
+#if 0 && DEACTIVATED
 /**
  * @brief
  *
