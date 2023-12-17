@@ -51,7 +51,6 @@ ttree *ttree_create(allocator alloc, size_t capacity, size_t element_size);
  */
 ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
 
-#if 0 && DEACTIVATED
 /**
  * @brief
  *
@@ -60,7 +59,7 @@ ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
  * @param elements_range
  * @return ttree_path
  */
-ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, const range *elements_range, comparator_f comp);
+ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, rrange_any elements_range, comparator_f comp);
 
 /**
  * @brief
@@ -71,10 +70,11 @@ ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, const range *e
  * @param comp
  * @return ttree_path*
  */
-ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, const range *elements_range, comparator_f comp);
+ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, rrange_any elements_range, comparator_f comp);
 
 #define ttree_get_path(__alloc, X, __elements_range, __comp) ( _Generic(X, ttree * : ttree_get_path_absolute, ttree_path * : ttree_get_path_relative) )(__alloc, X, __elements_range, __comp)
 
+#if 0 && DEACTIVATED
 /**
  * @brief
  *
@@ -102,6 +102,7 @@ ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value);
  */
 ttree_mishap ttree_remove(ttree *tree, const ttree_path *path);
 
+#endif
 /**
  * @brief
  *
@@ -110,6 +111,7 @@ ttree_mishap ttree_remove(ttree *tree, const ttree_path *path);
  * @return ttree_mishap
  */
 ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path);
+#if 0 && DEACTIVATED
 
 /**
  * @brief

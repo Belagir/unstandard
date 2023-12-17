@@ -34,7 +34,7 @@ bool rrange_insert_value(rrange_any target, size_t index, const void *value)
 // -------------------------------------------------------------------------------------------------
 bool rrange_insert_range(rrange_any target, size_t index, const rrange_any other)
 {
-    if (((target.r->length + other.r->length) > target.r->capacity) || (target.stride != other.stride)) {
+    if (!target.r || !other.r || ((target.r->length + other.r->length) > target.r->capacity) || (target.stride != other.stride)) {
         return false;
     }
 
@@ -108,7 +108,7 @@ void *rrange_create_dynamic(allocator alloc, size_t size_element, size_t nb_elem
     range_anonymous *new_range = { };
     range_anonymous model_range = { .capacity = nb_elements_max, .length = 0u };
 
-    if ((size_element == 0u) || (nb_elements_max == 0u)) {
+    if (size_element == 0u) {
         return NULL;
     }
 
