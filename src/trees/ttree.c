@@ -154,7 +154,6 @@ byte *ttree_path_content(const ttree_path *path)
     return rrange_at(path->target->tree_contents, path->tokens_indexes->data[path->tokens_indexes->length - 1u]);
 }
 
-#if 0 && DEACTIVATED
 // -------------------------------------------------------------------------------------------------
 ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value)
 {
@@ -169,24 +168,25 @@ ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value)
         return TTREE_OUT_OF_MEM;
     }
 
-    if (path->tokens_indexes->length > 0) {
-        insertion_pos = range_val_back(path->tokens_indexes, size_t) + 1;
+    if (path->tokens_indexes->length > 0u) {
+        insertion_pos = path->tokens_indexes->data[ path->tokens_indexes->length - 1u] + 1u;
     } else {
-        insertion_pos = 0;
+        insertion_pos = 0u;
     }
 
     // insert a new entry in both ranges for the new element
-    insertion_success = range_insert_value(tree->tree_contents, insertion_pos, value)
-                        && range_insert_value(tree->tree_children, insertion_pos, &(size_t) { 0 });
+    insertion_success = rrange_insert_value(tree->tree_contents, insertion_pos, value)
+                        && rrange_insert_value(rrange_to_any(tree->tree_children), insertion_pos, &(size_t) { 0u });
 
     // increment all of the parents' children count
     for (size_t i = 0 ; i < path->tokens_indexes->length ; i++) {
-        range_val(tree->tree_children, range_val(path->tokens_indexes, i, size_t), size_t) += 1;
+        tree->tree_children->data[path->tokens_indexes->data[i]] += 1u;
     }
 
     return (insertion_success) ? TTREE_NO_MISHAP : TTREE_OTHER_MISHAP;
 }
 
+#if 0 && DEACTIVATED
 // -------------------------------------------------------------------------------------------------
 ttree_mishap ttree_remove(ttree *tree, const ttree_path *path)
 {
@@ -523,29 +523,27 @@ tst_CREATE_TEST_CASE(tree_search_relative_empty_and_toolong, search_relative,
 )
 
 
-#if 0 && DEACTIVATED
-
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(tree_add_element,
         {
-            range_static(10, u32)    tree_start_state_contents;
-            range_static(10, size_t) tree_start_state_children;
-            range_static(10, u32) addition_path;
+            rrange(u32, 10)    tree_start_state_contents;
+            rrange(size_t, 10) tree_start_state_children;
+            rrange(u32, 10) addition_path;
             u32 added_value;
 
             bool expect_addition;
-            range_static(10, u32)    tree_end_state_contents;
-            range_static(10, size_t) tree_end_state_children;
+            rrange(u32, 10)    tree_end_state_contents;
+            rrange(size_t, 10) tree_end_state_children;
         },
         {
             ttree tree = {};
             ttree_mishap result = {};
 
-            tree.tree_contents = (range *) &data->tree_start_state_contents;
-            tree.tree_children = (range *) &data->tree_start_state_children;
+            bytewise_copy(&tree.tree_contents, &rrange_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
 
-            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, (range *) &data->addition_path, &test_comparator_u32);
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, rrange_to_any(&data->addition_path), &test_comparator_u32);
 
             result = ttree_add(&tree, path, (const byte *) &data->added_value);
 
@@ -555,9 +553,9 @@ tst_CREATE_TEST_SCENARIO(tree_add_element,
                 tst_assert(result != TTREE_NO_MISHAP, "addition passed anyway !");
             }
 
-            for (size_t i = 0 ; i < tree.tree_contents->length ; i++) {
-                tst_assert_equal(range_val(tree.tree_contents, i, u32),    range_val(&data->tree_end_state_contents, i, u32),    "tree content of %d");
-                tst_assert_equal(range_val(tree.tree_children, i, size_t), range_val(&data->tree_end_state_children, i, size_t), "children count of %d");
+            for (size_t i = 0 ; i < tree.tree_contents.r->length ; i++) {
+                tst_assert_equal_ext(data->tree_end_state_contents.data[i], *(u32 *) rrange_at(tree.tree_contents, i), "value of %d", "at index %d", i);
+                tst_assert_equal_ext(data->tree_end_state_children.data[i], tree.tree_children->data[i], "value of %d", "at index %d", i);
             }
 
             if (path) {
@@ -566,62 +564,64 @@ tst_CREATE_TEST_SCENARIO(tree_add_element,
         }
 )
 
+
 tst_CREATE_TEST_CASE(tree_add_element_in_empty, tree_add_element,
-        .tree_start_state_contents = range_static_create(10, u32),
-        .tree_start_state_children = range_static_create(10, size_t),
-        .addition_path             = range_static_create(10, u32),
+        .tree_start_state_contents = rrange_create_static(u32, 10, {  }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, {  }),
+        .addition_path             = rrange_create_static(u32, 10, {  }),
         .added_value               = 42,
         .expect_addition           = true,
-        .tree_end_state_contents   = range_static_create(10, u32,   42),
-        .tree_end_state_children   = range_static_create(10, size_t, 0),
+        .tree_end_state_contents   = rrange_create_static(u32, 10,   { 42 }),
+        .tree_end_state_children   = rrange_create_static(size_t, 10, { 0 }),
 )
 tst_CREATE_TEST_CASE(tree_add_element_at_root, tree_add_element,
-        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43),
-        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0),
-        .addition_path             = range_static_create(10, u32),
+        .tree_start_state_contents = rrange_create_static(u32, 10,   { 41, 42, 43 }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, { 2,  1,  0 }),
+        .addition_path             = rrange_create_static(u32, 10, {  }),
         .added_value               = 99,
         .expect_addition           = true,
-        .tree_end_state_contents   = range_static_create(10, u32,   99, 41, 42, 43),
-        .tree_end_state_children   = range_static_create(10, size_t, 0,  2,  1,  0),
+        .tree_end_state_contents   = rrange_create_static(u32, 10,   { 99, 41, 42, 43 }),
+        .tree_end_state_children   = rrange_create_static(size_t, 10, { 0,  2,  1,  0 }),
 )
 tst_CREATE_TEST_CASE(tree_add_element_at_node, tree_add_element,
-        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43),
-        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0),
-        .addition_path             = range_static_create(10, u32, 41),
+        .tree_start_state_contents = rrange_create_static(u32, 10,   { 41, 42, 43 }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, { 2,  1,  0 }),
+        .addition_path             = rrange_create_static(u32, 10, { 41 }),
         .added_value               = 99,
         .expect_addition           = true,
-        .tree_end_state_contents   = range_static_create(10, u32,   41, 99, 42, 43),
-        .tree_end_state_children   = range_static_create(10, size_t, 3,  0,  1,  0),
+        .tree_end_state_contents   = rrange_create_static(u32, 10,   { 41, 99, 42, 43 }),
+        .tree_end_state_children   = rrange_create_static(size_t, 10, { 3,  0,  1,  0 }),
 )
 tst_CREATE_TEST_CASE(tree_add_element_at_node_far, tree_add_element,
-        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43, 44, 45, 46, 47, 48, 49),
-        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0,  3,  0,  0,  0,  1,  0),
-        .addition_path             = range_static_create(10, u32, 44, 45),
+        .tree_start_state_contents = rrange_create_static(u32, 10,   { 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, { 2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .addition_path             = rrange_create_static(u32, 10, { 44, 45 }),
         .added_value               = 99,
         .expect_addition           = true,
-        .tree_end_state_contents   = range_static_create(10, u32,   41, 42, 43, 44, 45, 99, 46, 47, 48, 49),
-        .tree_end_state_children   = range_static_create(10, size_t, 2,  1,  0,  4,  1,  0,  0,  0,  1,  0),
+        .tree_end_state_contents   = rrange_create_static(u32, 10,   { 41, 42, 43, 44, 45, 99, 46, 47, 48, 49 }),
+        .tree_end_state_children   = rrange_create_static(size_t, 10, { 2,  1,  0,  4,  1,  0,  0,  0,  1,  0 }),
 )
 tst_CREATE_TEST_CASE(tree_add_element_bad_path, tree_add_element,
-        .tree_start_state_contents = range_static_create(10, u32,   41, 42, 43, 44, 45, 46, 47, 48, 49),
-        .tree_start_state_children = range_static_create(10, size_t, 2,  1,  0,  3,  0,  0,  0,  1,  0),
-        .addition_path             = range_static_create(10, u32, 41, 45),
+        .tree_start_state_contents = rrange_create_static(u32, 10,   { 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, { 2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .addition_path             = rrange_create_static(u32, 10, { 41, 45 }),
         .added_value               = 99,
         .expect_addition           = false,
-        .tree_end_state_contents   = range_static_create(10, u32,   41, 42, 43, 44, 45, 46, 47, 48, 49),
-        .tree_end_state_children   = range_static_create(10, size_t, 2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .tree_end_state_contents   = rrange_create_static(u32, 10,   { 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_end_state_children   = rrange_create_static(size_t, 10, { 2,  1,  0,  3,  0,  0,  0,  1,  0 }),
 
 )
 tst_CREATE_TEST_CASE(tree_add_element_full, tree_add_element,
-        .tree_start_state_contents = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-        .tree_start_state_children = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
-        .addition_path             = range_static_create(10, u32),
+        .tree_start_state_contents = rrange_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .addition_path             = rrange_create_static(u32, 10, {  }),
         .added_value               = 99,
         .expect_addition           = false,
-        .tree_end_state_contents   = range_static_create(10, u32,   40, 41, 42, 43, 44, 45, 46, 47, 48, 49),
-        .tree_end_state_children   = range_static_create(10, size_t, 0,  2,  1,  0,  3,  0,  0,  0,  1,  0),
+        .tree_end_state_contents   = rrange_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_end_state_children   = rrange_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
 )
 
+#if 0 && DEACTIVATED
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(tree_remove_element,
@@ -737,7 +737,6 @@ void ttree_execute_unittests(void)
     tst_run_test_case(tree_search_relative_empty_and_invalid);
     tst_run_test_case(tree_search_relative_empty_and_toolong);
 
-#if 0 && DEACTIVATED
     tst_run_test_case(tree_add_element_in_empty);
     tst_run_test_case(tree_add_element_at_root);
     tst_run_test_case(tree_add_element_at_node);
@@ -745,6 +744,7 @@ void ttree_execute_unittests(void)
     tst_run_test_case(tree_add_element_bad_path);
     tst_run_test_case(tree_add_element_full);
 
+#if 0 && DEACTIVATED
     tst_run_test_case(tree_remove_element_whole_empty);
     tst_run_test_case(tree_remove_element_whole_populated);
     tst_run_test_case(tree_remove_leaf);

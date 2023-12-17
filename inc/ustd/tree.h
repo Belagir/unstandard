@@ -82,7 +82,6 @@ ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, rrange_an
  */
 byte *ttree_path_content(const ttree_path *path);
 
-#if 0 && DEACTIVATED
 /**
  * @brief
  *
@@ -102,7 +101,6 @@ ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value);
  */
 ttree_mishap ttree_remove(ttree *tree, const ttree_path *path);
 
-#endif
 /**
  * @brief
  *
