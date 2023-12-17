@@ -74,7 +74,6 @@ ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, rrange_an
 
 #define ttree_get_path(__alloc, X, __elements_range, __comp) ( _Generic(X, ttree * : ttree_get_path_absolute, ttree_path * : ttree_get_path_relative) )(__alloc, X, __elements_range, __comp)
 
-#if 0 && DEACTIVATED
 /**
  * @brief
  *
@@ -83,6 +82,7 @@ ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, rrange_an
  */
 byte *ttree_path_content(const ttree_path *path);
 
+#if 0 && DEACTIVATED
 /**
  * @brief
  *

@@ -143,18 +143,18 @@ ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *base_path, rran
     // happy path
     return new_path;
 }
-#if 0 && DEACTIVATED
 
 // -------------------------------------------------------------------------------------------------
 byte *ttree_path_content(const ttree_path *path)
 {
-    if (!path || (path->tokens_indexes->length == 0)) {
+    if (!path || !path->tokens_indexes || (path->tokens_indexes->length == 0)) {
         return NULL;
     }
 
-    return range_at(path->target->tree_contents, range_val_back(path->tokens_indexes, size_t));
+    return rrange_at(path->target->tree_contents, path->tokens_indexes->data[path->tokens_indexes->length - 1u]);
 }
 
+#if 0 && DEACTIVATED
 // -------------------------------------------------------------------------------------------------
 ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value)
 {
