@@ -628,7 +628,7 @@ tst_CREATE_TEST_CASE(rrange_resize_to_nothing, rrange_resize,
         .array          = rrange_create_static(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
         .new_size       = 0,
         .expected_array = rrange_create_static(u32, 20 ,{ }),
-        .expect_success = false,
+        .expect_success = true,
 )
 
 // -------------------------------------------------------------------------------------------------
