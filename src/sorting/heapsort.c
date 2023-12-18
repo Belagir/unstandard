@@ -16,15 +16,15 @@
 
 static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize);
 
-static void heapify(rrange_any array, size_t length_heap, size_t index, rrange_comparator comparator);
+static void heapify(range_any array, size_t length_heap, size_t index, range_comparator comparator);
 
-static void build_heap(rrange_any array, rrange_comparator comparator);
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+static void build_heap(range_any array, range_comparator comparator);
 
 // -------------------------------------------------------------------------------------------------
-void heapsort_sort(rrange_any array, rrange_comparator comparator)
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+void heapsort_sort(range_any array, range_comparator comparator)
 {
     if (array.r->length == 0u) {
         return;
@@ -59,7 +59,7 @@ static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize)
 }
 
 // -------------------------------------------------------------------------------------------------
-static void heapify(rrange_any array, size_t length_heap, size_t index, rrange_comparator comparator)
+static void heapify(range_any array, size_t length_heap, size_t index, range_comparator comparator)
 {
     size_t imax;
     size_t left;
@@ -91,7 +91,7 @@ static void heapify(rrange_any array, size_t length_heap, size_t index, rrange_c
 }
 
 // -------------------------------------------------------------------------------------------------
-static void build_heap(rrange_any array, rrange_comparator comparator)
+static void build_heap(range_any array, range_comparator comparator)
 {
     const size_t start_at = (size_t) ceil((f64) array.r->length / 2.0F);
 
@@ -105,7 +105,7 @@ static void build_heap(rrange_any array, rrange_comparator comparator)
 }
 
 // -------------------------------------------------------------------------------------------------
-bool is_sorted(rrange_any array, rrange_comparator comparator)
+bool is_sorted(range_any array, range_comparator comparator)
 {
     size_t pos = { 0u };
 
@@ -132,31 +132,31 @@ i32 test_i32_comparator(const void *v1, const void *v2) {
 
 tst_CREATE_TEST_SCENARIO(heap_sort,
         {
-            rrange(i32, 10) to_sort;
-            rrange(i32, 10) expected;
+            range(i32, 10) to_sort;
+            range(i32, 10) expected;
         },
         {
-            heapsort_sort(rrange_to_any(&data->to_sort), &test_i32_comparator);
+            heapsort_sort(range_to_any(&data->to_sort), &test_i32_comparator);
 
             for (size_t i = 0 ; i < 10 ; i++) {
                 tst_assert_equal_ext(data->expected.data[i], data->to_sort.data[i], "value of %d", "at index %d", i);
             }
 
-            tst_assert(is_sorted(rrange_to_any(&data->to_sort), &test_i32_comparator), "range is not sorted !");
+            tst_assert(is_sorted(range_to_any(&data->to_sort), &test_i32_comparator), "range is not sorted !");
         }
 )
 
 tst_CREATE_TEST_CASE(heap_sort_nominal, heap_sort,
-        .to_sort =  rrange_create_static(i32, 10, { 2, 6, 3, 9, 8, 4, 1, 7, 5, 0 }),
-        .expected = rrange_create_static(i32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8 ,9 })
+        .to_sort =  range_create_static(i32, 10, { 2, 6, 3, 9, 8, 4, 1, 7, 5, 0 }),
+        .expected = range_create_static(i32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8 ,9 })
 )
 tst_CREATE_TEST_CASE(heap_sort_nothing, heap_sort,
-        .to_sort =  rrange_create_static(i32, 10, { }),
-        .expected = rrange_create_static(i32, 10, { })
+        .to_sort =  range_create_static(i32, 10, { }),
+        .expected = range_create_static(i32, 10, { })
 )
 tst_CREATE_TEST_CASE(heap_sort__one_element, heap_sort,
-        .to_sort =  rrange_create_static(i32, 10, { 1 }),
-        .expected = rrange_create_static(i32, 10, { 1 })
+        .to_sort =  range_create_static(i32, 10, { 1 }),
+        .expected = range_create_static(i32, 10, { 1 })
 )
 
 void heapsort_execute_unittests(void)

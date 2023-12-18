@@ -11,7 +11,7 @@
 #ifndef __RANGE_IMPL_H__
 #define __RANGE_IMPL_H__
 
-#include <ustd/experimental/range.h>
+#include <ustd/range.h>
 
 /**
  * @brief
@@ -33,7 +33,7 @@ typedef struct range_anonymous {
  * @param index
  * @param value
  */
-void rrange_set(rrange_any target, size_t index, const void *value);
+void range_set(range_any target, size_t index, const void *value);
 
 /**
  * @brief
@@ -41,9 +41,9 @@ void rrange_set(rrange_any target, size_t index, const void *value);
  * @param alloc
  * @param element_size
  * @param capacity
- * @return rrange_any
+ * @return range_any
  */
-rrange_any rrange_create_dynamic_as_any(allocator alloc, size_t element_size, size_t capacity);
+range_any range_create_dynamic_as_any(allocator alloc, size_t element_size, size_t capacity);
 
 /**
  * @brief
@@ -52,6 +52,6 @@ rrange_any rrange_create_dynamic_as_any(allocator alloc, size_t element_size, si
  * @param index
  * @return void*
  */
-void *rrange_at(rrange_any target, size_t index);
+void *range_at(range_any target, size_t index);
 
 #endif
