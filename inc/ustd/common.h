@@ -9,9 +9,6 @@
 #define UNITTESTING
 #endif
 
-// temp
-#define UNITTESTING
-
 typedef unsigned char byte;
 
 typedef int8_t  i8;   ///< convenience type redefinition
