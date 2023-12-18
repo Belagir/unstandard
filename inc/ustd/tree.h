@@ -126,7 +126,7 @@ ttree_mishap ttree_foreach_element(const ttree_path *path, void (apply_f)(void *
  * @param apply_f
  * @param additional_args
  */
-ttree_mishap ttree_foreach_path(const ttree_path *path, void (apply_f)(ttree_path *some_path, void *additional_args), void *additional_args);
+ttree_mishap ttree_foreach_path(allocator alloc, const ttree_path *path, void (apply_f)(ttree_path *some_path, void *additional_args), void *additional_args);
 
 #ifdef UNITTESTING
 void ttree_execute_unittests(void);

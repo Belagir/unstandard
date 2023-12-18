@@ -33,6 +33,8 @@ typedef struct ttree_path {
 
 static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length);
 
+static void ttree_path_truncate_to_first_parent(ttree_path *path, size_t index);
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -261,6 +263,43 @@ ttree_mishap ttree_foreach_element(const ttree_path *path, void (apply_f)(void *
 }
 
 // -------------------------------------------------------------------------------------------------
+ttree_mishap ttree_foreach_path(allocator alloc, const ttree_path *path, void (apply_f)(ttree_path *some_path, void *additional_args), void *additional_args)
+{
+    size_t apply_from = { };
+    size_t apply_to = { };
+    ttree_path applied_on_path = { };
+    size_t last_parent_index = { };
+
+    if (!path) {
+        return TTREE_BAD_PATH;
+    } else if (!apply_f) {
+        return TTREE_INVALID_OBJECT;
+    }
+
+    if (path->tokens_indexes->length > 0u) {
+        apply_from = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+        apply_to = apply_from + path->target->tree_children->data[apply_from] + 1u;
+    } else {
+        apply_from = 0u;
+        apply_to = path->target->tree_contents.r->length;
+    }
+
+    applied_on_path.target = path->target;
+    applied_on_path.tokens_indexes = rrange_create_dynamic_from_resize_of(alloc, rrange_to_any(path->tokens_indexes), path->tokens_indexes->length + (apply_to - apply_from));
+
+    for (size_t i = apply_from ; i < apply_to ; i++) {
+        ttree_path_truncate_to_first_parent(&applied_on_path, i);
+        rrange_insert_value(rrange_to_any(applied_on_path.tokens_indexes), applied_on_path.tokens_indexes->length, &i);
+
+        apply_f(&applied_on_path, additional_args);
+    }
+
+    rrange_destroy_dynamic(alloc, &rrange_to_any(applied_on_path.tokens_indexes));
+
+    return TTREE_NO_MISHAP;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -276,6 +315,22 @@ static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length
     }
 
     return path;
+}
+
+// -------------------------------------------------------------------------------------------------
+static void ttree_path_truncate_to_first_parent(ttree_path *path, size_t index)
+{
+    size_t last_index = { };
+
+    if (!path || !path->target || !path->tokens_indexes || (index >= path->target->tree_children->length)) {
+        return;
+    }
+
+    last_index = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+    while ((path->tokens_indexes->length > 0u) && (last_index + path->target->tree_children->data[last_index] < index)) {
+        rrange_remove(rrange_to_any(path->tokens_indexes), path->tokens_indexes->length - 1u);
+        last_index = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -824,6 +879,83 @@ tst_CREATE_TEST_CASE(tree_foreach_element_incr_whole, tree_foreach_element,
         .tree_end_state_children = rrange_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
         .end_state_additional_args = (void *) &(u32) { 0u },
 )
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_foreach_path,
+        {
+
+            rrange(u32, 10)    tree_start_state_contents;
+            rrange(size_t, 10) tree_start_state_children;
+            rrange(u32, 10) path_to_iterate;
+
+            void (*apply_f)(ttree_path *element, void *args);
+            void *additional_args;
+            size_t additional_args_size;
+
+            rrange(u32, 10)    tree_end_state_contents;
+            rrange(size_t, 10) tree_end_state_children;
+            void *end_state_additional_args;
+        },
+        {
+            ttree tree = {};
+
+            bytewise_copy(&tree.tree_contents, &rrange_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, rrange_to_any(&data->path_to_iterate), &test_comparator_u32);
+
+            ttree_foreach_path(make_system_allocator(), path, data->apply_f, data->additional_args);
+
+            for (size_t i = 0 ; i < tree.tree_contents.r->length ; i++) {
+                tst_assert_equal_ext(data->tree_end_state_contents.data[i], *(u32 *) rrange_at(tree.tree_contents, i), "value of %d", "at index %d", i);
+                tst_assert_equal_ext(data->tree_end_state_children.data[i], tree.tree_children->data[i], "value of %d", "at index %d", i);
+            }
+
+            tst_assert_memory_equal(data->additional_args, data->end_state_additional_args, data->additional_args_size, "passed arguments are not what was expected");
+
+            ttree_path_destroy(make_system_allocator(), &path);
+        }
+)
+
+static void test_apply_sum_on_path(ttree_path *path, void *additional_args)
+{
+    u32 *sum = (u32 *) additional_args;
+
+    *sum += *(u32 *) ttree_path_content(path);
+}
+
+tst_CREATE_TEST_CASE(tree_foreach_path_sum_whole, tree_foreach_path,
+        .tree_start_state_contents = rrange_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = rrange_create_static(size_t, 10, {}),
+        .apply_f = &test_apply_sum_on_path,
+        .additional_args = (void *) &(u32) { 0u },
+        .additional_args_size = sizeof(u32),
+        .tree_end_state_contents = rrange_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_end_state_children = rrange_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(u32) { 42u },
+)
+
+typedef rrange(size_t, 10) test_depth_range;
+
+static void test_apply_record_depth_on_path(ttree_path *path, void *additional_args)
+{
+    test_depth_range *depths = (test_depth_range *) additional_args;
+
+    rrange_insert_value(rrange_to_any(depths), depths->length, &path->tokens_indexes->length);
+}
+
+tst_CREATE_TEST_CASE(tree_foreach_path_record_depth, tree_foreach_path,
+        .tree_start_state_contents = rrange_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = rrange_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = rrange_create_static(size_t, 10, {}),
+        .apply_f = &test_apply_record_depth_on_path,
+        .additional_args = (void *) &(test_depth_range) rrange_create_static(size_t, 10, {}),
+        .additional_args_size = sizeof(test_depth_range),
+        .tree_end_state_contents = rrange_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_end_state_children = rrange_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(test_depth_range) rrange_create_static(size_t, 10, { 1, 2, 3, 1, 2, 2, 2, 2, 1, 2 }),
+)
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -871,6 +1003,9 @@ void ttree_execute_unittests(void)
     tst_run_test_case(tree_foreach_element_sum_part);
     tst_run_test_case(tree_foreach_element_sum_nothing);
     tst_run_test_case(tree_foreach_element_incr_whole);
+
+    tst_run_test_case(tree_foreach_path_sum_whole);
+    tst_run_test_case(tree_foreach_path_record_depth);
 }
 
 #endif
