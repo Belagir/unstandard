@@ -1,8 +1,18 @@
-
+/**
+ * @file sorting.h
+ * @author gabriel
+ * @brief Extends the range module to include functionalities about sorting ranges and dichotomic operations on them.
+ * @version 0.1
+ * @date 2023-12-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #ifndef __SORTING_H__
 #define __SORTING_H__
 
 #include <ustd/common.h>
+// FIXME : wrong include !
 #include <ustd_impl/range_impl.h>
 
 /**
@@ -25,7 +35,6 @@ bool is_sorted(range_any array, range_comparator comparator);
 #ifdef UNITTESTING
 void heapsort_execute_unittests(void);
 #endif
-
 
 /**
  * @brief Find the position of an element (needle) in an anonymous array (haystack) that is assumed to be sorted.

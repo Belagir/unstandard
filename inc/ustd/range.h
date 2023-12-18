@@ -1,4 +1,14 @@
-
+/**
+ * @file range.h
+ * @author gabriel
+ * @brief Create and manipulate statically or dynamically allocated ranges as anonymous structs with an unifying interface.
+ *
+ * @version 0.1
+ * @date 2023-12-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #ifndef __RRANGE_H__
 #define __RRANGE_H__
 
@@ -42,6 +52,7 @@ typedef struct {
  */
 #define range_to_any(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
 
+// TODO : fallback to the definition of the broader comparator_f
 typedef i32 (*range_comparator)(const void *, const void *);
 
 /**
