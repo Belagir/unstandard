@@ -1,3 +1,13 @@
+/**
+ * @file math.h
+ * @author gabriel
+ * @brief This module aggregates math-related declarations that are useful when used with the math.h module from the stdlib.
+ * @version 0.1
+ * @date 2023-12-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 
 #ifndef __MATH_H__
 #define __MATH_H__
@@ -13,39 +23,37 @@
 #define DEG_TO_RAD (0.0174532925199f)
 
 /**
- * @brief Vector as a two cartesian coordinates.
+ * @brief Vector as two cartesian coordinates.
  * Colinear with the raylib Vector2 type.
  */
-typedef struct vector2_cartesian_t {
+typedef struct vector2_cartesian {
     f32 v;
     f32 w;
-} vector2_cartesian_t;
+} vector2_cartesian;
 
 /**
- * @brief Vector as a two polar coordinates.
+ * @brief Vector as two polar coordinates.
  */
-typedef struct vector2_polar_t {
+typedef struct vector2_polar {
     f32 angle;
     f32 magnitude;
-} vector2_polar_t;
-
-typedef f32 rectangle_t[4u];
+} vector2_polar;
 
 /**
  * @brief Converts a 2d vector from a polar coordinate pair to a cartesian one.
  *
  * @param[in] vec vector to convert
- * @return vector2_cartesian_t polar coordinates equivalent to the supplied vector
+ * @return vector2_cartesian polar coordinates equivalent to the supplied vector
  */
-vector2_cartesian_t vector2_polar_to_cartesian(vector2_polar_t vec);
+vector2_cartesian vector2_polar_to_cartesian(vector2_polar vec);
 
 /**
  * @brief Converts a 2d vector from a cartesian coordinate pair to a polar one.
  *
  * @param[in] vec vector to convert
- * @return vector2_polar_t cartesian coordinates equivalent to the supplied vector
+ * @return vector2_polar cartesian coordinates equivalent to the supplied vector
  */
-vector2_polar_t vector2_cartesian_to_polar(vector2_cartesian_t vec);
+vector2_polar vector2_cartesian_to_polar(vector2_cartesian vec);
 
 /**
  * @brief Checks for equality between two floats.

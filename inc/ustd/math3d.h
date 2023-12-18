@@ -1,4 +1,13 @@
-
+/**
+ * @file math3d.h
+ * @author gabriel
+ * @brief Contains declaration about math operations traditionaly used in three dimensional space.
+ * @version 0.1
+ * @date 2023-12-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #ifndef __MY3DMATH_H__
 #define __MY3DMATH_H__
 
