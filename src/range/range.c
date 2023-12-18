@@ -201,7 +201,7 @@ range *range_subrange_of(allocator alloc, const range *r, size_t start_index, si
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t range_index_of(const range *haystack, range_comparator comparator, const void *needle, size_t from)
+size_t range_index_of(const range *haystack, range_comparator_f comparator, const void *needle, size_t from)
 {
     bool found = { false };
     size_t pos = { min(from, haystack->length) };

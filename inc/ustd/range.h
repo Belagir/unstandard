@@ -13,8 +13,13 @@
 typedef range_of(byte) range;
 
 // accession
-#define range_at(__r, __i)       ( ((byte *) (__r)->data) + ((size_t) (__i) * (__r)->stride) )
-#define range_val(__r, __i, __t) ( *((__t *) (range_at(__r, __i))) )
+#define range_at(__r, __i)  ( ((byte *) (__r)->data) + ((size_t) (__i) * (__r)->stride) )
+#define range_at_front(__r) ( range_at(__r, 0) )
+#define range_at_back(__r)  ( range_at(__r, (__r)->length - 1) )
+
+#define range_val(__r, __i, __t)  ( *((__t *) (range_at(__r, __i))) )
+#define range_val_front(__r, __t) ( range_val(__r, 0, __t) )
+#define range_val_back(__r, __t)  ( range_val(__r, (__r)->length - 1, __t) )
 
 /**
  * @brief Size in bytes of a range.
@@ -49,7 +54,7 @@ typedef range_of(byte) range;
                 .data = {__VA_ARGS__} \
         }
 
-typedef i32 (*range_comparator)(const void *, const void *);
+typedef comparator_f range_comparator_f;
 
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
@@ -212,7 +217,7 @@ range *range_subrange_of(allocator alloc, const range *r, size_t start_index, si
  * @param[in] from index from which to search for the element
  * @return size_t index of the element if found, length of the range otherwise
  */
-size_t range_index_of(const range *haystack, range_comparator comparator, const void *needle, size_t from);
+size_t range_index_of(const range *haystack, range_comparator_f comparator, const void *needle, size_t from);
 
 #ifdef UNITTESTING
 void range_execute_unittests(void);
