@@ -44,11 +44,10 @@ typedef i32 (*comparator_f)(const void * rhs, const void *lhs);
 #define force_cast(__TYPE, __variable) (*((__TYPE*) &(__variable)))
 
 /// Translates to the offset, in bytes, of a field in a struct.
-#define offset_of(__member, __struct) ((size_t) &(((__struct *) NULL)->__member))
+#define offset_of(__struct, __member) ((size_t) &(((__struct *) NULL)->__member))
 
-// TODO : make it compatible with containerof from linux
 /// Translates to a pointer to the start of the containing structure if the passed pointer points to one of its given member.
-#define container_of(__ptr, __member, __struct) ((__struct *) (((char *) __ptr) - offset_of(__member, __struct)))
+#define container_of(__ptr, __struct, __member) ((__struct *) (((char *) __ptr) - offset_of(__struct, __member)))
 
 /// Returns the "sign" bitfield of a 32-bit signed integer.
 #define sgn_i32(_v) ((_v) >> 31)
