@@ -17,15 +17,15 @@
 
 static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize);
 
-static void heapify(range_any array, size_t length_heap, size_t index, range_comparator comparator);
+static void heapify(range_any array, size_t length_heap, size_t index, comparator_f comparator);
 
-static void build_heap(range_any array, range_comparator comparator);
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
+static void build_heap(range_any array, comparator_f comparator);
 
 // -------------------------------------------------------------------------------------------------
-void heapsort_sort(range_any array, range_comparator comparator)
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+void heapsort_sort(range_any array, comparator_f comparator)
 {
     if (array.r->length == 0u) {
         return;
@@ -60,7 +60,7 @@ static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize)
 }
 
 // -------------------------------------------------------------------------------------------------
-static void heapify(range_any array, size_t length_heap, size_t index, range_comparator comparator)
+static void heapify(range_any array, size_t length_heap, size_t index, comparator_f comparator)
 {
     size_t imax;
     size_t left;
@@ -92,7 +92,7 @@ static void heapify(range_any array, size_t length_heap, size_t index, range_com
 }
 
 // -------------------------------------------------------------------------------------------------
-static void build_heap(range_any array, range_comparator comparator)
+static void build_heap(range_any array, comparator_f comparator)
 {
     const size_t start_at = (size_t) ceil((f64) array.r->length / 2.0F);
 
@@ -106,7 +106,7 @@ static void build_heap(range_any array, range_comparator comparator)
 }
 
 // -------------------------------------------------------------------------------------------------
-bool is_sorted(range_any array, range_comparator comparator)
+bool is_sorted(range_any array, comparator_f comparator)
 {
     size_t pos = { 0u };
 

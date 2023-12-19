@@ -52,9 +52,6 @@ typedef struct {
  */
 #define range_to_any(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
 
-// TODO : fallback to the definition of the broader comparator_f
-typedef i32 (*range_comparator)(const void *, const void *);
-
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
  * If the index is greater than the current length of the range, the element is inserted at the back of the range at the first free space.
@@ -117,7 +114,7 @@ void range_clear(range_any target);
  * @param[in] from index from which to search for the element
  * @return size_t index of the element if found, length of the range otherwise
  */
-size_t range_index_of(const range_any haystack, range_comparator comparator, const void *needle, size_t from);
+size_t range_index_of(const range_any haystack, comparator_f comparator, const void *needle, size_t from);
 
 /**
  * @brief Creates a range of a certain size dynamically with an allocator.

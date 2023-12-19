@@ -89,7 +89,7 @@ void range_clear(range_any target)
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t range_index_of(const range_any haystack, range_comparator comparator, const void *needle, size_t from)
+size_t range_index_of(const range_any haystack, comparator_f comparator, const void *needle, size_t from)
 {
     bool found = { false };
     size_t pos = { min(from, haystack.r->length) };
