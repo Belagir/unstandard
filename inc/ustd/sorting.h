@@ -12,8 +12,7 @@
 #define __SORTING_H__
 
 #include <ustd/common.h>
-// FIXME : wrong include !
-#include <ustd_impl/range_impl.h>
+#include <ustd/range.h>
 
 /**
  * @brief Sorts an array of data through the heaps sort. Not stable, but in place.
