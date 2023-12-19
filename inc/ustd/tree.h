@@ -1,4 +1,13 @@
-
+/**
+ * @file tree.h
+ * @author gabriel
+ * @brief Manipulate n-ary pre-allocated trees where each element is accessed through a path of other elements.
+ * @version 0.1
+ * @date 2023-12-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #ifndef __TEEMING_TREE_H__
 #define __TEEMING_TREE_H__
 
