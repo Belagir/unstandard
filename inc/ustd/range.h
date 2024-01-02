@@ -117,6 +117,17 @@ void range_clear(range_any target);
 size_t range_index_of(const range_any haystack, comparator_f comparator, const void *needle, size_t from);
 
 /**
+ * @brief Counts the number of times the comparator function identify an element in the range that is equal to the needle.
+ *
+ * @param[in] haystack range searched
+ * @param[in] comparator traditional comparator function for the elements of the range
+ * @param[in] needle pointer to an element that can compare to an element inside the range
+ * @param[in] from index from which to search for the element
+ * @return size_tnumber of occurences of the needle
+ */
+size_t range_count(const range_any haystack, comparator_f comparator, const void *needle, size_t from);
+
+/**
  * @brief Creates a range of a certain size dynamically with an allocator.
  *
  * @param[inout] alloc allocator to use for the operation
