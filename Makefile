@@ -3,6 +3,9 @@
 
 # ---------------- Configuration -----------------------------------------------
 
+## Name of the project. This will be the name of the executable placed in the
+## executable directory.
+PROJECT_NAME = ustd-test
 ## Root source directory. Contains the c implementation files.
 SRC_DIR = src
 ## Root include directory. Contains the c header files. Passed with -I to
@@ -11,6 +14,8 @@ INC_DIR = inc
 ## Build diectory. Will contain object and binary files linked in the final
 ## executable
 OBJ_DIR = build
+## Executable directory. Contains the final binary file.
+EXC_DIR = bin
 ## resources directory
 RESDIR = res
 
@@ -27,10 +32,12 @@ LFLAGS += -lm
 RESFLAGS = -r -b binary -z noexecstack
 
 # additional flags for defines
-DFLAGS +=
+DFLAGS += -DDEBUG
 
 # --------------- Internal variables -------------------------------------------
 
+## absolute path to executable name
+TARGET = $(EXC_DIR)/$(PROJECT_NAME)
 ## list of all c files without their path
 SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
 ## list of all duplicate c files to enforce uniqueness of filenames
@@ -45,7 +52,7 @@ RES_BIN := $(addprefix $(OBJ_DIR)/, $(addsuffix .resbin, $(RES)))
 DUPL_RES := $(strip $(shell echo $(RES) | tr ' ' '\n' | sort | uniq -d))
 
 ## makefile-managed directories
-BUILD_DIRS = $(OBJ_DIR)
+BUILD_DIRS = $(EXC_DIR) $(OBJ_DIR)
 
 ## additional compilation option for includes
 ARGS_INCL = -I$(INC_DIR)
@@ -62,7 +69,13 @@ vpath %.c $(sort $(dir $(shell find $(SRC_DIR) -name *.c)))
 
 # -------- compilation -----------------
 
-all: check $(BUILD_DIRS) $(OBJ) | count_lines
+all: check $(BUILD_DIRS) $(TARGET) | count_lines
+
+run: all
+	./$(TARGET)
+
+$(TARGET): $(OBJ) $(RES_BIN)
+	$(CC) $^ -o $@ $(LFLAGS)
 
 $(OBJ_DIR)/%.o: %.c
 	$(CC) -c $? -o $@ $(ARGS_INCL) $(CFLAGS) $(DFLAGS)
