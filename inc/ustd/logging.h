@@ -2,6 +2,7 @@
  * @file logger.h
  * @author gabriel
  * @brief Interface declaration file for creating statically-allocated custom loggers to output messages to streams.
+ * This module uses an old pattern of mine where it does not need allocator to function, and will instead allocate memory directly in the global scope. While this makes its use simple, safe and compatible with a lot of systems, only a set number of loggers objects can exist at the same time.
  * @version 0.1
  * @date 2023-06-04
  *

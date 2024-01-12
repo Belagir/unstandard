@@ -1,23 +1,33 @@
-
+/**
+ * @file tree.h
+ * @author gabriel
+ * @brief Manipulate n-ary pre-allocated trees where each element is accessed through a path of other elements.
+ * @version 0.1
+ * @date 2023-12-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #ifndef __TEEMING_TREE_H__
 #define __TEEMING_TREE_H__
 
-#include <ustd/common.h>
+#include <ustd/allocation.h>
+
+#include <ustd/range.h>
 
 /**
  * @brief
  *
  */
-enum ttree_mishap {
+typedef enum ttree_mishap {
 	TTREE_NO_MISHAP,
 
-	TTREE_INCORRECT_PATH
-};
+    TTREE_INVALID_OBJECT,
+    TTREE_BAD_PATH,
+    TTREE_OUT_OF_MEM,
 
-#define TTREE_FOREACH_FLAG_INCLUDE_CHILDREN  (0x01u)
-#define TTREE_FOREACH_FLAG_INCLUDE_PARENTS   (0x02u)
-#define TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN (0x04u)
-#define TTREE_FOREACH_FLAG_DIRECTION_DOWN_UP (0x08u)
+    TTREE_OTHER_MISHAP,
+} ttree_mishap;
 
 /**
  * @brief Opaque type to pass around a tree stored contiguously in an array.
@@ -27,94 +37,109 @@ typedef struct ttree ttree;
 
 /**
  * @brief
- * TODO : add a hash to identify the original state of the parent tree and invalidate the subtree if it changed
+ *
  */
-typedef struct {
-	ttree *parent_tree;
-	size_t pos;
-} subttree;
+typedef struct ttree_path ttree_path;
+
 
 /**
- * @brief Creates an array-packed tree on the heap.
+ * @brief Creates a tree of a with an allocator.
  *
- * @param[in] nb_nodes maximum number of nodes held inside the tree
+ * @param[inout] alloc
+ * @param[in] capacity
+ * @param[in] element_size
  * @return ttree*
  */
-ttree * ttree_create(size_t nb_nodes);
+ttree *ttree_create(allocator alloc, size_t capacity, size_t element_size);
 
 /**
- * @brief Returns a subtree from a broader tree by its path. The subtree can then be used with other ttree interface methods to change the tree.
+ * @brief Destroys a tree.
  *
- * @param[in] tree target tree, if it is changed during the lifetime of the subtree, the subtree may not be valid anymore
- * @param[in] node_path path to the subtree, node by node
- * @param[in] node_path_length length of the node path
- * @param[in] node_comparator function able to compare two nodes together
- * @return subttree*
+ * @param[inout] alloc
+ * @param[inout] tree
  */
-subttree ttree_get_subtree(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2));
+ttree_mishap ttree_destroy(allocator alloc, ttree **tree);
 
 /**
  * @brief
  *
- * @param target
- * @param node_path
- * @param node_path_length
- * @param node_comparator
- * @return subttree
+ * @param alloc
+ * @param tree
+ * @param elements_range
+ * @return ttree_path
  */
-subttree ttree_get_subtree_subtree(subttree target, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2));
+ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, range_any elements_range, comparator_f comp);
 
 /**
- * @brief Returns the contents of the node at the path described by the traget subtree.
+ * @brief
  *
- * @param[in] target traget subtree
+ * @param alloc
+ * @param path
+ * @param elements_range
+ * @param comp
+ * @return ttree_path*
+ */
+ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, range_any elements_range, comparator_f comp);
+
+#define ttree_get_path(__alloc, X, __elements_range, __comp) ( _Generic(X, ttree * : ttree_get_path_absolute, ttree_path * : ttree_get_path_relative) )(__alloc, X, __elements_range, __comp)
+
+/**
+ * @brief
+ *
+ * @param path
  * @return void*
  */
-void * ttree_get_subtree_content(subttree target);
+byte *ttree_path_content(const ttree_path *path);
 
 /**
  * @brief
  *
- * @param target
- * @return size_t
+ * @param tree
+ * @param path
+ * @param value
+ * @return ttree_mishap
  */
-size_t ttree_get_subtree_node_count(subttree target);
+ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value);
 
 /**
- * @brief Inserts a new node (by shallow copy) into the tree, next to the target subtree.
+ * @brief
  *
- * @param[inout] target target subtree
- * @param[in] node added node
- * @return i32 : 0 if the node was effectively added, > =1 if something went wrong
+ * @param tree
+ * @param path
+ * @return ttree_mishap
  */
-i32 ttree_insert(subttree target, void *node);
+ttree_mishap ttree_remove(ttree *tree, const ttree_path *path);
 
 /**
- * @brief Applies a function to all nodes in a subtree (depth first).
+ * @brief
  *
- * @param[inout] target target subtree
- * @param[in] apply_f applied function
- * @param[in] additional_args pointer to additional arguments passed to the applied function
+ * @param alloc
+ * @param path
+ * @return ttree_mishap
  */
-void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additional_args), void *additional_args, u32 config_flags);
+ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path);
 
 /**
- * @brief Removes a subtree from the tree.
+ * @brief
  *
- * @param[inout] target target subtree
- * @return i32 : 0 if the node was effectively removed, > =1 if something went wrong
+ * @param path
+ * @param apply_f
+ * @param additional_args
  */
-i32 ttree_remove(subttree target);
+ttree_mishap ttree_foreach_element(const ttree_path *path, void (apply_f)(void *element, void *additional_args), void *additional_args);
 
 /**
- * @brief Releases the tree from the heap and nullifies the pointer to it.
+ * @brief
  *
- * @param[inout] tree discarded tree
+ * @param path
+ * @param apply_f
+ * @param additional_args
  */
-void ttree_destroy(ttree **tree);
+ttree_mishap ttree_foreach_path(allocator alloc, const ttree_path *path, void (apply_f)(ttree_path *some_path, void *additional_args), void *additional_args);
 
 #ifdef UNITTESTING
 void ttree_execute_unittests(void);
 #endif
+
 
 #endif

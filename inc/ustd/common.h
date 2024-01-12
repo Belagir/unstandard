@@ -1,4 +1,14 @@
-
+/**
+ * @file common.h
+ * @author gabriel
+ * @brief Useful but basic declarations and redefinitions that form the basis of the rest of the library.
+ * Also contains rogue byte operations.
+ * @version 0.1
+ * @date 2023-12-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
@@ -8,9 +18,6 @@
 #ifdef DEBUG
 #define UNITTESTING
 #endif
-
-// temp
-#define UNITTESTING
 
 typedef unsigned char byte;
 
@@ -27,18 +34,35 @@ typedef uint64_t u64; ///< convenience type redefinition
 typedef float  f32; ///< convenience type redefinition
 typedef double f64; ///< convenience type redefinition
 
+/**
+ * @brief Function pointer to a method able to compare two regions of memory.
+ * By convention, the method returns -1 if rhs < lhs, 0 if rhs == lhs and 1 if rhs > lhs.
+ */
+typedef i32 (*comparator_f)(const void * rhs, const void *lhs);
+
+/// Forces a reinterpret cast on a static variable.
 #define force_cast(__TYPE, __variable) (*((__TYPE*) &(__variable)))
-/// returns the sign bitfield of a 32-bit signed integer
+
+/// Translates to the offset, in bytes, of a field in a struct.
+#define offset_of(__struct, __member) ((size_t) &(((__struct *) NULL)->__member))
+
+/// Translates to a pointer to the start of the containing structure if the passed pointer points to one of its given member.
+#define container_of(__ptr, __struct, __member) ((__struct *) (((char *) __ptr) - offset_of(__struct, __member)))
+
+/// Returns the "sign" bitfield of a 32-bit signed integer.
 #define sgn_i32(_v) ((_v) >> 31)
 
+/// Operates a division between two numbers that is always rounded up.
 #define ceil_div(_a, _b) (((_a) + (_b) - 1) / _b)
 
-/// maximum between two values
+/// Maximum between two values.
 #define max(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
-/// minimum between two values
+/// Minimum between two values.
 #define min(_a, _b) (((_a) < (_b)) ? (_a) : (_b))
 
+/// Translates to the size of the element of a c-style array.
 #define sizeof_element(__array) (sizeof(*(__array)))
+/// Translates to the total size of a static c-style array.
 #define count_of(__array) (sizeof(__array) / sizeof_element(__array))
 
 /**

@@ -1,7 +1,7 @@
 /**
  * @file testutilities.h
  * @author gabriel
- * @brief Light assertion-oriented test framework
+ * @brief Light assertion-oriented test framework. The framework is primarely defined as a set of macros, and with all things macros, headeache is likely to occur when the module is actually used.
  * @version 0.1
  * @date 2023-02-21
  *
@@ -39,6 +39,10 @@
 #define tst_assert_equal(val1, val2, format_mod) \
         tst_assert((val1) == (val2), "values mismatch : expected " format_mod ", got " format_mod, (val1), (val2))
 
+
+#define tst_assert_equal_ext(val1, val2, format_mod, format_ext, ...) \
+        tst_assert((val1) == (val2), "values mismatch : expected " format_mod ", got " format_mod " " format_ext, (val1), (val2) __VA_OPT__(,) __VA_ARGS__)
+
 /**
  * @brief Creates a unit named test scenario.
  *
@@ -70,16 +74,18 @@
 
 
 /**
- * @brief prints a message to stdout
+ * @brief prints a message to stdout.
  *
+ * @warning do not call directly ! This is meant to be used by a tst_assert* macro.
  * @param message format string
  * @param ... format string arguments
  */
 void __tst_print(char *message, ...);
 
 /**
- * @brief Compare two memory regions of the same siez.
+ * @brief Compare two memory regions of the same size.
  *
+ * @warning do not call directly ! This is meant to be used by a tst_assert* macro.
  * @param addr1
  * @param addr2
  * @param size_bytes
@@ -89,6 +95,7 @@ int __tst_compare_mem(void *addr1, void *addr2, unsigned long size_bytes);
 /**
  * @brief Prints a unit test report.
  *
+ * @warning do not call directly ! This is meant to be used by a tst_assert* macro.
  * @param case_name
  * @param nb_assertions
  * @param nb_failed

@@ -1,7 +1,6 @@
 
-#include <stdlib.h>
-
 #include <ustd/common.h>
+#include <ustd_impl/range_impl.h>
 #include <ustd/tree.h>
 
 #ifdef UNITTESTING
@@ -9,255 +8,295 @@
 #endif
 
 // -------------------------------------------------------------------------------------------------
-typedef struct ttree {
-	///
-	size_t nb_nodes;
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
-	///
-	void *data;
+// -------------------------------------------------------------------------------------------------
+typedef struct ttree {
+    /// range of whatever memory
+    range_any tree_contents;
+    /// range of unsigned long integers
+    range(size_t) *tree_children;
 } ttree;
 
-/**
- * @brief
- *
- */
-struct apply_other_function_on_data_additional_args {
-	///
-	void (*other_function)(void **node_data, void *additional_args);
-	///
-	void *other_function_args;
-};
+// -------------------------------------------------------------------------------------------------
+typedef struct ttree_path {
+    ttree *target;
+    /// range of indexes
+    range(size_t) *tokens_indexes;
+} ttree_path;
+
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
-/**
- * @brief
- *
- * @param tree
- * @param node
- * @param node_comparator
- * @return size_t
- */
-static size_t find_direct_subtree_index(ttree *tree, const void *node, i32 (*node_comparator)(const void *node_1, const void *node_2));
+static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length);
 
-/**
- * @brief
- *
- * @param tree
- * @param node_path
- * @param node_path_length
- * @param node_comparator
- * @return size_t
- */
-static size_t find_subtree_index(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2));
+static void ttree_path_truncate_to_first_parent(ttree_path *path, size_t index);
 
-/**
- * @brief
- *
- * @param subtree
- * @param apply_f
- * @param additional_args
- */
-static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
-
-/**
- * @brief
- *
- * @param subtree
- * @param apply_f
- * @param additional_args
- */
-static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
-
-/**
- * @brief
- *
- * @param subtree
- * @param apply_f
- * @param additional_args
- */
-static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
-
-/**
- * @brief
- *
- * @param subtree
- * @param apply_f
- * @param additional_args
- */
-static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args);
-
-/**
- * @brief
- *
- * @param tree
- * @param additional_args
- */
-static void increment_tree_nb_nodes(ttree *tree, void *additional_args);
-
-/**
- * @brief
- *
- * @param tree
- * @param additional_args
- */
-static void apply_other_function_on_data(ttree *tree, void *additional_args);
-
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-ttree * ttree_create(size_t nb_nodes)
+ttree *ttree_create(allocator alloc, size_t capacity, size_t element_size)
 {
-	ttree *new_tree = NULL;
+    ttree *tree = { };
+    range_any tree_impl_contents = range_create_dynamic_as_any(alloc, element_size, capacity);
 
-	// checking vital preconditions
-	if (nb_nodes == 0u) {
-		return NULL;
-	}
+    if ((capacity == 0u) || (element_size == 0u)) {
+        return NULL;
+    }
 
-	// allocating memory for the tree struct
-	new_tree = malloc(sizeof(*new_tree) + (sizeof(*new_tree) * (nb_nodes + 1u)));
+    tree = alloc.malloc(alloc, sizeof(*tree));
 
-	if (!new_tree) {
-		return NULL;
-	}
+    if (tree) {
+        bytewise_copy(&tree->tree_contents, &tree_impl_contents, sizeof(tree->tree_contents));
+        tree->tree_children = range_create_dynamic(alloc, sizeof(size_t), capacity);
+    }
 
-	new_tree->nb_nodes = 0u;
-
-	return new_tree;
+    return tree;
 }
 
 // -------------------------------------------------------------------------------------------------
-subttree ttree_get_subtree(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
+ttree_mishap ttree_destroy(allocator alloc, ttree **tree)
 {
-	subttree subtree  = { .parent_tree = tree, .pos = 0u };
+    if (!tree || !*tree) {
+        return TTREE_INVALID_OBJECT;
+    }
 
-	return ttree_get_subtree_subtree(subtree, node_path, node_path_length, node_comparator);
+    range_destroy_dynamic(alloc, &((*tree)->tree_contents));
+    range_destroy_dynamic(alloc, &range_to_any((*tree)->tree_children));
+
+    alloc.free(alloc, *tree);
+    *tree = NULL;
+
+    return TTREE_NO_MISHAP;
 }
 
 // -------------------------------------------------------------------------------------------------
-subttree ttree_get_subtree_subtree(subttree target, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
+ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, range_any elements_range, comparator_f comp)
 {
-	subttree subtree = target;
-	size_t found_index = 0u;
+    ttree_path *root_path = ttree_path_create(alloc, tree, 0);
+    ttree_path *path = ttree_get_path_relative(alloc, root_path, elements_range, comp);
+    ttree_path_destroy(alloc, &root_path);
 
-	if (node_path_length == 0u) {
-		subtree.pos = 0u;
-		return subtree;
-	}
-
-	found_index = find_subtree_index(subtree.parent_tree, node_path, node_path_length, node_comparator);
-
-	if (found_index == (subtree.parent_tree->nb_nodes + 1u)) {
-		return (subttree) { .parent_tree = NULL, .pos = (subtree.parent_tree->nb_nodes + 1u) };
-	}
-
-	subtree.pos = found_index;
-
-	return subtree;
+    return path;
 }
 
 // -------------------------------------------------------------------------------------------------
-void * ttree_get_subtree_content(subttree target)
+ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *base_path, range_any elements_range, comparator_f comp)
 {
-	return target.parent_tree[target.pos].data;
+    ttree_path *new_path = { };
+    ttree *tree = { };
+    size_t original_path_length = { 0u };
+    size_t pos_elements = { 0u };
+    size_t pos   = { 0u };
+    size_t limit = { 0u };
+
+    // preconditions checks
+    if (!elements_range.r || !comp || !base_path) {
+        return NULL;
+    }
+
+    // for convenience
+    tree = base_path->target;
+
+    // creating / allocating the returned path
+    if (base_path && base_path->tokens_indexes) {
+        original_path_length = base_path->tokens_indexes->length;
+    }
+    new_path = ttree_path_create(alloc, tree, original_path_length + elements_range.r->length);
+    if (!new_path) {
+        return NULL;
+    }
+
+    // copying the other path's contents into the new one
+    range_insert_range(range_to_any(new_path->tokens_indexes), 0u, range_to_any(base_path->tokens_indexes));
+
+    // computing the starting pos & limit of the search for the elements
+    if (!base_path->tokens_indexes || (base_path->tokens_indexes->length == 0u)) {
+        // from the root of the tree :
+        pos = 0u;
+        limit = tree->tree_children->length;
+    } else {
+        // from some point in the tree :
+        pos = new_path->tokens_indexes->data[new_path->tokens_indexes->length - 1u] + 1u;
+        limit = pos + tree->tree_children->data[pos] + 1u;
+    }
+
+    // searching the elements
+    while ((pos < limit) && (pos_elements < elements_range.r->length)) {
+        if (comp(range_at(elements_range, pos_elements), range_at(tree->tree_contents, pos)) == 0u) {
+            range_insert_value(range_to_any(new_path->tokens_indexes), new_path->tokens_indexes->length, (void *) &pos);
+            limit = pos + tree->tree_children->data[pos] + 1u;
+            pos += 1u;
+            pos_elements += 1u;
+        } else {
+            pos += tree->tree_children->data[pos] + 1u;
+        }
+    }
+
+    // loop had to exit prematurely : the element range does not represent a node in the tree
+    if (pos_elements < elements_range.r->length) {
+        ttree_path_destroy(alloc, &new_path);
+    }
+    // happy path
+    return new_path;
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t ttree_get_subtree_node_count(subttree target)
+byte *ttree_path_content(const ttree_path *path)
 {
-	return target.parent_tree[target.pos].nb_nodes;
+    if (!path || !path->tokens_indexes || (path->tokens_indexes->length == 0)) {
+        return NULL;
+    }
+
+    return range_at(path->target->tree_contents, path->tokens_indexes->data[path->tokens_indexes->length - 1u]);
 }
 
 // -------------------------------------------------------------------------------------------------
-i32 ttree_insert(subttree target, void *node)
+ttree_mishap ttree_add(ttree *tree, const ttree_path *path, const byte *value)
 {
-	size_t insertion_pos = 0u;
-	i32 nb_node_increment = 0;
+    size_t insertion_pos = { };
+    bool insertion_success = { };
 
-	if (!target.parent_tree || (target.pos > target.parent_tree->nb_nodes)) {
-		return TTREE_INCORRECT_PATH;
-	}
+    if (!tree || !value) {
+        return TTREE_INVALID_OBJECT;
+    } else if (!path || (path->target != tree)) {
+        return TTREE_BAD_PATH;
+    } else if (tree->tree_children->length == tree->tree_children->capacity) {
+        return TTREE_OUT_OF_MEM;
+    }
 
-	// (step 0 : calculate insertion position to be after the target subtree)
-	insertion_pos = (target.pos) + (target.parent_tree[target.pos].nb_nodes + 1u);
+    if (path->tokens_indexes->length > 0u) {
+        insertion_pos = path->tokens_indexes->data[ path->tokens_indexes->length - 1u] + 1u;
+    } else {
+        insertion_pos = 0u;
+    }
 
-	// step 1 : shift all memory after the subtree right one unit to make room for the new node
-	for (size_t i = target.parent_tree->nb_nodes ; i >= insertion_pos ; i--) {
-		bytewise_copy(target.parent_tree + i + 1u, target.parent_tree + i, sizeof(*target.parent_tree));
-	}
+    // insert a new entry in both ranges for the new element
+    insertion_success = range_insert_value(tree->tree_contents, insertion_pos, value)
+                        && range_insert_value(range_to_any(tree->tree_children), insertion_pos, &(size_t) { 0u });
 
-	// step 2 : insert the new node in the free space
-	target.parent_tree[insertion_pos].data = node;
-	target.parent_tree[insertion_pos].nb_nodes = 0u;
+    // increment all of the parents' children count
+    for (size_t i = 0 ; i < path->tokens_indexes->length ; i++) {
+        tree->tree_children->data[path->tokens_indexes->data[i]] += 1u;
+    }
 
-	// step 3 : increment the children count of all parents of the target subtree
-	nb_node_increment = 1;
-	target.parent_tree->nb_nodes += 1u;
-	foreach_parent_of_subtree_up_down(target, &increment_tree_nb_nodes, &nb_node_increment);
-
-	return TTREE_NO_MISHAP;
+    return (insertion_success) ? TTREE_NO_MISHAP : TTREE_OTHER_MISHAP;
 }
 
 // -------------------------------------------------------------------------------------------------
-i32 ttree_remove(subttree target)
+ttree_mishap ttree_remove(ttree *tree, const ttree_path *path)
 {
-	ttree *copy_to = NULL;
-	ttree *copy_from = NULL;
-	size_t copy_size = 0u;
-	i32 nb_node_increment = 0u;
+    size_t removal_pos = { };
+    size_t removal_length = { };
+    bool removal_success = { };
 
-	if (!target.parent_tree || (target.pos > target.parent_tree->nb_nodes)) {
-		return TTREE_INCORRECT_PATH;
-	}
+    if (!tree) {
+        return TTREE_INVALID_OBJECT;
+    } else if (!path || (path->target != tree)) {
+        return TTREE_BAD_PATH;
+    }
 
-	if (target.pos == 0u) {
-		target.parent_tree->nb_nodes = 0u;
-		return TTREE_NO_MISHAP;
-	}
+    if (path->tokens_indexes->length == 0u) {
+        range_clear(tree->tree_contents);
+        range_clear(range_to_any(tree->tree_children));
+        return TTREE_NO_MISHAP;
+    }
 
-	// step 1 : calculate the difference in nulmber of nodes for the parents
-	nb_node_increment = -1 * ((i32) (target.parent_tree[target.pos].nb_nodes + 1u));
+    removal_pos = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+    removal_length = tree->tree_children->data[removal_pos] + 1u;
 
-	// determine the copy parameters to overwrite part of the tree
-	copy_to = target.parent_tree + target.pos;
-	copy_from = target.parent_tree + target.pos + target.parent_tree[target.pos].nb_nodes + 1u;
-	copy_size = (target.parent_tree->nb_nodes + 1u) - target.pos - (target.parent_tree[target.pos].nb_nodes + 1u);
+    for (size_t i = 0 ; i < path->tokens_indexes->length ; i++) {
+        tree->tree_children->data[path->tokens_indexes->data[i]] -= 1u;
+    }
 
-	// actualize the parents' number of children
-	target.parent_tree->nb_nodes = (size_t) ((i32) target.parent_tree->nb_nodes + nb_node_increment);
-	foreach_parent_of_subtree_up_down(target, &increment_tree_nb_nodes, &nb_node_increment);
+    removal_success = range_remove_interval(tree->tree_contents, removal_pos, removal_pos + removal_length)
+                      && range_remove_interval(range_to_any(tree->tree_children), removal_pos, removal_pos + removal_length);
 
-	// overwrite the subtree with what follows it
-	bytewise_copy(copy_to, copy_from, copy_size * sizeof(*copy_to));
-
-	return TTREE_NO_MISHAP;
+    return (removal_success) ? TTREE_NO_MISHAP : TTREE_OTHER_MISHAP;
 }
 
 // -------------------------------------------------------------------------------------------------
-void ttree_foreach(subttree target, void (*apply_f)(void **node, void *additional_args), void *additional_args, u32 config_flags)
+ttree_mishap ttree_path_destroy(allocator alloc, ttree_path **path)
 {
-	struct apply_other_function_on_data_additional_args apply_f_wrapper = { 0u };
+    if (!path || !*path) {
+        return TTREE_INVALID_OBJECT;
+    }
 
-	apply_f_wrapper.other_function = apply_f;
-	apply_f_wrapper.other_function_args = additional_args;
+    range_destroy_dynamic(alloc, &range_to_any((*path)->tokens_indexes));
 
-	if (config_flags & TTREE_FOREACH_FLAG_DIRECTION_DOWN_UP) {
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_down_up(target, &apply_other_function_on_data, &apply_f_wrapper);
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_down_up(target, &apply_other_function_on_data, &apply_f_wrapper);
-	} else if (config_flags & TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN) {
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_PARENTS) foreach_parent_of_subtree_up_down(target, &apply_other_function_on_data, &apply_f_wrapper);
-		if (config_flags & TTREE_FOREACH_FLAG_INCLUDE_CHILDREN) foreach_child_of_subtree_up_down(target, &apply_other_function_on_data, &apply_f_wrapper);
-	}
+    alloc.free(alloc, *path);
+    *path = NULL;
+
+    return TTREE_NO_MISHAP;
 }
 
 // -------------------------------------------------------------------------------------------------
-void ttree_destroy(ttree **tree)
+ttree_mishap ttree_foreach_element(const ttree_path *path, void (apply_f)(void *element, void *additional_args), void *additional_args)
 {
-	free(*tree);
-	*tree = NULL;
+    size_t apply_from = { };
+    size_t apply_to = { };
+
+    if (!path) {
+        return TTREE_BAD_PATH;
+    } else if (!apply_f) {
+        return TTREE_INVALID_OBJECT;
+    }
+
+    if (path->tokens_indexes->length > 0u) {
+        apply_from = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+        apply_to = apply_from + path->target->tree_children->data[apply_from] + 1u;
+    } else {
+        apply_from = 0u;
+        apply_to = path->target->tree_contents.r->length;
+    }
+
+    for (size_t i = apply_from ; i < apply_to ; i++) {
+        apply_f(range_at(path->target->tree_contents, i), additional_args);
+    }
+
+    return TTREE_NO_MISHAP;
+}
+
+// -------------------------------------------------------------------------------------------------
+ttree_mishap ttree_foreach_path(allocator alloc, const ttree_path *path, void (apply_f)(ttree_path *some_path, void *additional_args), void *additional_args)
+{
+    size_t apply_from = { };
+    size_t apply_to = { };
+    ttree_path applied_on_path = { };
+    size_t last_parent_index = { };
+
+    if (!path) {
+        return TTREE_BAD_PATH;
+    } else if (!apply_f) {
+        return TTREE_INVALID_OBJECT;
+    }
+
+    if (path->tokens_indexes->length > 0u) {
+        apply_from = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+        apply_to = apply_from + path->target->tree_children->data[apply_from] + 1u;
+    } else {
+        apply_from = 0u;
+        apply_to = path->target->tree_contents.r->length;
+    }
+
+    applied_on_path.target = path->target;
+    applied_on_path.tokens_indexes = range_create_dynamic_from_resize_of(alloc, range_to_any(path->tokens_indexes), path->tokens_indexes->length + (apply_to - apply_from));
+
+    for (size_t i = apply_from ; i < apply_to ; i++) {
+        ttree_path_truncate_to_first_parent(&applied_on_path, i);
+        range_insert_value(range_to_any(applied_on_path.tokens_indexes), applied_on_path.tokens_indexes->length, &i);
+
+        apply_f(&applied_on_path, additional_args);
+    }
+
+    range_destroy_dynamic(alloc, &range_to_any(applied_on_path.tokens_indexes));
+
+    return TTREE_NO_MISHAP;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -265,107 +304,33 @@ void ttree_destroy(ttree **tree)
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-static size_t find_direct_subtree_index(ttree *tree, const void *node, i32 (*node_comparator)(const void *node_1, const void *node_2))
+static ttree_path *ttree_path_create(allocator alloc, ttree *tree, size_t length)
 {
-	size_t pos = 0u;
-	i32 found = 0;
+    ttree_path *path = { };
 
-	pos = 1u;
-	while ((pos <= tree->nb_nodes) && !found) {
-		found = (node_comparator(tree[pos].data, node) == 0);
-		pos += (!found) * (tree[pos].nb_nodes + 1u);
-	}
+    path = alloc.malloc(alloc, sizeof(*path));
 
-	if (!found) {
-		return tree->nb_nodes + 1u;
-	}
-	return pos;
+    if (path) {
+        *path = (ttree_path) { .target = tree, .tokens_indexes = range_create_dynamic(alloc, sizeof(size_t), length) };
+    }
+
+    return path;
 }
 
 // -------------------------------------------------------------------------------------------------
-static size_t find_subtree_index(ttree *tree, const void *node_path[], size_t node_path_length, i32 (*node_comparator)(const void *node_1, const void *node_2))
+static void ttree_path_truncate_to_first_parent(ttree_path *path, size_t index)
 {
-	i32 path_is_incorrect = 0;
-	size_t pos_path = 0u;
-	size_t tmp_pos_tree = 0u;
-	size_t pos_tree = 0u;
+    size_t last_index = { };
 
-	while ((pos_path < node_path_length) && (!path_is_incorrect)) {
-		tmp_pos_tree = find_direct_subtree_index(tree + pos_tree, node_path[pos_path], node_comparator);
-		path_is_incorrect = (tmp_pos_tree == tree[pos_tree].nb_nodes + 1u);
-		pos_tree += tmp_pos_tree;
-		pos_path += !path_is_incorrect;
-	}
+    if (!path || !path->target || !path->tokens_indexes || (index >= path->target->tree_children->length)) {
+        return;
+    }
 
-	if (path_is_incorrect) {
-		return tree->nb_nodes + 1u;
-	}
-	return pos_tree;
-}
-
-// -------------------------------------------------------------------------------------------------
-static void foreach_parent_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
-{
-	size_t pos = 0u;
-
-	pos = 1u;
-	while (pos <= subtree.pos) {
-		if ((pos + subtree.parent_tree[pos].nb_nodes) >= subtree.pos) {
-			// the subtree includes the target subtree :
-			apply_f(subtree.parent_tree + pos, additional_args);
-			pos += 1u;
-		} else {
-			// the subtree doesn't include the target subtree :
-			pos += subtree.parent_tree[pos].nb_nodes + 1u;
-		}
-	}
-}
-
-// -------------------------------------------------------------------------------------------------
-static void foreach_parent_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
-{
-	size_t dist = 0u;
-	for (size_t i = subtree.pos ; i > 0u ; i--) {
-		if (subtree.parent_tree[i].nb_nodes <= dist) {
-			apply_f(subtree.parent_tree + i, additional_args);
-		}
-		dist += 1u;
-	}
-}
-
-// -------------------------------------------------------------------------------------------------
-static void foreach_child_of_subtree_up_down(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
-{
-	const size_t index_end = subtree.pos + subtree.parent_tree[subtree.pos].nb_nodes;
-
-	for (size_t i = subtree.pos + 1u ; i <= index_end ; i++) {
-		apply_f(subtree.parent_tree + i, additional_args);
-	}
-
-}
-
-// -------------------------------------------------------------------------------------------------
-static void foreach_child_of_subtree_down_up(subttree subtree, void (*apply_f)(ttree *tree, void *additional_args), void *additional_args)
-{
-	const size_t index_end = subtree.pos;
-
-	for (size_t i = subtree.pos + subtree.parent_tree[subtree.pos].nb_nodes ; i >= index_end ; i--) {
-		apply_f(subtree.parent_tree + i, additional_args);
-	}
-}
-
-// -------------------------------------------------------------------------------------------------
-static void increment_tree_nb_nodes(ttree *tree, void *additional_args)
-{
-	tree->nb_nodes = (size_t) ((i32) tree->nb_nodes + *((i32 *) additional_args));
-}
-
-// -------------------------------------------------------------------------------------------------
-static void apply_other_function_on_data(ttree *tree, void *additional_args)
-{
-	struct apply_other_function_on_data_additional_args *args = (struct apply_other_function_on_data_additional_args *) additional_args;
-
-	args->other_function(&tree->data, args->other_function_args);
+    last_index = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+    while ((path->tokens_indexes->length > 0u) && (last_index + path->target->tree_children->data[last_index] < index)) {
+        range_remove(range_to_any(path->tokens_indexes), path->tokens_indexes->length - 1u);
+        last_index = path->tokens_indexes->data[path->tokens_indexes->length - 1u];
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -374,596 +339,673 @@ static void apply_other_function_on_data(ttree *tree, void *additional_args)
 
 #ifdef UNITTESTING
 
-// compare two pointers by value
-static i32 ttree_test_comparator(const void *n1, const void *n2) {
-	size_t val1 = (size_t) n1;
-	size_t val2 = (size_t) n2;
 
-	return (val1 > val2) - (val1 < val2);
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_lifetime,
+        {
+            size_t capacity;
+            size_t element_size;
+
+            bool expect_success;
+        },
+        {
+            ttree *tree = ttree_create(make_system_allocator(), data->capacity, data->element_size);
+
+            if (data->expect_success) {
+                tst_assert((tree != NULL), "tree creation failed !");
+            } else {
+                tst_assert((tree == NULL), "tree was unexpectedly successful !");
+            }
+
+            if (tree) {
+                ttree_destroy(make_system_allocator(), &tree);
+            }
+
+
+            tst_assert((tree == NULL), "tree was not set to NULL at the end of test");
+        }
+)
+
+tst_CREATE_TEST_CASE(tree_lifetime_u32, tree_lifetime,
+        .capacity       = 16,
+        .element_size   = sizeof(u32),
+        .expect_success = true,
+)
+tst_CREATE_TEST_CASE(tree_lifetime_1ko, tree_lifetime,
+        .capacity       = 2048u,
+        .element_size   = 1024u,
+        .expect_success = true,
+)
+tst_CREATE_TEST_CASE(tree_lifetime_bad_size, tree_lifetime,
+        .capacity       = 16,
+        .element_size   = 0,
+        .expect_success = false,
+)
+tst_CREATE_TEST_CASE(tree_lifetime_bad_count, tree_lifetime,
+        .capacity       = 0,
+        .element_size   = sizeof(long),
+        .expect_success = false,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+static i32 test_comparator_u32(const void *elt_right, const void *elt_left) {
+    u32 v_left  = *(u32 *) elt_left;
+    u32 v_right = *(u32 *) elt_right;
+
+    return (v_left > v_right) - (v_left < v_right);
 }
 
-static inline void ttree_test_improvise_tree(u32 (*tree_lengths)[10u], void *(*tree_contents)[10u], ttree (*out_tree)[11u]) {
-	// root
-	(*out_tree)[0u].nb_nodes = 10u;
-	(*out_tree)[0u].data = NULL;
+tst_CREATE_TEST_SCENARIO(tree_search_path,
+        {
+            range(u32, 10)    tree_start_state_contents;
+            range(size_t, 10) tree_start_state_children;
+            range(u32, 10) searched_path;
 
-	// rest of the tree
-	for (size_t i = 0u ; i < 10u ; i++) {
-		(*out_tree)[i+1].nb_nodes = (*tree_lengths)[i];
-		(*out_tree)[i+1].data = (void *) (*tree_contents)[i];
-	}
+            bool expect_found;
+            range(size_t, 10) expected_indexes;
+        },
+        {
+            ttree tree = {};
+            bytewise_copy(&tree.tree_contents, &range_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, range_to_any(&data->searched_path), &test_comparator_u32);
+
+            if (data->expect_found) {
+                tst_assert(path != NULL, "path was not found");
+            } else {
+                tst_assert(path == NULL, "path was found anyway");
+            }
+
+            if (path) {
+                tst_assert_equal(data->expected_indexes.length, path->tokens_indexes->length, "a length of %d");
+
+                for (size_t i = 0 ; i < data->searched_path.length ; i++) {
+                    tst_assert_equal_ext(data->expected_indexes.data[i], path->tokens_indexes->data[i], "value of %d", "at index %d", i);
+                }
+
+                ttree_path_destroy(make_system_allocator(), &path);
+            }
+        }
+)
+
+tst_CREATE_TEST_CASE(tree_search_present, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10,    { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 83, 84, 86 }),
+        .expect_found              = true,
+        .expected_indexes          = range_create_static(size_t, 10, { 3, 4, 6 }),
+)
+tst_CREATE_TEST_CASE(tree_search_present_node, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10,    { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 87, 88 }),
+        .expect_found              = true,
+        .expected_indexes          = range_create_static(size_t, 10, { 7, 8 }),
+)
+tst_CREATE_TEST_CASE(tree_search_absent, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10,    { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 83, 88, 86 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_too_far, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10,    { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 83, 84, 86, 91 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_empty_path, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10,    { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, {  } ),
+        .expect_found              = true,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_empty_tree, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10, {  }),
+        .tree_start_state_children = range_create_static(size_t, 10, {  }),
+        .searched_path             = range_create_static(u32, 10, { 1 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_empty_and_empty, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10, {  }),
+        .tree_start_state_children = range_create_static(size_t, 10, {  }),
+        .searched_path             = range_create_static(u32, 10, {  }),
+        .expect_found              = true,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_adjacent, tree_search_path,
+        .tree_start_state_contents = range_create_static(u32, 10,    {40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, {0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 41, 42, 44 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, { }),
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(search_relative,
+    {
+            range(u32, 10)    tree_start_state_contents;
+            range(size_t, 10) tree_start_state_children;
+
+            range(u32, 10) searched_path;
+            range(u32, 10) relative_to_path;
+
+            bool expect_found;
+            range(size_t, 10) expected_indexes;
+    },
+    {
+            ttree tree = {};
+            bytewise_copy(&tree.tree_contents, &range_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
+
+            ttree_path *base_path = ttree_get_path_absolute(make_system_allocator(), &tree, range_to_any(&data->relative_to_path), &test_comparator_u32);
+            ttree_path *path = ttree_get_path_relative(make_system_allocator(), base_path, range_to_any(&data->searched_path), &test_comparator_u32);
+
+            if (data->expect_found) {
+                tst_assert(path != NULL, "path was not found");
+            } else {
+                tst_assert(path == NULL, "path was found anyway");
+            }
+
+            if (path) {
+                tst_assert_equal(data->expected_indexes.length, path->tokens_indexes->length, "a length of %d");
+
+                for (size_t i = 0 ; i < data->searched_path.length ; i++) {
+                    tst_assert_equal_ext(data->expected_indexes.data[i], path->tokens_indexes->data[i], "value of %d", "at index %d", i);
+                }
+
+                ttree_path_destroy(make_system_allocator(), &path);
+                ttree_path_destroy(make_system_allocator(), &base_path);
+            }
+
+    }
+)
+tst_CREATE_TEST_CASE(tree_search_relative_valid_and_valid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 81 }),
+        .relative_to_path          = range_create_static(u32, 10, { 80 }),
+        .expect_found              = true,
+        .expected_indexes          = range_create_static(size_t, 10, { 0, 1 }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_invalid_and_valid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 81, 85 }),
+        .relative_to_path          = range_create_static(u32, 10, { 80 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_empty_and_valid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, {  }),
+        .relative_to_path          = range_create_static(u32, 10, { 83, 84 }),
+        .expect_found              = true,
+        .expected_indexes          = range_create_static(size_t, 10, { 3, 4 }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_toolong_and_valid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 85, 86 }),
+        .relative_to_path          = range_create_static(u32, 10, { 83, 84 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_valid_and_invalid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 87, 88 }),
+        .relative_to_path          = range_create_static(u32, 10, { 88 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_invalid_and_invalid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 89, 88 }),
+        .relative_to_path          = range_create_static(u32, 10, { 88 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_empty_and_invalid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, {  }),
+        .relative_to_path          = range_create_static(u32, 10, { 88 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_toolong_and_invalid, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, { 83, 84, 85, 86 }),
+        .relative_to_path          = range_create_static(u32, 10, { 88 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_search_relative_empty_and_toolong, search_relative,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  0,  0,  3,  2,  0,  0,  2,  1,  0 }),
+        .searched_path             = range_create_static(u32, 10, {  }),
+        .relative_to_path          = range_create_static(u32, 10, { 83, 84, 85, 86 }),
+        .expect_found              = false,
+        .expected_indexes          = range_create_static(size_t, 10, {  }),
+)
+
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_add_element,
+        {
+            range(u32, 10)    tree_start_state_contents;
+            range(size_t, 10) tree_start_state_children;
+            range(u32, 10) addition_path;
+            u32 added_value;
+
+            bool expect_addition;
+            range(u32, 10)    tree_end_state_contents;
+            range(size_t, 10) tree_end_state_children;
+        },
+        {
+            ttree tree = {};
+            ttree_mishap result = {};
+
+            bytewise_copy(&tree.tree_contents, &range_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, range_to_any(&data->addition_path), &test_comparator_u32);
+
+            result = ttree_add(&tree, path, (const byte *) &data->added_value);
+
+            if (data->expect_addition) {
+                tst_assert(result == TTREE_NO_MISHAP, "addition failed !");
+            } else {
+                tst_assert(result != TTREE_NO_MISHAP, "addition passed anyway !");
+            }
+
+            for (size_t i = 0 ; i < tree.tree_contents.r->length ; i++) {
+                tst_assert_equal_ext(data->tree_end_state_contents.data[i], *(u32 *) range_at(tree.tree_contents, i), "value of %d", "at index %d", i);
+                tst_assert_equal_ext(data->tree_end_state_children.data[i], tree.tree_children->data[i], "value of %d", "at index %d", i);
+            }
+
+            if (path) {
+                ttree_path_destroy(make_system_allocator(), &path);
+            }
+        }
+)
+
+
+tst_CREATE_TEST_CASE(tree_add_element_in_empty, tree_add_element,
+        .tree_start_state_contents = range_create_static(u32, 10, {  }),
+        .tree_start_state_children = range_create_static(size_t, 10, {  }),
+        .addition_path             = range_create_static(u32, 10, {  }),
+        .added_value               = 42,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 42 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 0 }),
+)
+tst_CREATE_TEST_CASE(tree_add_element_at_root, tree_add_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 41, 42, 43 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  1,  0 }),
+        .addition_path             = range_create_static(u32, 10, {  }),
+        .added_value               = 99,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 99, 41, 42, 43 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 0,  2,  1,  0 }),
+)
+tst_CREATE_TEST_CASE(tree_add_element_at_node, tree_add_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 41, 42, 43 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  1,  0 }),
+        .addition_path             = range_create_static(u32, 10, { 41 }),
+        .added_value               = 99,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 41, 99, 42, 43 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 3,  0,  1,  0 }),
+)
+tst_CREATE_TEST_CASE(tree_add_element_at_node_far, tree_add_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .addition_path             = range_create_static(u32, 10, { 44, 45 }),
+        .added_value               = 99,
+        .expect_addition           = true,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 41, 42, 43, 44, 45, 99, 46, 47, 48, 49 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 2,  1,  0,  4,  1,  0,  0,  0,  1,  0 }),
+)
+tst_CREATE_TEST_CASE(tree_add_element_bad_path, tree_add_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .addition_path             = range_create_static(u32, 10, { 41, 45 }),
+        .added_value               = 99,
+        .expect_addition           = false,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+
+)
+tst_CREATE_TEST_CASE(tree_add_element_full, tree_add_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .addition_path             = range_create_static(u32, 10, {  }),
+        .added_value               = 99,
+        .expect_addition           = false,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_remove_element,
+        {
+            range(u32, 10)    tree_start_state_contents;
+            range(size_t, 10) tree_start_state_children;
+            range(u32, 10) removal_path;
+
+            bool expect_removal;
+            range(u32, 10)    tree_end_state_contents;
+            range(size_t, 10) tree_end_state_children;
+
+        },
+        {
+            ttree tree = {};
+            ttree_mishap result = {};
+
+            bytewise_copy(&tree.tree_contents, &range_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, range_to_any(&data->removal_path), &test_comparator_u32);
+
+            result = ttree_remove(&tree, path);
+
+            if (data->expect_removal) {
+                tst_assert(result == TTREE_NO_MISHAP, "removal failed !");
+            } else {
+                tst_assert(result != TTREE_NO_MISHAP, "removal passed anyway !");
+            }
+
+            for (size_t i = 0 ; i < tree.tree_contents.r->length ; i++) {
+                tst_assert_equal_ext(data->tree_end_state_contents.data[i], *(u32 *) range_at(tree.tree_contents, i), "value of %d", "at index %d", i);
+                tst_assert_equal_ext(data->tree_end_state_children.data[i], tree.tree_children->data[i], "value of %d", "at index %d", i);
+            }
+
+            if (path) {
+                ttree_path_destroy(make_system_allocator(), &path);
+            }
+
+        }
+)
+tst_CREATE_TEST_CASE(tree_remove_element_whole_empty, tree_remove_element,
+        .tree_start_state_contents = range_create_static(u32, 10, {  }),
+        .tree_start_state_children = range_create_static(size_t, 10, {  }),
+        .removal_path              = range_create_static(u32, 10, {  }),
+        .expect_removal            = true,
+        .tree_end_state_contents   = range_create_static(u32, 10, {  }),
+        .tree_end_state_children   = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_remove_element_whole_populated, tree_remove_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .removal_path              = range_create_static(u32, 10, {  }),
+        .expect_removal            = true,
+        .tree_end_state_contents   = range_create_static(u32, 10, {  }),
+        .tree_end_state_children   = range_create_static(size_t, 10, {  }),
+)
+tst_CREATE_TEST_CASE(tree_remove_leaf, tree_remove_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .removal_path              = range_create_static(u32, 10, { 41, 42, 43 }),
+        .expect_removal            = true,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 40, 41, 42, 44, 45, 46, 47, 48, 49 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 0,  1,  0,  3,  0,  0,  0,  1,  0 }),
+)
+tst_CREATE_TEST_CASE(tree_remove_node, tree_remove_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .removal_path              = range_create_static(u32, 10, { 41 }),
+        .expect_removal            = true,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 40, 44, 45, 46, 47, 48, 49 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 0,  3,  0,  0,  0,  1,  0 }),
+)
+tst_CREATE_TEST_CASE(tree_remove_bad_path, tree_remove_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+        .removal_path              = range_create_static(u32, 10, { 41, 42, 44 }),
+        .expect_removal            = false,
+        .tree_end_state_contents   = range_create_static(u32, 10,   { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 }),
+        .tree_end_state_children   = range_create_static(size_t, 10, { 0,  2,  1,  0,  3,  0,  0,  0,  1,  0 }),
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_foreach_element,
+        {
+
+            range(u32, 10)    tree_start_state_contents;
+            range(size_t, 10) tree_start_state_children;
+            range(u32, 10) path_to_iterate;
+
+            void (*apply_f)(void *element, void *args);
+            void *additional_args;
+            size_t additional_args_size;
+
+            range(u32, 10)    tree_end_state_contents;
+            range(size_t, 10) tree_end_state_children;
+            void *end_state_additional_args;
+        },
+        {
+            ttree tree = {};
+
+            bytewise_copy(&tree.tree_contents, &range_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, range_to_any(&data->path_to_iterate), &test_comparator_u32);
+
+            ttree_foreach_element(path, data->apply_f, data->additional_args);
+
+            for (size_t i = 0 ; i < tree.tree_contents.r->length ; i++) {
+                tst_assert_equal_ext(data->tree_end_state_contents.data[i], *(u32 *) range_at(tree.tree_contents, i), "value of %d", "at index %d", i);
+                tst_assert_equal_ext(data->tree_end_state_children.data[i], tree.tree_children->data[i], "value of %d", "at index %d", i);
+            }
+
+            tst_assert_memory_equal(data->additional_args, data->end_state_additional_args, data->additional_args_size, "passed arguments are not what was expected");
+
+            ttree_path_destroy(make_system_allocator(), &path);
+        }
+)
+
+static void test_apply_sum(void *element, void *accumulator) {
+    u32 number = *(u32 *) element;
+    u32 *sum = (u32 *) accumulator;
+
+    *sum += number;
 }
 
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-tst_CREATE_TEST_SCENARIO(tree_creation,
-		{
-			size_t nb_nodes;
-
-			i32 is_failing;
-		},
-		{
-			ttree *tree = ttree_create(data->nb_nodes);
-
-			tst_assert_equal(data->is_failing, (tree == NULL), "nullness test of %d");
-			if (tree) {
-				ttree_destroy(&tree);
-			}
-			tst_assert_equal(NULL, tree, "tree address : %#010x");
-		}
+tst_CREATE_TEST_CASE(tree_foreach_element_sum_whole, tree_foreach_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = range_create_static(size_t, 10, {}),
+        .apply_f = &test_apply_sum,
+        .additional_args = (void *) &(u32) { 0u },
+        .additional_args_size = sizeof(u32),
+        .tree_end_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_end_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(u32) { 42u },
+)
+tst_CREATE_TEST_CASE(tree_foreach_element_sum_part, tree_foreach_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = range_create_static(size_t, 10, { 10, 5 }),
+        .apply_f = &test_apply_sum,
+        .additional_args = (void *) &(u32) { 0u },
+        .additional_args_size = sizeof(u32),
+        .tree_end_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_end_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(u32) { 9u },
+)
+tst_CREATE_TEST_CASE(tree_foreach_element_sum_nothing, tree_foreach_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = range_create_static(size_t, 10, { 10, 5, 99 }),
+        .apply_f = &test_apply_sum,
+        .additional_args = (void *) &(u32) { 0u },
+        .additional_args_size = sizeof(u32),
+        .tree_end_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_end_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(u32) { 0u },
 )
 
-tst_CREATE_TEST_CASE(tree_creation_success, tree_creation,
-		.nb_nodes = 12u,
-		.is_failing = 0u
-)
+static void test_apply_increment(void *element, void *accumulator) {
+    u32 *number = (u32 *) element;
 
-tst_CREATE_TEST_CASE(tree_creation_number_zero, tree_creation,
-		.nb_nodes = 0u,
-		.is_failing = 1u
-)
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-tst_CREATE_TEST_SCENARIO(tree_find,
-		{
-			void * tree_contents[10u];
-			u32 tree_lengths[10u];
-
-			const void * path[10u];
-			size_t path_length;
-
-			u32 expect_found;
-			size_t expected_position;
-		},
-		{
-			ttree tree[11u] = { 0u };
-			subttree subtree = { 0u };
-
-			ttree_test_improvise_tree(&data->tree_lengths, &data->tree_contents, &tree);
-
-			subtree = ttree_get_subtree(tree, data->path, data->path_length, &ttree_test_comparator);
-
-			if (data->expect_found) {
-				tst_assert(subtree.parent_tree != NULL, "tree not found !");
-				tst_assert_equal(data->expected_position, subtree.pos, "subtree index of %d");
-				if (data->path_length > 0u) tst_assert_equal(data->path[data->path_length-1u], ttree_get_subtree_content(subtree), "node content of %d");
-			} else {
-				tst_assert(subtree.parent_tree == NULL, "tree found !");
-				tst_assert_equal(data->expected_position, subtree.pos, "subtree index of %d");
-			}
-		}
-)
-
-tst_CREATE_TEST_CASE(tree_find_leaf, tree_find,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.path = { (void *) 1, (void*) 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 2u,
-		.expect_found = 1u,
-		.expected_position = 2u,
-)
-
-tst_CREATE_TEST_CASE(tree_find_node, tree_find,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.path = { (void *) 3, (void*) 8, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 2u,
-		.expect_found = 1u,
-		.expected_position = 8u,
-)
-
-tst_CREATE_TEST_CASE(tree_find_node_at_end, tree_find,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.path = { (void *) 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-		.expect_found = 1u,
-		.expected_position = 10u,
-)
-
-tst_CREATE_TEST_CASE(tree_find_whole_tree, tree_find,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.path = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 0u,
-		.expect_found = 1u,
-		.expected_position = 0u,
-)
-
-tst_CREATE_TEST_CASE(tree_find_bad_path, tree_find,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.path = { (void *) 1, (void *) 9, (void *) 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 3u,
-		.expect_found = 0u,
-		.expected_position = 11u,
-)
-
-tst_CREATE_TEST_CASE(tree_find_bad_path_began_right, tree_find,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.path = { (void *) 3, (void *) 8, (void *) 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 3u,
-		.expect_found = 0u,
-		.expected_position = 11u,
-)
-
-tst_CREATE_TEST_CASE(tree_find_path_too_long, tree_find,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.path = { (void *) 1, (void *) 4, (void *) 11, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 3u,
-		.expect_found = 0u,
-		.expected_position = 11u,
-)
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-tst_CREATE_TEST_SCENARIO(tree_insert,
-		{
-			void * tree_contents[10u];
-			u32 tree_lengths[10u];
-			size_t tree_nb_nodes;
-
-			void * expected_tree_contents[10u];
-			u32 expected_tree_lengths[10u];
-			size_t expected_tree_nb_nodes;
-
-			void *added_value;
-
-			const void * path[10u];
-			size_t path_length;
-
-			i32 expect_addition;
-
-		},
-		{
-			ttree tree[11u] = { 0u };
-			ttree expected_tree[11u] = { 0u };
-			subttree subtree = { 0u };
-			i32 insertion_result = 0;
-
-			ttree_test_improvise_tree(&data->tree_lengths, &data->tree_contents, &tree);
-			tree[0u].nb_nodes = data->tree_nb_nodes;
-			ttree_test_improvise_tree(&data->expected_tree_lengths, &data->expected_tree_contents, &expected_tree);
-			expected_tree[0u].nb_nodes = data->expected_tree_nb_nodes;
-
-			subtree = ttree_get_subtree(tree, data->path, data->path_length, &ttree_test_comparator);
-
-			insertion_result = ttree_insert(subtree, data->added_value);
-			tst_assert_equal(data->expect_addition, (insertion_result == 0), "insertion success of %d");
-
-			for (size_t i = 0u ; i < expected_tree[0u].nb_nodes ; i++) {
-				tst_assert(tree[i].data == expected_tree[i].data, "data at index %d mismatch : expected %d, got %d", i, expected_tree[i].data, tree[i].data);
-				tst_assert(tree[i].nb_nodes == expected_tree[i].nb_nodes, "nb_nodes at index %d mismatch : expected %d, got %d", i, expected_tree[i].nb_nodes, tree[i].nb_nodes);
-			}
-		}
-)
-
-tst_CREATE_TEST_CASE(tree_insert_at_root, tree_insert,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.tree_nb_nodes = 9u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,           0 },
-		.expected_tree_nb_nodes = 10u,
-
-		.added_value = (void *) 10,
-		.path = { NULL },
-		.path_length = 0u,
-		.expect_addition = 1u
-)
-
-tst_CREATE_TEST_CASE(tree_insert_at_leaf, tree_insert,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.tree_nb_nodes = 9u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
-		.expected_tree_nb_nodes = 10u,
-
-		.added_value = (void *) 10,
-		.path = { (void *) 3, (void *) 8, (void *) 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 3u,
-		.expect_addition = 1u
-)
-
-tst_CREATE_TEST_CASE(tree_insert_in_middle, tree_insert,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          1,          0 },
-		.tree_nb_nodes = 9u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 10, (void *) 3, (void *) 8, (void *) 9 },
-		.expected_tree_lengths  = {          1,          0,          4,          0,          0,          0,           0,          2,          1,          0 },
-		.expected_tree_nb_nodes = 10u,
-
-		.added_value = (void *) 10,
-		.path = { (void *) 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-		.expect_addition = 1u
-)
-
-tst_CREATE_TEST_CASE(tree_insert_fail, tree_insert,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          1,          0 },
-		.tree_nb_nodes = 9u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          1,          0 },
-		.expected_tree_nb_nodes = 9u,
-
-		.added_value = (void *) 10,
-		.path = { (void *) 2, (void *) 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 2u,
-		.expect_addition = 0u
-)
-
-tst_CREATE_TEST_CASE(tree_insert_in_empty, tree_insert,
-		.tree_contents = {       NULL,       NULL,       NULL,       NULL,       NULL,       NULL,       NULL,       NULL,       NULL,      NULL },
-		.tree_lengths  = {          0,          0,          0,          0,          0,          0,          0,          0,          0,         0 },
-		.tree_nb_nodes = 0u,
-
-		.expected_tree_contents = { (void *) 1,       NULL,       NULL,       NULL,       NULL,        NULL,        NULL,       NULL,       NULL,       NULL },
-		.expected_tree_lengths  = {          0,          0,          0,          0,          0,           0,           0,          0,          0,          0 },
-		.expected_tree_nb_nodes = 1u,
-
-		.added_value = (void *) 1,
-		.path = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 0u,
-		.expect_addition = 1u
-)
-
-tst_CREATE_TEST_CASE(tree_insert_same_value_root, tree_insert,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          1,          0 },
-		.tree_nb_nodes = 9u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 1 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          1,          0 },
-		.expected_tree_nb_nodes = 10u,
-
-		.added_value = (void *) 1,
-		.path = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 0u,
-		.expect_addition = 1u
-)
-
-tst_CREATE_TEST_CASE(tree_insert_same_unrelated_part, tree_insert,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          1,          0 },
-		.tree_nb_nodes = 9u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 1,(void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9 },
-		.expected_tree_lengths  = {          1,          0,          4,          1,          0,         0,          0,          2,          1,          1 },
-		.expected_tree_nb_nodes = 10u,
-
-		.added_value = (void *) 1,
-		.path = { (void *) 2, (void *) 5, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 2u,
-		.expect_addition = 1u
-)
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-
-tst_CREATE_TEST_SCENARIO(tree_remove,
-		{
-			void * tree_contents[10u];
-			u32 tree_lengths[10u];
-			size_t tree_nb_nodes;
-
-			void * expected_tree_contents[10u];
-			u32 expected_tree_lengths[10u];
-			size_t expected_tree_nb_nodes;
-
-			const void * path[10u];
-			size_t path_length;
-
-			i32 expect_removal;
-		},
-		{
-			ttree tree[11u] = { 0u };
-			ttree expected_tree[11u] = { 0u };
-			i32 removal_status = 0;
-			subttree subtree = { 0u };
-
-			ttree_test_improvise_tree(&data->tree_lengths, &data->tree_contents, &tree);
-			tree[0u].nb_nodes = data->tree_nb_nodes;
-			ttree_test_improvise_tree(&data->expected_tree_lengths, &data->expected_tree_contents, &expected_tree);
-			expected_tree[0u].nb_nodes = data->expected_tree_nb_nodes;
-
-			subtree = ttree_get_subtree(tree, data->path, data->path_length, &ttree_test_comparator);
-			removal_status = ttree_remove(subtree);
-
-			tst_assert_equal(data->expect_removal, (removal_status == 0), "removal success of %d");
-
-			for (size_t i = 0u ; i < (data->expected_tree_nb_nodes + 1) ; i++) {
-				tst_assert(tree[i].data == expected_tree[i].data, "data at index %d mismatch : expected %d, got %d", i, expected_tree[i].data, tree[i].data);
-
-				tst_assert(tree[i].nb_nodes == expected_tree[i].nb_nodes, "nb_nodes at index %d mismatch : expected %d, got %d", i, expected_tree[i].nb_nodes, tree[i].nb_nodes);
-			}
-		}
-)
-
-tst_CREATE_TEST_CASE(tree_remove_at_root, tree_remove,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 10, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9 },
-		.tree_lengths  = {          1,          0,           0,          3,          0,          0,          0,          2,          1,          0 },
-		.tree_nb_nodes = 10u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.expected_tree_nb_nodes = 9u,
-
-		.path = { (void *) 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-		.expect_removal = 1u,
-)
-
-tst_CREATE_TEST_CASE(tree_remove_at_start_root, tree_remove,
-		.tree_contents = { (void *) 10, (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9 },
-		.tree_lengths  = {           0,          1,          0,          3,          0,          0,          0,          2,          1,          0 },
-		.tree_nb_nodes = 10u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.expected_tree_nb_nodes = 9u,
-
-		.path = { (void *) 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-		.expect_removal = 1u,
-)
-
-tst_CREATE_TEST_CASE(tree_remove_at_end_root, tree_remove,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,           0 },
-		.tree_nb_nodes = 10u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9,       NULL },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,          0 },
-		.expected_tree_nb_nodes = 9u,
-
-		.path = { (void *) 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-		.expect_removal = 1u,
-)
-
-tst_CREATE_TEST_CASE(tree_remove_a_subtree, tree_remove,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,           0 },
-		.tree_nb_nodes = 10u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 3, (void *) 8, (void *) 9, (void *) 10, NULL, NULL, NULL, NULL },
-		.expected_tree_lengths  = {          1,          0,          2,          1,          0,           0,    0,    0,    0,    0 },
-		.expected_tree_nb_nodes = 6u,
-
-		.path = { (void *) 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-		.expect_removal = 1u,
-)
-
-tst_CREATE_TEST_CASE(tree_remove_whole_tree, tree_remove,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,           0 },
-		.tree_nb_nodes = 10u,
-
-		.expected_tree_contents = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.expected_tree_lengths  = {    0,    0,    0,    0,    0,    0,    0,    0,    0,    0 },
-		.expected_tree_nb_nodes = 0u,
-
-		.path = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 0u,
-		.expect_removal = 1u,
-)
-
-tst_CREATE_TEST_CASE(tree_remove_almost_whole_tree, tree_remove,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          8,          0,          0,          0,          0,          0,          0,          0,          0,           0 },
-		.tree_nb_nodes = 10u,
-
-		.expected_tree_contents = { (void *) 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.expected_tree_lengths  = {           0,    0,    0,    0,    0,    0,    0,    0,    0,    0 },
-		.expected_tree_nb_nodes = 1u,
-
-		.path = { (void *) 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-		.expect_removal = 1u,
-)
-
-tst_CREATE_TEST_CASE(tree_remove_fail, tree_remove,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,           0 },
-		.tree_nb_nodes = 10u,
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          2,          1,          0,           0 },
-		.expected_tree_nb_nodes = 10u,
-
-		.path = { (void *) 1, (void *) 8, (void *) 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 3u,
-		.expect_removal = 0u,
-)
-
-// -------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------
-tst_CREATE_TEST_SCENARIO(tree_foreach,
-		{
-			void * tree_contents[10u];
-			u32 tree_lengths[10u];
-
-			void * expected_tree_contents[10u];
-			u32 expected_tree_lengths[10u];
-
-			void (*apply_f)(void **node, void *additional_args);
-
-			const void * path[10u];
-			size_t path_length;
-
-			u32 tree_division;
-		},
-		{
-			ttree tree[11u] = { 0u };
-			ttree expected_tree[11u] = { 0u };
-			subttree subtree = { 0u };
-			i32 insertion_result = 0;
-
-			ttree_test_improvise_tree(&data->tree_lengths, &data->tree_contents, &tree);
-			ttree_test_improvise_tree(&data->expected_tree_lengths, &data->expected_tree_contents, &expected_tree);
-
-			subtree = ttree_get_subtree(tree, data->path, data->path_length, &ttree_test_comparator);
-			ttree_foreach(subtree, data->apply_f, (void *) ((size_t) 5), data->tree_division);
-
-			for (size_t i = 0u ; i < 10u ; i++) {
-				tst_assert(tree[i].data == expected_tree[i].data, "data at index %d mismatch : expected %d, got %d", i, expected_tree[i].data, tree[i].data);
-
-				tst_assert(tree[i].nb_nodes == expected_tree[i].nb_nodes, "nb_nodes at index %d mismatch : expected %d, got %d", i, expected_tree[i].nb_nodes, tree[i].nb_nodes);
-			}
-		}
-)
-
-static void tree_test_incr_apply(void **node, void *additional_args) {
-	size_t *data = (size_t *) node;
-	*data += 1u;
+    *number += 1u;
 }
 
-tst_CREATE_TEST_CASE(tree_foreach_all_tree_incr, tree_foreach,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
+tst_CREATE_TEST_CASE(tree_foreach_element_incr_whole, tree_foreach_element,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = range_create_static(size_t, 10, {  }),
+        .apply_f = &test_apply_increment,
+        .additional_args = (void *) &(u32) { 0u },
+        .additional_args_size = sizeof(u32),
+        .tree_end_state_contents = range_create_static(u32, 10,   { 11, 6, 5, 10, 2, 7, 4, 2, 3, 2 }),
+        .tree_end_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(u32) { 0u },
+)
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(tree_foreach_path,
+        {
 
-		.expected_tree_contents = { (void *) 2, (void *) 5, (void *) 3, (void *) 6, (void *) 7, (void *) 8, (void *) 4, (void *) 9, (void *) 10, (void *) 11 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,           1,           0 },
+            range(u32, 10)    tree_start_state_contents;
+            range(size_t, 10) tree_start_state_children;
+            range(u32, 10) path_to_iterate;
 
-		.apply_f = &tree_test_incr_apply,
+            void (*apply_f)(ttree_path *element, void *args);
+            void *additional_args;
+            size_t additional_args_size;
 
-		.path = { NULL },
-		.path_length = 0u,
+            range(u32, 10)    tree_end_state_contents;
+            range(size_t, 10) tree_end_state_children;
+            void *end_state_additional_args;
+        },
+        {
+            ttree tree = {};
 
-		.tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
+            bytewise_copy(&tree.tree_contents, &range_to_any(&data->tree_start_state_contents), sizeof(tree.tree_contents));
+            tree.tree_children = (void *) &data->tree_start_state_children;
+
+            ttree_path *path = ttree_get_path_absolute(make_system_allocator(), &tree, range_to_any(&data->path_to_iterate), &test_comparator_u32);
+
+            ttree_foreach_path(make_system_allocator(), path, data->apply_f, data->additional_args);
+
+            for (size_t i = 0 ; i < tree.tree_contents.r->length ; i++) {
+                tst_assert_equal_ext(data->tree_end_state_contents.data[i], *(u32 *) range_at(tree.tree_contents, i), "value of %d", "at index %d", i);
+                tst_assert_equal_ext(data->tree_end_state_children.data[i], tree.tree_children->data[i], "value of %d", "at index %d", i);
+            }
+
+            tst_assert_memory_equal(data->additional_args, data->end_state_additional_args, data->additional_args_size, "passed arguments are not what was expected");
+
+            ttree_path_destroy(make_system_allocator(), &path);
+        }
 )
 
-static void tree_test_incr_with_args_apply(void **node, void *additional_args) {
-	size_t *data = (size_t *) node;
-	*data += (size_t) additional_args;
+static void test_apply_sum_on_path(ttree_path *path, void *additional_args)
+{
+    u32 *sum = (u32 *) additional_args;
+
+    *sum += *(u32 *) ttree_path_content(path);
 }
 
-tst_CREATE_TEST_CASE(tree_foreach_all_tree_incr_with_args, tree_foreach,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
-
-		.expected_tree_contents = { (void *) 6, (void *) 9, (void *) 7, (void *) 10, (void *) 11, (void *) 12, (void *) 8, (void *) 13, (void *) 14, (void *) 15 },
-		.expected_tree_lengths  = {          1,          0,          3,           0,           0,           0,          3,           2,           1,           0 },
-
-		.apply_f = &tree_test_incr_with_args_apply,
-
-		.path = { NULL },
-		.path_length = 0u,
-
-		.tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
+tst_CREATE_TEST_CASE(tree_foreach_path_sum_whole, tree_foreach_path,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = range_create_static(size_t, 10, {}),
+        .apply_f = &test_apply_sum_on_path,
+        .additional_args = (void *) &(u32) { 0u },
+        .additional_args_size = sizeof(u32),
+        .tree_end_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_end_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(u32) { 42u },
 )
 
-tst_CREATE_TEST_CASE(tree_foreach_subtree_children_incr, tree_foreach,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
+typedef range(size_t, 10) test_depth_range;
 
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 6, (void *) 7, (void *) 8, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
+static void test_apply_record_depth_on_path(ttree_path *path, void *additional_args)
+{
+    test_depth_range *depths = (test_depth_range *) additional_args;
 
-		.apply_f = &tree_test_incr_apply,
+    range_insert_value(range_to_any(depths), depths->length, &path->tokens_indexes->length);
+}
 
-		.path = { (void *) 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-
-		.tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
-)
-
-tst_CREATE_TEST_CASE(tree_foreach_multi_level_subtree_children_incr, tree_foreach,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 9, (void *) 10, (void *) 11 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,           1,           0 },
-
-		.apply_f = &tree_test_incr_apply,
-
-		.path = { (void *) 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 1u,
-
-		.tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_CHILDREN,
-)
-
-tst_CREATE_TEST_CASE(tree_foreach_parent_incr, tree_foreach,
-		.tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 3, (void *) 8, (void *) 9, (void *) 10 },
-		.tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
-
-		.expected_tree_contents = { (void *) 1, (void *) 4, (void *) 2, (void *) 5, (void *) 6, (void *) 7, (void *) 4, (void *) 9, (void *) 9, (void *) 10 },
-		.expected_tree_lengths  = {          1,          0,          3,          0,          0,          0,          3,          2,          1,           0 },
-
-		.apply_f = &tree_test_incr_apply,
-
-		.path = { (void *) 3, (void *) 8, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-		.path_length = 2u,
-
-		.tree_division = TTREE_FOREACH_FLAG_DIRECTION_UP_DOWN | TTREE_FOREACH_FLAG_INCLUDE_PARENTS,
+tst_CREATE_TEST_CASE(tree_foreach_path_record_depth, tree_foreach_path,
+        .tree_start_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_start_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .path_to_iterate = range_create_static(size_t, 10, {}),
+        .apply_f = &test_apply_record_depth_on_path,
+        .additional_args = (void *) &(test_depth_range) range_create_static(size_t, 10, {}),
+        .additional_args_size = sizeof(test_depth_range),
+        .tree_end_state_contents = range_create_static(u32, 10,   { 10, 5, 4, 9, 1, 6, 3, 1, 2, 1 }),
+        .tree_end_state_children = range_create_static(size_t, 10, { 2, 1, 0, 4, 0, 0, 0, 0, 1, 0 }),
+        .end_state_additional_args = (void *) &(test_depth_range) range_create_static(size_t, 10, { 1, 2, 3, 1, 2, 2, 2, 2, 1, 2 }),
 )
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 void ttree_execute_unittests(void)
 {
-	tst_run_test_case(tree_creation_success);
-	tst_run_test_case(tree_creation_number_zero);
 
-	tst_run_test_case(tree_find_leaf);
-	tst_run_test_case(tree_find_node);
-	tst_run_test_case(tree_find_node_at_end);
-	tst_run_test_case(tree_find_whole_tree);
-	tst_run_test_case(tree_find_bad_path);
-	tst_run_test_case(tree_find_bad_path_began_right);
-	tst_run_test_case(tree_find_path_too_long);
+    tst_run_test_case(tree_lifetime_u32);
+    tst_run_test_case(tree_lifetime_1ko);
+    tst_run_test_case(tree_lifetime_bad_size);
+    tst_run_test_case(tree_lifetime_bad_count);
 
-	tst_run_test_case(tree_insert_at_root);
-	tst_run_test_case(tree_insert_at_leaf);
-	tst_run_test_case(tree_insert_in_middle);
-	tst_run_test_case(tree_insert_fail);
-	tst_run_test_case(tree_insert_in_empty);
-	tst_run_test_case(tree_insert_same_value_root);
-	tst_run_test_case(tree_insert_same_unrelated_part);
+    tst_run_test_case(tree_search_present);
+    tst_run_test_case(tree_search_present_node);
+    tst_run_test_case(tree_search_absent);
+    tst_run_test_case(tree_search_too_far);
+    tst_run_test_case(tree_search_empty_path);
+    tst_run_test_case(tree_search_empty_tree);
+    tst_run_test_case(tree_search_empty_and_empty);
+    tst_run_test_case(tree_search_adjacent);
 
-	tst_run_test_case(tree_remove_at_root);
-	tst_run_test_case(tree_remove_at_start_root);
-	tst_run_test_case(tree_remove_at_end_root);
-	tst_run_test_case(tree_remove_a_subtree);
-	tst_run_test_case(tree_remove_whole_tree);
-	tst_run_test_case(tree_remove_almost_whole_tree);
-	tst_run_test_case(tree_remove_fail);
+    tst_run_test_case(tree_search_relative_valid_and_valid);
+    tst_run_test_case(tree_search_relative_invalid_and_valid);
+    tst_run_test_case(tree_search_relative_empty_and_valid);
+    tst_run_test_case(tree_search_relative_toolong_and_valid);
+    tst_run_test_case(tree_search_relative_valid_and_invalid);
+    tst_run_test_case(tree_search_relative_invalid_and_invalid);
+    tst_run_test_case(tree_search_relative_toolong_and_invalid);
+    tst_run_test_case(tree_search_relative_empty_and_invalid);
+    tst_run_test_case(tree_search_relative_empty_and_toolong);
 
-	tst_run_test_case(tree_foreach_all_tree_incr);
-	tst_run_test_case(tree_foreach_all_tree_incr_with_args);
-	tst_run_test_case(tree_foreach_subtree_children_incr);
-	tst_run_test_case(tree_foreach_multi_level_subtree_children_incr);
-	tst_run_test_case(tree_foreach_parent_incr);
+    tst_run_test_case(tree_add_element_in_empty);
+    tst_run_test_case(tree_add_element_at_root);
+    tst_run_test_case(tree_add_element_at_node);
+    tst_run_test_case(tree_add_element_at_node_far);
+    tst_run_test_case(tree_add_element_bad_path);
+    tst_run_test_case(tree_add_element_full);
+
+    tst_run_test_case(tree_remove_element_whole_empty);
+    tst_run_test_case(tree_remove_element_whole_populated);
+    tst_run_test_case(tree_remove_leaf);
+    tst_run_test_case(tree_remove_node);
+    tst_run_test_case(tree_remove_bad_path);
+
+    tst_run_test_case(tree_foreach_element_sum_whole);
+    tst_run_test_case(tree_foreach_element_sum_part);
+    tst_run_test_case(tree_foreach_element_sum_nothing);
+    tst_run_test_case(tree_foreach_element_incr_whole);
+
+    tst_run_test_case(tree_foreach_path_sum_whole);
+    tst_run_test_case(tree_foreach_path_record_depth);
 }
 
 #endif
