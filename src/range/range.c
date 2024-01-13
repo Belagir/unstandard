@@ -237,6 +237,30 @@ void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any tar
     return new_range;
 }
 
+
+// -------------------------------------------------------------------------------------------------
+i32 range_compare(const range_any *range_lhs, const range_any *range_rhs)
+{
+    size_t pos = { 0u };
+    size_t range_lhs_byte_length = range_lhs->r->length * range_lhs->stride;
+    size_t range_rhs_byte_length = range_rhs->r->length * range_rhs->stride;
+    bool are_overlapping = 1;
+
+    // finding the differing point in the arrays
+    while ((pos < range_lhs_byte_length) && (pos < range_rhs_byte_length) && are_overlapping) {
+        are_overlapping = range_lhs->r->data[pos] == range_rhs->r->data[pos];
+        pos += are_overlapping;
+    }
+
+    // if there is a differing point compare character at this location
+    if (!are_overlapping) {
+        return (range_lhs->r->data[pos] > range_rhs->r->data[pos]) - (range_lhs->r->data[pos] < range_rhs->r->data[pos]);
+    }
+
+    // no differeing point but maybe one of the ranges is longer than the other
+    return (range_lhs->r->length < range_rhs->r->length) - (range_lhs->r->length > range_rhs->r->length);
+}
+
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 

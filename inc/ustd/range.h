@@ -18,7 +18,7 @@
 /**
  * @brief Type definition of a range holding contiguous, typed values.
  */
-#define range(__type, ...) struct { size_t length; const size_t capacity; __type data[__VA_ARGS__]; }
+#define range(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
 
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
@@ -203,6 +203,17 @@ void *range_create_dynamic_from_copy_of(allocator alloc, const range_any target)
  */
 [[nodiscard]]
 void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any target, size_t start_index, size_t end_index);
+
+/**
+ * @brief 
+ * 
+ * TODO : unit tests
+ * 
+ * @param range_lhs 
+ * @param range_rhs 
+ * @return 
+ */
+i32 range_compare(const range_any *range_lhs, const range_any *range_rhs);
 
 #ifdef UNITTESTING
 void range_experimental_execute_unittests(void);
