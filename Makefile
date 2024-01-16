@@ -20,12 +20,12 @@ EXC_DIR = bin
 RESDIR = res
 
 ## compiler
-CC = gcc
+CC = gcc-13
 ## resource packer
 RESPACKER = ld
 
 ## compilation flags
-CFLAGS += -Wextra -Wconversion -Wdangling-pointer -Wparentheses -Wpedantic -Wstringop-overflow -Wnonnull -g -std=c2x
+CFLAGS += -Wextra -Wconversion -Wdangling-pointer -Wparentheses -Wpedantic -Wstringop-overflow -Wnonnull -g --std=c2x
 ## linker flags
 LFLAGS += -lm
 # resource packing flags

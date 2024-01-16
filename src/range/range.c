@@ -103,6 +103,18 @@ size_t range_index_of(const range_any haystack, comparator_f comparator, const v
 }
 
 // -------------------------------------------------------------------------------------------------
+size_t range_count(const range_any haystack, comparator_f comparator, const void *needle, size_t from)
+{
+    size_t nb_occurences = { 0u };
+
+    for (size_t i = from ; i < haystack.r->length ; i++) {
+        nb_occurences += (comparator(range_at(haystack, i), needle) == 0);
+    }
+
+    return nb_occurences;
+}
+
+// -------------------------------------------------------------------------------------------------
 void *range_create_dynamic(allocator alloc, size_t size_element, size_t nb_elements_max)
 {
     range_anonymous *new_range = { };
@@ -223,6 +235,30 @@ void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any tar
     new_range = range_create_dynamic_from(alloc, target.stride, nb_copied_elements, nb_copied_elements, target.r->data + (start_index * target.stride));
 
     return new_range;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+i32 range_compare(const range_any *range_lhs, const range_any *range_rhs)
+{
+    size_t pos = { 0u };
+    size_t range_lhs_byte_length = range_lhs->r->length * range_lhs->stride;
+    size_t range_rhs_byte_length = range_rhs->r->length * range_rhs->stride;
+    bool are_overlapping = 1;
+
+    // finding the differing point in the arrays
+    while ((pos < range_lhs_byte_length) && (pos < range_rhs_byte_length) && are_overlapping) {
+        are_overlapping = range_lhs->r->data[pos] == range_rhs->r->data[pos];
+        pos += are_overlapping;
+    }
+
+    // if there is a differing point compare character at this location
+    if (!are_overlapping) {
+        return (range_lhs->r->data[pos] > range_rhs->r->data[pos]) - (range_lhs->r->data[pos] < range_rhs->r->data[pos]);
+    }
+
+    // no differeing point but maybe one of the ranges is longer than the other
+    return (range_lhs->r->length < range_rhs->r->length) - (range_lhs->r->length > range_rhs->r->length);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -544,6 +580,58 @@ tst_CREATE_TEST_CASE(range_search_not_found_after, range_search,
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(range_count,
+        {
+            range(u32, 10) array;
+            u32 searched_for;
+            size_t search_from;
+
+            size_t expected_count;
+        },
+        {
+            size_t count = range_count(range_to_any(&data->array), &test_compare_u32, &data->searched_for, data->search_from);
+            tst_assert_equal(data->expected_count, count, "count of %d");
+        }
+)
+tst_CREATE_TEST_CASE(range_count_once, range_count,
+        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .searched_for       = 3,
+        .search_from        = 0,
+        .expected_count     = 1,
+)
+tst_CREATE_TEST_CASE(range_count_nothing, range_count,
+        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .searched_for       = 99,
+        .search_from        = 0,
+        .expected_count     = 0,
+)
+tst_CREATE_TEST_CASE(range_count_multiple, range_count,
+        .array              = range_create_static(u32, 10, { 3, 1, 2, 3, 4, 5, 6, 3, 8, 3 }),
+        .searched_for       = 3,
+        .search_from        = 0,
+        .expected_count     = 4,
+)
+tst_CREATE_TEST_CASE(range_count_contiguous, range_count,
+        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 3, 3, 6, 7, 8, 9 }),
+        .searched_for       = 3,
+        .search_from        = 0,
+        .expected_count     = 3,
+)
+tst_CREATE_TEST_CASE(range_count_after_occurence, range_count,
+        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .searched_for       = 3,
+        .search_from        = 4,
+        .expected_count     = 0,
+)
+tst_CREATE_TEST_CASE(range_count_after_occurence_multiple, range_count,
+        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 3, 3, 3, 7, 8, 9 }),
+        .searched_for       = 3,
+        .search_from        = 4,
+        .expected_count     = 3,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_create_from,
         {
             u32 source[10];
@@ -790,6 +878,13 @@ void range_experimental_execute_unittests(void)
     tst_run_test_case(range_search_first_occurence);
     tst_run_test_case(range_search_not_found);
     tst_run_test_case(range_search_not_found_after);
+
+    tst_run_test_case(range_count_once);
+    tst_run_test_case(range_count_nothing);
+    tst_run_test_case(range_count_multiple);
+    tst_run_test_case(range_count_contiguous);
+    tst_run_test_case(range_count_after_occurence);
+    tst_run_test_case(range_count_after_occurence_multiple);
 
     tst_run_test_case(range_create_from_full);
     tst_run_test_case(range_create_from_part);
