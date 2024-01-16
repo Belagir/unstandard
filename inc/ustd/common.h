@@ -15,9 +15,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef DEBUG
 #define UNITTESTING
-#endif
 
 typedef unsigned char byte;
 

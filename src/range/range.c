@@ -239,26 +239,24 @@ void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any tar
 
 
 // -------------------------------------------------------------------------------------------------
-i32 range_compare(const range_any *range_lhs, const range_any *range_rhs)
+i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f)
 {
     size_t pos = { 0u };
-    size_t range_lhs_byte_length = range_lhs->r->length * range_lhs->stride;
-    size_t range_rhs_byte_length = range_rhs->r->length * range_rhs->stride;
-    bool are_overlapping = 1;
+    i32 element_comp = { 0 };
 
     // finding the differing point in the arrays
-    while ((pos < range_lhs_byte_length) && (pos < range_rhs_byte_length) && are_overlapping) {
-        are_overlapping = range_lhs->r->data[pos] == range_rhs->r->data[pos];
-        pos += are_overlapping;
+    while ((pos < range_lhs->r->length) && (pos < range_rhs->r->length) && (element_comp == 0)) {
+        element_comp = comp_f(range_at(*range_lhs, pos), range_at(*range_rhs, pos));
+        pos += (element_comp == 0);
     }
 
     // if there is a differing point compare character at this location
-    if (!are_overlapping) {
-        return (range_lhs->r->data[pos] > range_rhs->r->data[pos]) - (range_lhs->r->data[pos] < range_rhs->r->data[pos]);
+    if (element_comp != 0) {
+        return element_comp;
     }
 
     // no differeing point but maybe one of the ranges is longer than the other
-    return (range_lhs->r->length < range_rhs->r->length) - (range_lhs->r->length > range_rhs->r->length);
+    return (range_lhs->r->length > range_rhs->r->length) - (range_lhs->r->length < range_rhs->r->length);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -840,6 +838,44 @@ tst_CREATE_TEST_CASE(range_get_subrange_beyond, range_get_subrange,
         .expect_success = false,
 )
 
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+tst_CREATE_TEST_SCENARIO(range_compare,
+        {
+            range(u32, 10) array_left;
+            range(u32, 10) array_right;
+            i32 expected;
+        },
+        {
+            tst_assert_equal(data->expected, range_compare(&range_to_any(&data->array_left), &range_to_any(&data->array_right), &test_compare_u32),
+                    "comparison result of %d");
+        }
+)
+tst_CREATE_TEST_CASE(range_compare_equal, range_compare,
+        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected    = 0,
+)
+tst_CREATE_TEST_CASE(range_compare_more_than, range_compare,
+        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }),
+        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected    = 1,
+)
+tst_CREATE_TEST_CASE(range_compare_more_than_with_length, range_compare,
+        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }),
+        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .expected    = 1,
+)
+tst_CREATE_TEST_CASE(range_compare_more_than_before_length, range_compare,
+        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 99, 4, 5, 6, 7, 8, 10 }),
+        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4 }),
+        .expected    = 1,
+)
+tst_CREATE_TEST_CASE(range_compare_less_than, range_compare,
+        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8 }),
+        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected    = -1,
+)
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
@@ -907,6 +943,12 @@ void range_experimental_execute_unittests(void)
     tst_run_test_case(range_get_subrange_part);
     tst_run_test_case(range_get_subrange_empty);
     tst_run_test_case(range_get_subrange_beyond);
+
+    tst_run_test_case(range_compare_equal);
+    tst_run_test_case(range_compare_more_than);
+    tst_run_test_case(range_compare_more_than_with_length);
+    tst_run_test_case(range_compare_more_than_before_length);
+    tst_run_test_case(range_compare_less_than);
 }
 
 #endif

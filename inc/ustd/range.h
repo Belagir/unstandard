@@ -205,15 +205,15 @@ void *range_create_dynamic_from_copy_of(allocator alloc, const range_any target)
 void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any target, size_t start_index, size_t end_index);
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  * TODO : unit tests
- * 
- * @param range_lhs 
- * @param range_rhs 
- * @return 
+ *
+ * @param range_lhs
+ * @param range_rhs
+ * @return
  */
-i32 range_compare(const range_any *range_lhs, const range_any *range_rhs);
+i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f);
 
 #ifdef UNITTESTING
 void range_experimental_execute_unittests(void);
