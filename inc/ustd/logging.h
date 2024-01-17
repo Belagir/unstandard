@@ -61,7 +61,7 @@ typedef struct logger logger;
  * @param[in] target
  * @return logger*
  */
-logger * logger_create(allocator alloc, FILE target[static 1], logger_on_destroy on_destroy);
+logger * logger_create(FILE target[static 1], logger_on_destroy on_destroy);
 
 /**
  * @brief Release a logger object from the module memory.
