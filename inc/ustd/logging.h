@@ -13,7 +13,6 @@
 #define __LOGGER_H__
 
 #include <stdio.h>
-#include <ustd/allocation.h>
 
 /**
  * @brief When a call is made to output some content to a stream, it can log it along a severity so it can be filtered downstream.
