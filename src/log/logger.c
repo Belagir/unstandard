@@ -77,13 +77,20 @@ logger_log(logger *logger, logger_severity severity, char *msg, ...)
 {
     va_list args;
     va_start(args, msg);
+    
+    logger_vlog(logger, severity, msg, args);
 
+    va_end(args);
+}
+
+// -------------------------------------------------------------------------------------------------
+void
+logger_vlog(logger *logger, logger_severity severity, char *msg, va_list args)
+{
     if ((!logger) || (!logger->target_stream)) {
         return;
     }
 
     fprintf(logger->target_stream, logger_severity_msg[severity]);
     vfprintf(logger->target_stream, msg, args);
-
-    va_end(args);
 }

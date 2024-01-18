@@ -13,6 +13,7 @@
 #define __LOGGER_H__
 
 #include <stdio.h>
+#include <stdarg.h>
 
 /**
  * @brief When a call is made to output some content to a stream, it can log it along a severity so it can be filtered downstream.
@@ -78,5 +79,16 @@ void logger_destroy(logger **logger);
  * @param[in] ...
  */
 void logger_log(logger *logger, logger_severity severity, char *msg, ...);
+
+/**
+ * @brief Log a message & direct varargs associated to a severity through a custom logger.
+ *
+ * @param[in] logger
+ * @param[in] severity
+ * @param[in] msg
+ * @param[in] args
+ */
+void
+logger_vlog(logger *logger, logger_severity severity, char *msg, va_list args);
 
 #endif
