@@ -215,6 +215,16 @@ void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any tar
  */
 i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f);
 
+
+/**
+ * @brief
+ *
+ * @param alloc
+ * @param range
+ * @return
+ */
+void *range_ensure_capacity(allocator alloc, range_any range);
+
 #ifdef UNITTESTING
 void range_experimental_execute_unittests(void);
 #endif
