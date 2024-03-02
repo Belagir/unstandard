@@ -9,7 +9,6 @@
 typedef struct logger {
     FILE *target_stream;
     logger_on_destroy on_destroy;
-    allocator alloc;
 } logger;
 
 // -------------------------------------------------------------------------------------------------
@@ -38,7 +37,7 @@ static const char *logger_severity_msg[LOGGER_SEVERITIES_NUMBER] = {
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-logger * logger_create(allocator alloc, FILE target[static 1], logger_on_destroy on_destroy)
+logger * logger_create(FILE target[static 1], logger_on_destroy on_destroy)
 {
     logger *new_logger = nullptr;
 
@@ -47,7 +46,7 @@ logger * logger_create(allocator alloc, FILE target[static 1], logger_on_destroy
     }
 
     new_logger = logger_module.loggers + logger_module.free_logger_index;
-    *new_logger = (logger) { .alloc = alloc, .target_stream = target, .on_destroy = on_destroy };
+    *new_logger = (logger) { .target_stream = target, .on_destroy = on_destroy };
     logger_module.free_logger_index += 1u;
 
     return new_logger;
@@ -78,13 +77,20 @@ logger_log(logger *logger, logger_severity severity, char *msg, ...)
 {
     va_list args;
     va_start(args, msg);
+    
+    logger_vlog(logger, severity, msg, args);
 
+    va_end(args);
+}
+
+// -------------------------------------------------------------------------------------------------
+void
+logger_vlog(logger *logger, logger_severity severity, char *msg, va_list args)
+{
     if ((!logger) || (!logger->target_stream)) {
         return;
     }
 
     fprintf(logger->target_stream, logger_severity_msg[severity]);
     vfprintf(logger->target_stream, msg, args);
-
-    va_end(args);
 }

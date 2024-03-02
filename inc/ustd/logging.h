@@ -13,7 +13,7 @@
 #define __LOGGER_H__
 
 #include <stdio.h>
-#include <ustd/allocation.h>
+#include <stdarg.h>
 
 /**
  * @brief When a call is made to output some content to a stream, it can log it along a severity so it can be filtered downstream.
@@ -61,7 +61,7 @@ typedef struct logger logger;
  * @param[in] target
  * @return logger*
  */
-logger * logger_create(allocator alloc, FILE target[static 1], logger_on_destroy on_destroy);
+logger * logger_create(FILE target[static 1], logger_on_destroy on_destroy);
 
 /**
  * @brief Release a logger object from the module memory.
@@ -79,5 +79,16 @@ void logger_destroy(logger **logger);
  * @param[in] ...
  */
 void logger_log(logger *logger, logger_severity severity, char *msg, ...);
+
+/**
+ * @brief Log a message & direct varargs associated to a severity through a custom logger.
+ *
+ * @param[in] logger
+ * @param[in] severity
+ * @param[in] msg
+ * @param[in] args
+ */
+void
+logger_vlog(logger *logger, logger_severity severity, char *msg, va_list args);
 
 #endif
