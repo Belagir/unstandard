@@ -18,7 +18,7 @@
         do { \
             *__tst_local_nb_assertions += 1u; \
             if (!(test)) { \
-                __tst_print("\033[0;31m[ASSERTION FAILED] :\033[0m %s:%d in \033[1m`%s' : ", __FILE__, __LINE__, test_name); \
+                __tst_print("\033[0;31m[ASSERTION FAILED] :\033[0m %s:%d \033[1m`%s' : ", __FILE__, __LINE__, test_name); \
                 __tst_print((message) __VA_OPT__(,) __VA_ARGS__); \
                 __tst_print("\n\033[0m"); \
                 *__tst_local_nb_failed += 1u; \
@@ -63,7 +63,7 @@
             \
             __tst_scenario_function_ ## identifier_scenario (&data, #identifier_case, &__tst_local_nb_assertions, &__tst_local_nb_failed); \
             \
-            __tst_print_test_case_report(#identifier_case, __tst_local_nb_assertions, __tst_local_nb_failed); \
+            __tst_print_test_case_report(#identifier_case, __tst_local_nb_assertions, __tst_local_nb_failed, __FILE__, __LINE__); \
         }
 
 /**
@@ -101,6 +101,6 @@ int __tst_compare_mem(void *addr1, void *addr2, unsigned long size_bytes);
  * @param nb_failed
  * @return int
  */
-int __tst_print_test_case_report(char *case_name, unsigned nb_assertions, unsigned nb_failed);
+int __tst_print_test_case_report(char *case_name, unsigned nb_assertions, unsigned nb_failed, const char *file, int line);
 
 #endif
