@@ -237,7 +237,6 @@ void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any tar
     return new_range;
 }
 
-
 // -------------------------------------------------------------------------------------------------
 i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f)
 {
@@ -257,6 +256,23 @@ i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, compar
 
     // no differeing point but maybe one of the ranges is longer than the other
     return (range_lhs->r->length > range_rhs->r->length) - (range_lhs->r->length < range_rhs->r->length);
+}
+
+// -------------------------------------------------------------------------------------------------
+void *range_ensure_capacity(allocator alloc, range_any range)
+{
+    void *returned_range = { range.r };
+    void *reallocated_range = { NULL };
+
+    if (range.r->length == range.r->capacity) {
+        reallocated_range = range_create_dynamic_from_resize_of(alloc, range, range.r->capacity * 2u);
+        if (reallocated_range) {
+            returned_range = reallocated_range;
+            range_destroy_dynamic(alloc, &range);
+        }
+    }
+
+    return returned_range;
 }
 
 // -------------------------------------------------------------------------------------------------
