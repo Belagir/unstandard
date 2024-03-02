@@ -223,7 +223,7 @@ i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, compar
  * @param range
  * @return
  */
-void *range_ensure_capacity(allocator alloc, range_any range);
+void *range_ensure_capacity(allocator alloc, range_any range, size_t additional_capacity);
 
 #ifdef UNITTESTING
 void range_experimental_execute_unittests(void);

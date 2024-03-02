@@ -259,12 +259,12 @@ i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, compar
 }
 
 // -------------------------------------------------------------------------------------------------
-void *range_ensure_capacity(allocator alloc, range_any range)
+void *range_ensure_capacity(allocator alloc, range_any range, size_t additional_capacity)
 {
     void *returned_range = { range.r };
     void *reallocated_range = { NULL };
 
-    if (range.r->length == range.r->capacity) {
+    if ((range.r->length + additional_capacity) == range.r->capacity) {
         reallocated_range = range_create_dynamic_from_resize_of(alloc, range, range.r->capacity * 2u);
         if (reallocated_range) {
             returned_range = reallocated_range;
