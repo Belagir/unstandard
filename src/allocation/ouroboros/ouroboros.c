@@ -198,7 +198,7 @@ static size_t alloc_free_size_at_index(ouroboros_t *alloc) {
     size_t free_chunk_size = 0u;
     void *limit = (void *) alloc->index->next;
 
-    // the currently indexed block is loops back to the beggining, available memory is the buffer's end
+    // the currently indexed block is loops back to the beginning, available memory is the buffer's end
     if (alloc->index->next <= alloc->index) {
         limit = ((byte *) alloc->raw_mem) + alloc->size_memory;
     }

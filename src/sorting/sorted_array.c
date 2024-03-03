@@ -11,21 +11,21 @@
 // -------------------------------------------------------------------------------------------------
 bool sorted_range_find_in(range_any haystack, comparator_f comparator, void *needle, size_t *out_position)
 {
-    i32 beggining = 0u;
+    i32 beginning = 0u;
     i32 end = 0u;
     i32 index = 0u;
     i32 comp_result = 2;
 
-    beggining = 0u;
+    beginning = 0u;
     end = (i32) haystack.r->length - 1;
 
-    while ((beggining <= end) && (comp_result != 0)) {
-        index = (i32) ceil_div(beggining + end, 2);
+    while ((beginning <= end) && (comp_result != 0)) {
+        index = (i32) ceil_div(beginning + end, 2);
 
         comp_result = comparator(needle, (void *) (haystack.r->data + ((size_t) index * haystack.stride)));
 
         if (comp_result == 1) {
-            beggining = index + 1;
+            beginning = index + 1;
         }
         else if (comp_result == -1) {
             end = index - 1;
