@@ -263,13 +263,16 @@ void *range_ensure_capacity(allocator alloc, range_any range, size_t additional_
 {
     void *returned_range = { range.r };
     void *reallocated_range = { NULL };
+    const size_t target_size = (range.r->length + additional_capacity);
 
-    if ((range.r->length + additional_capacity) == range.r->capacity) {
-        reallocated_range = range_create_dynamic_from_resize_of(alloc, range, range.r->capacity * 2u);
-        if (reallocated_range) {
-            returned_range = reallocated_range;
-            range_destroy_dynamic(alloc, &range);
-        }
+    if (target_size < range.r->capacity) {
+        return range.r;
+    }
+
+    reallocated_range = range_create_dynamic_from_resize_of(alloc, range, target_size * 2u);
+    if (reallocated_range) {
+        returned_range = reallocated_range;
+        range_destroy_dynamic(alloc, &range);
     }
 
     return returned_range;
