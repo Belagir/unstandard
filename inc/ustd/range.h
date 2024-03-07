@@ -205,13 +205,11 @@ void *range_create_dynamic_from_copy_of(allocator alloc, const range_any target)
 void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any target, size_t start_index, size_t end_index);
 
 /**
- * @brief
+ * @brief Compares two ranges element-wise with a comparator function taking pointers to the compared elements.
  *
- * TODO : unit tests
- *
- * @param range_lhs
- * @param range_rhs
- * @return
+ * @param[in] range_lhs
+ * @param[in] range_rhs
+ * @return 1 if the lhs range is greater (or longer) than the rhs range, -1 for the opposite, and 0 if they are similar.
  */
 i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f);
 
