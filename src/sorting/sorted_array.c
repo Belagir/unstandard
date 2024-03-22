@@ -20,7 +20,7 @@ bool sorted_range_find_in(range_any haystack, comparator_f comparator, void *nee
     end = (i32) haystack.r->length - 1;
 
     while ((beginning <= end) && (comp_result != 0)) {
-        index = (i32) ceil_div(beginning + end, 2);
+        index = (i32) CEIL_DIV(beginning + end, 2);
 
         comp_result = comparator(needle, (void *) (haystack.r->data + ((size_t) index * haystack.stride)));
 

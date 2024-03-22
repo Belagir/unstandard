@@ -126,7 +126,7 @@ quaternion_dot_product(quaternion_t q1, quaternion_t q2)
 {
     f32 result = 0.0f;
 
-    result = max(-1.0f + __FLT_EPSILON__, min(1.0f - __FLT_EPSILON__, (q1.i * q2.i) + (q1.j * q2.j) + (q1.k * q2.k) + (q1.w * q2.w)));
+    result = MAX(-1.0f + __FLT_EPSILON__, MIN(1.0f - __FLT_EPSILON__, (q1.i * q2.i) + (q1.j * q2.j) + (q1.k * q2.k) + (q1.w * q2.w)));
 
     return result;
 }

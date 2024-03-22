@@ -19,7 +19,7 @@ bool range_insert_value(range_any target, size_t index, const void *value)
         return false;
     }
 
-    index = min(index, target.r->length);
+    index = MIN(index, target.r->length);
 
     for (size_t i = target.r->length ; i > index ; i--) {
         bytewise_copy(target.r->data + (i * target.stride), target.r->data + (i - 1) * target.stride, target.stride);
@@ -38,7 +38,7 @@ bool range_insert_range(range_any target, size_t index, const range_any other)
         return false;
     }
 
-    index = min(index, target.r->length);
+    index = MIN(index, target.r->length);
 
     for (size_t i = target.r->length ; i > index ; i--) {
         bytewise_copy(target.r->data + ((i + (other.r->length - 1)) * target.stride), target.r->data + (i - 1) * target.stride, target.stride);
@@ -92,7 +92,7 @@ void range_clear(range_any target)
 size_t range_index_of(const range_any haystack, comparator_f comparator, const void *needle, size_t from)
 {
     bool found = { false };
-    size_t pos = { min(from, haystack.r->length) };
+    size_t pos = { MIN(from, haystack.r->length) };
 
     while ((pos < haystack.r->length) && !found) {
         found = (comparator(haystack.r->data + (pos * haystack.stride), needle) == 0);
@@ -175,7 +175,7 @@ void *range_create_dynamic_from_resize_of(allocator alloc, const range_any targe
         return NULL;
     }
 
-    new_range->length = min(new_capacity, target.r->length);
+    new_range->length = MIN(new_capacity, target.r->length);
     bytewise_copy(new_range->data, target.r->data, new_range->length * target.stride);
 
     return new_range;

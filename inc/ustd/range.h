@@ -23,12 +23,12 @@
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
-#define range_create_static(__type, __capacity, ...) { .length = count_of(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
+#define range_create_static(__type, __capacity, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
 
 /**
  * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
-#define range_create_static_fit(__type, ...) { .length = count_of(((__type[]) __VA_ARGS__)), .capacity = count_of(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+#define range_create_static_fit(__type, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = COUNT_OF(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
 
 /**
  * @brief Anonymous range used for the methods' abstraction layer.

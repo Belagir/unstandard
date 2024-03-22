@@ -61,7 +61,7 @@ vector2_polar vector2_cartesian_to_polar(vector2_cartesian vec);
  * @param[in] val1 first float
  * @param[in] val2 second float
  * @param[in] max_ulps_diff maximum difference in bit representation
- * @return u32 0 if unequal, 1 if equal (up to the max difference)
+ * @return u32 0 if unequal, 1 if equal (up to the MAX difference)
  */
 u32 float_equal(f32 val1, f32 val2, u32 max_ulps_diff);
 
