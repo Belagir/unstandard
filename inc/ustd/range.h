@@ -18,17 +18,17 @@
 /**
  * @brief Type definition of a range holding contiguous, typed values.
  */
-#define range(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
+#define RANGE(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
 
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
-#define range_create_static(__type, __capacity, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC(__type, __capacity, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
 
 /**
  * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
-#define range_create_static_fit(__type, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = COUNT_OF(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC_FIT(__type, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = COUNT_OF(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
 
 /**
  * @brief Anonymous range used for the methods' abstraction layer.
@@ -50,7 +50,7 @@ typedef struct {
 /**
  * @brief Converts a range into a data structure that can be passed to this module's methods. The value created lives on the scope of creation.
  */
-#define range_to_any(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
+#define RANGE_TO_ANY(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
 
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.

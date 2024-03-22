@@ -320,15 +320,15 @@ static i32 test_compare_u32(const void *el1, const void *el2) {
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_insert_value,
         {
-            range(u32, 10u) array;
+            RANGE(u32, 10u) array;
             u32 inserted_value;
             u32 insertion_pos;
 
-            range(u32, 10u) expected_array;
+            RANGE(u32, 10u) expected_array;
             bool expect_insertion;
         },
         {
-            bool success = range_insert_value(range_to_any(&data->array), data->insertion_pos, &data->inserted_value);
+            bool success = range_insert_value(RANGE_TO_ANY(&data->array), data->insertion_pos, &data->inserted_value);
             tst_assert_equal(success, data->expect_insertion, "insertion success of %d");
 
             tst_assert_equal(data->expected_array.length, data->array.length, "length of %d");
@@ -338,59 +338,59 @@ tst_CREATE_TEST_SCENARIO(range_insert_value,
         }
 )
 tst_CREATE_TEST_CASE(range_insert_in_empty, range_insert_value,
-        .array              = range_create_static(u32, 10, { }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { }),
         .inserted_value     = 99,
         .insertion_pos      = 5,
-        .expected_array     = range_create_static(u32, 10, { 99 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 99 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_in_populated_end, range_insert_value,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
         .inserted_value     = 99,
         .insertion_pos      = 6,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 99 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 99 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_in_populated_end_far, range_insert_value,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
         .inserted_value     = 99,
         .insertion_pos      = 9,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 99 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 99 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_in_populated_start, range_insert_value,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
         .inserted_value     = 99,
         .insertion_pos      = 0,
-        .expected_array     = range_create_static(u32, 10, { 99, 0, 1, 2, 3, 4, 5 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 99, 0, 1, 2, 3, 4, 5 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_in_populated_middle, range_insert_value,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
         .inserted_value     = 99,
         .insertion_pos      = 3,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 99, 3, 4, 5 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 99, 3, 4, 5 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_in_full, range_insert_value,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .inserted_value     = 99,
         .insertion_pos      = 8,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_insertion   = false,
 )
 tst_CREATE_TEST_CASE(range_insert_in_full_far, range_insert_value,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .inserted_value     = 99,
         .insertion_pos      = 15,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_insertion   = false,
 )
 tst_CREATE_TEST_CASE(range_insert_in_full_start, range_insert_value,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .inserted_value     = 99,
         .insertion_pos      = 0,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_insertion   = false,
 )
 
@@ -398,15 +398,15 @@ tst_CREATE_TEST_CASE(range_insert_in_full_start, range_insert_value,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_insert_other_range,
         {
-            range(u32, 10u) array;
-            range(u32, 10u) inserted_range;
+            RANGE(u32, 10u) array;
+            RANGE(u32, 10u) inserted_range;
             u32 insertion_pos;
 
-            range(u32, 10u) expected_array;
+            RANGE(u32, 10u) expected_array;
             bool expect_insertion;
         },
         {
-            bool success = range_insert_range(range_to_any(&data->array), data->insertion_pos, range_to_any(&data->inserted_range));
+            bool success = range_insert_range(RANGE_TO_ANY(&data->array), data->insertion_pos, RANGE_TO_ANY(&data->inserted_range));
             tst_assert_equal(data->expect_insertion, success, "insertion success of %d");
 
             tst_assert_equal(data->expected_array.length, data->array.length, "length of %d");
@@ -416,45 +416,45 @@ tst_CREATE_TEST_SCENARIO(range_insert_other_range,
         }
 )
 tst_CREATE_TEST_CASE(range_insert_other_simple, range_insert_other_range,
-        .array              = range_create_static(u32, 10, { 0, 1, 2 }),
-        .inserted_range     = range_create_static(u32, 10, { 3, 4, 5 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2 }),
+        .inserted_range     = RANGE_CREATE_STATIC(u32, 10, { 3, 4, 5 }),
         .insertion_pos      = 3,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_other_in_empty, range_insert_other_range,
-        .array              = range_create_static(u32, 10, { }),
-        .inserted_range     = range_create_static(u32, 10, { 3, 4, 5 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { }),
+        .inserted_range     = RANGE_CREATE_STATIC(u32, 10, { 3, 4, 5 }),
         .insertion_pos      = 3,
-        .expected_array     = range_create_static(u32, 10, { 3, 4, 5 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 3, 4, 5 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_other_too_large, range_insert_other_range,
-        .array              = range_create_static(u32, 10, { 1 }),
-        .inserted_range     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 1 }),
+        .inserted_range     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .insertion_pos      = 0,
-        .expected_array     = range_create_static(u32, 10, { 1 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 1 }),
         .expect_insertion   = false,
 )
 tst_CREATE_TEST_CASE(range_insert_other_empty, range_insert_other_range,
-        .array              = range_create_static(u32, 10, { 1, 2, 3 }),
-        .inserted_range     = range_create_static(u32, 10, { }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 1, 2, 3 }),
+        .inserted_range     = RANGE_CREATE_STATIC(u32, 10, { }),
         .insertion_pos      = 0,
-        .expected_array     = range_create_static(u32, 10, { 1, 2, 3 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 1, 2, 3 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_other_at_start, range_insert_other_range,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
-        .inserted_range     = range_create_static(u32, 10, { 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .inserted_range     = RANGE_CREATE_STATIC(u32, 10, { 6, 7, 8, 9 }),
         .insertion_pos      = 0,
-        .expected_array     = range_create_static(u32, 10, { 6, 7, 8, 9, 0, 1, 2, 3, 4, 5 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 6, 7, 8, 9, 0, 1, 2, 3, 4, 5 }),
         .expect_insertion   = true,
 )
 tst_CREATE_TEST_CASE(range_insert_other_at_middle, range_insert_other_range,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
-        .inserted_range     = range_create_static(u32, 10, { 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .inserted_range     = RANGE_CREATE_STATIC(u32, 10, { 6, 7, 8, 9 }),
         .insertion_pos      = 3,
-        .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 6, 7, 8, 9, 3, 4, 5 }),
+        .expected_array     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 6, 7, 8, 9, 3, 4, 5 }),
         .expect_insertion   = true,
 )
 
@@ -462,15 +462,15 @@ tst_CREATE_TEST_CASE(range_insert_other_at_middle, range_insert_other_range,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_remove_interval,
         {
-            range(u32, 10) array;
+            RANGE(u32, 10) array;
             size_t remove_from;
             size_t remove_to;
 
-            range(u32, 10) expected_array;
+            RANGE(u32, 10) expected_array;
             bool expect_removal;
         },
         {
-            bool success = range_remove_interval(range_to_any(&data->array), data->remove_from, data->remove_to);
+            bool success = range_remove_interval(RANGE_TO_ANY(&data->array), data->remove_from, data->remove_to);
 
             tst_assert_equal(data->expect_removal, success, "success of %d");
 
@@ -481,59 +481,59 @@ tst_CREATE_TEST_SCENARIO(range_remove_interval,
         }
 )
 tst_CREATE_TEST_CASE(range_remove_interval_whole, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 0,
         .remove_to      = 10,
-        .expected_array = range_create_static(u32, 10, { }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { }),
         .expect_removal = true,
 )
 tst_CREATE_TEST_CASE(range_remove_interval_beginning, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 0,
         .remove_to      = 3,
-        .expected_array = range_create_static(u32, 10, { 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 3, 4, 5, 6, 7, 8, 9 }),
         .expect_removal = true,
 )
 tst_CREATE_TEST_CASE(range_remove_interval_end, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 4,
         .remove_to      = 10,
-        .expected_array = range_create_static(u32, 10, { 0, 1, 2, 3 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3 }),
         .expect_removal = true,
 )
 tst_CREATE_TEST_CASE(range_remove_interval_middle, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 3,
         .remove_to      = 8,
-        .expected_array = range_create_static(u32, 10, { 0, 1, 2, 8, 9 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 8, 9 }),
         .expect_removal = true,
 )
 tst_CREATE_TEST_CASE(range_remove_interval_too_far, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 5,
         .remove_to      = 11,
-        .expected_array = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_removal = false,
 )
 tst_CREATE_TEST_CASE(range_remove_interval_one_element, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 2,
         .remove_to      = 3,
-        .expected_array = range_create_static(u32, 10, { 0, 1, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_removal = true,
 )
 tst_CREATE_TEST_CASE(range_remove_interval_bad_interval, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 4,
         .remove_to      = 3,
-        .expected_array = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_removal = false,
 )
 tst_CREATE_TEST_CASE(range_remove_interval_empty_interval, range_remove_interval,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .remove_from    = 4,
         .remove_to      = 4,
-        .expected_array = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_removal = false,
 )
 
@@ -541,55 +541,55 @@ tst_CREATE_TEST_CASE(range_remove_interval_empty_interval, range_remove_interval
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_search,
         {
-            range(u32, 10) array;
+            RANGE(u32, 10) array;
             u32 searched_for;
             size_t search_from;
 
             size_t expected_position;
         },
         {
-            size_t pos = range_index_of(range_to_any(&data->array), &test_compare_u32, &data->searched_for, data->search_from);
+            size_t pos = range_index_of(RANGE_TO_ANY(&data->array), &test_compare_u32, &data->searched_for, data->search_from);
             tst_assert_equal(data->expected_position, pos, "position of %d");
         }
 )
 tst_CREATE_TEST_CASE(range_search_for_head, range_search,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .searched_for       = 0,
         .search_from        = 0,
         .expected_position  = 0,
 )
 tst_CREATE_TEST_CASE(range_search_for_end, range_search,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .searched_for       = 9,
         .search_from        = 0,
         .expected_position  = 9,
 )
 tst_CREATE_TEST_CASE(range_search_in_middle, range_search,
-        .array              = range_create_static(u32, 10, { 0, 5, 6, 7, 1, 2, 3, 4, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 5, 6, 7, 1, 2, 3, 4, 8, 9 }),
         .searched_for       = 3,
         .search_from        = 0,
         .expected_position  = 6,
 )
 tst_CREATE_TEST_CASE(range_search_second_occurence, range_search,
-        .array              = range_create_static(u32, 10, { 0, 5, 6, 7, 1, 2, 6, 4, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 5, 6, 7, 1, 2, 6, 4, 8, 9 }),
         .searched_for       = 6,
         .search_from        = 3,
         .expected_position  = 6,
 )
 tst_CREATE_TEST_CASE(range_search_first_occurence, range_search,
-        .array              = range_create_static(u32, 10, { 0, 5, 6, 7, 1, 2, 6, 4, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 5, 6, 7, 1, 2, 6, 4, 8, 9 }),
         .searched_for       = 6,
         .search_from        = 2,
         .expected_position  = 2,
 )
 tst_CREATE_TEST_CASE(range_search_not_found, range_search,
-        .array              = range_create_static(u32, 10, { 0, 5, 6, 7, 1, 2, 6, 4, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 5, 6, 7, 1, 2, 6, 4, 8, 9 }),
         .searched_for       = 99,
         .search_from        = 0,
         .expected_position  = 10,
 )
 tst_CREATE_TEST_CASE(range_search_not_found_after, range_search,
-        .array              = range_create_static(u32, 10, { 0, 5, 6, 7, 1, 2, 5, 4, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 5, 6, 7, 1, 2, 5, 4, 8, 9 }),
         .searched_for       = 6,
         .search_from        = 3,
         .expected_position  = 10,
@@ -599,49 +599,49 @@ tst_CREATE_TEST_CASE(range_search_not_found_after, range_search,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_count,
         {
-            range(u32, 10) array;
+            RANGE(u32, 10) array;
             u32 searched_for;
             size_t search_from;
 
             size_t expected_count;
         },
         {
-            size_t count = range_count(range_to_any(&data->array), &test_compare_u32, &data->searched_for, data->search_from);
+            size_t count = range_count(RANGE_TO_ANY(&data->array), &test_compare_u32, &data->searched_for, data->search_from);
             tst_assert_equal(data->expected_count, count, "count of %d");
         }
 )
 tst_CREATE_TEST_CASE(range_count_once, range_count,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .searched_for       = 3,
         .search_from        = 0,
         .expected_count     = 1,
 )
 tst_CREATE_TEST_CASE(range_count_nothing, range_count,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .searched_for       = 99,
         .search_from        = 0,
         .expected_count     = 0,
 )
 tst_CREATE_TEST_CASE(range_count_multiple, range_count,
-        .array              = range_create_static(u32, 10, { 3, 1, 2, 3, 4, 5, 6, 3, 8, 3 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 3, 1, 2, 3, 4, 5, 6, 3, 8, 3 }),
         .searched_for       = 3,
         .search_from        = 0,
         .expected_count     = 4,
 )
 tst_CREATE_TEST_CASE(range_count_contiguous, range_count,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 3, 3, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 3, 3, 6, 7, 8, 9 }),
         .searched_for       = 3,
         .search_from        = 0,
         .expected_count     = 3,
 )
 tst_CREATE_TEST_CASE(range_count_after_occurence, range_count,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .searched_for       = 3,
         .search_from        = 4,
         .expected_count     = 0,
 )
 tst_CREATE_TEST_CASE(range_count_after_occurence_multiple, range_count,
-        .array              = range_create_static(u32, 10, { 0, 1, 2, 3, 3, 3, 3, 7, 8, 9 }),
+        .array              = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 3, 3, 3, 7, 8, 9 }),
         .searched_for       = 3,
         .search_from        = 4,
         .expected_count     = 3,
@@ -654,10 +654,10 @@ tst_CREATE_TEST_SCENARIO(range_create_from,
             u32 source[10];
             size_t source_length;
 
-            range(u32, 10) expected_range;
+            RANGE(u32, 10) expected_range;
         },
         {
-            range(u32) *created_range = range_create_dynamic_from(make_system_allocator(), sizeof(*data->source), 10, data->source_length, data->source);
+            RANGE(u32) *created_range = range_create_dynamic_from(make_system_allocator(), sizeof(*data->source), 10, data->source_length, data->source);
 
             tst_assert_equal(data->expected_range.length, created_range->length, "length of %d");
             for (size_t i = 0 ; i < data->expected_range.length ; i++) {
@@ -665,38 +665,38 @@ tst_CREATE_TEST_SCENARIO(range_create_from,
             }
 
             if (created_range) {
-                range_destroy_dynamic(make_system_allocator(), &range_to_any(created_range));
+                range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(created_range));
             }
         }
 )
 tst_CREATE_TEST_CASE(range_create_from_full, range_create_from,
         .source = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, },
         .source_length = 10,
-        .expected_range = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_range = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
 )
 tst_CREATE_TEST_CASE(range_create_from_part, range_create_from,
         .source = { 0, 1, 2, 3, 4, 5, 6, 7 },
         .source_length = 6,
-        .expected_range = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .expected_range = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
 )
 tst_CREATE_TEST_CASE(range_create_from_empty, range_create_from,
         .source = { },
         .source_length = 0,
-        .expected_range = range_create_static(u32, 10, { }),
+        .expected_range = RANGE_CREATE_STATIC(u32, 10, { }),
 )
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_resize,
         {
-            range(u32, 10) array;
+            RANGE(u32, 10) array;
             size_t new_size;
 
-            range(u32, 20) expected_array;
+            RANGE(u32, 20) expected_array;
             bool expect_success;
         },
         {
-            range(u32) *new_range = range_create_dynamic_from_resize_of(make_system_allocator(), range_to_any(&data->array), data->new_size);
+            RANGE(u32) *new_range = range_create_dynamic_from_resize_of(make_system_allocator(), RANGE_TO_ANY(&data->array), data->new_size);
 
             if (data->expect_success) {
                 tst_assert(new_range, "range was not created");
@@ -708,31 +708,31 @@ tst_CREATE_TEST_SCENARIO(range_resize,
                 tst_assert(!new_range, "range was still created");
             }
 
-            range_destroy_dynamic(make_system_allocator(), &range_to_any(new_range));
+            range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(new_range));
         }
 )
 tst_CREATE_TEST_CASE(range_resize_to_smaller, range_resize,
-        .array          = range_create_static(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
         .new_size       = 6,
-        .expected_array = range_create_static(u32, 20, { 0, 2, 4, 6, 8, 10 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 20, { 0, 2, 4, 6, 8, 10 }),
         .expect_success = true,
 )
 tst_CREATE_TEST_CASE(range_resize_to_bigger, range_resize,
-        .array          = range_create_static(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
         .new_size       = 15,
-        .expected_array = range_create_static(u32, 20, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 20, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
         .expect_success = true,
 )
 tst_CREATE_TEST_CASE(range_resize_to_same_size, range_resize,
-        .array          = range_create_static(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
         .new_size       = 10,
-        .expected_array = range_create_static(u32, 20, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 20, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
         .expect_success = true,
 )
 tst_CREATE_TEST_CASE(range_resize_to_nothing, range_resize,
-        .array          = range_create_static(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 }),
         .new_size       = 0,
-        .expected_array = range_create_static(u32, 20 ,{ }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 20 ,{ }),
         .expect_success = true,
 )
 
@@ -740,46 +740,46 @@ tst_CREATE_TEST_CASE(range_resize_to_nothing, range_resize,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_create_dynamic_from_concat,
         {
-            range(u32, 10) range_left;
-            range(u32, 10) range_right;
+            RANGE(u32, 10) range_left;
+            RANGE(u32, 10) range_right;
 
-            range(u32, 20) expected_range;
+            RANGE(u32, 20) expected_range;
         },
         {
-            range(u32) *new_range = range_create_dynamic_from_concat(make_system_allocator(), range_to_any(&data->range_left), range_to_any(&data->range_right));
+            RANGE(u32) *new_range = range_create_dynamic_from_concat(make_system_allocator(), RANGE_TO_ANY(&data->range_left), RANGE_TO_ANY(&data->range_right));
 
             tst_assert_equal(data->expected_range.length, new_range->length, "length of %d");
             for (size_t i = 0 ; i < data->expected_range.length ; i++) {
                 tst_assert_equal_ext(data->expected_range.data[i], new_range->data[i], "value of %d", "at index %d", i);
             }
 
-            range_destroy_dynamic(make_system_allocator(), &range_to_any(new_range));
+            range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(new_range));
         }
 )
 tst_CREATE_TEST_CASE(range_concat_two_populated, range_create_dynamic_from_concat,
-        .range_left     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
-        .range_right    = range_create_static(u32, 10, { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
-        .expected_range = range_create_static(u32, 20, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
+        .range_left     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .range_right    = RANGE_CREATE_STATIC(u32, 10, { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
+        .expected_range = RANGE_CREATE_STATIC(u32, 20, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
 )
 tst_CREATE_TEST_CASE(range_concat_left_empty, range_create_dynamic_from_concat,
-        .range_left     = range_create_static(u32, 10, { }),
-        .range_right    = range_create_static(u32, 10, { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
-        .expected_range = range_create_static(u32, 20, { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
+        .range_left     = RANGE_CREATE_STATIC(u32, 10, { }),
+        .range_right    = RANGE_CREATE_STATIC(u32, 10, { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
+        .expected_range = RANGE_CREATE_STATIC(u32, 20, { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }),
 )
 tst_CREATE_TEST_CASE(range_concat_right_empty, range_create_dynamic_from_concat,
-        .range_left     = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
-        .range_right    = range_create_static(u32, 10, { }),
-        .expected_range = range_create_static(u32, 20, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .range_left     = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .range_right    = RANGE_CREATE_STATIC(u32, 10, { }),
+        .expected_range = RANGE_CREATE_STATIC(u32, 20, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
 )
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_copy,
         {
-            range(u32, 10) array;
+            RANGE(u32, 10) array;
         },
         {
-            range(u32) *new_range = range_create_dynamic_from_copy_of(make_system_allocator(), range_to_any(&data->array));
+            RANGE(u32) *new_range = range_create_dynamic_from_copy_of(make_system_allocator(), RANGE_TO_ANY(&data->array));
 
             tst_assert_equal(data->array.length, new_range->length, "length of %d");
 
@@ -787,32 +787,32 @@ tst_CREATE_TEST_SCENARIO(range_copy,
                 tst_assert_equal_ext(data->array.data[i], new_range->data[i], "value of %d", "at index %d", i);
             }
 
-            range_destroy_dynamic(make_system_allocator(), &range_to_any(new_range));
+            range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(new_range));
         }
 )
 tst_CREATE_TEST_CASE(range_copy_full, range_copy,
-        .array = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
+        .array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
 )
 tst_CREATE_TEST_CASE(range_copy_not_full, range_copy,
-        .array = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 })
+        .array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 })
 )
 tst_CREATE_TEST_CASE(range_copy_empty, range_copy,
-        .array = range_create_static(u32, 10, { })
+        .array = RANGE_CREATE_STATIC(u32, 10, { })
 )
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_get_subrange,
         {
-            range(u32, 10) array;
+            RANGE(u32, 10) array;
             size_t from;
             size_t to;
 
-            range(u32, 10) expected_array;
+            RANGE(u32, 10) expected_array;
             bool expect_success;
         },
         {
-            range(u32) *subrange = range_create_dynamic_from_subrange_of(make_system_allocator(), range_to_any(&data->array), data->from, data->to);
+            RANGE(u32) *subrange = range_create_dynamic_from_subrange_of(make_system_allocator(), RANGE_TO_ANY(&data->array), data->from, data->to);
 
             if (data->expect_success) {
                 tst_assert(subrange != NULL, "subrange was not created");
@@ -825,35 +825,35 @@ tst_CREATE_TEST_SCENARIO(range_get_subrange,
                 tst_assert(subrange == NULL, "subrange was still created");
             }
 
-            range_destroy_dynamic(make_system_allocator(), &range_to_any(subrange));
+            range_destroy_dynamic(make_system_allocator(), &RANGE_TO_ANY(subrange));
         }
 )
 tst_CREATE_TEST_CASE(range_get_subrange_whole, range_get_subrange,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .from           = 0,
         .to             = 10,
-        .expected_array = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expect_success = true,
 )
 tst_CREATE_TEST_CASE(range_get_subrange_part, range_get_subrange,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .from           = 3,
         .to             = 6,
-        .expected_array = range_create_static(u32, 10, { 3, 4, 5 }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { 3, 4, 5 }),
         .expect_success = true,
 )
 tst_CREATE_TEST_CASE(range_get_subrange_empty, range_get_subrange,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .from           = 5,
         .to             = 4,
-        .expected_array = range_create_static(u32, 10, { }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { }),
         .expect_success = false,
 )
 tst_CREATE_TEST_CASE(range_get_subrange_beyond, range_get_subrange,
-        .array          = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array          = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .from           = 2,
         .to             = 12,
-        .expected_array = range_create_static(u32, 10, { }),
+        .expected_array = RANGE_CREATE_STATIC(u32, 10, { }),
         .expect_success = false,
 )
 
@@ -861,38 +861,38 @@ tst_CREATE_TEST_CASE(range_get_subrange_beyond, range_get_subrange,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_compare,
         {
-            range(u32, 10) array_left;
-            range(u32, 10) array_right;
+            RANGE(u32, 10) array_left;
+            RANGE(u32, 10) array_right;
             i32 expected;
         },
         {
-            tst_assert_equal(data->expected, range_compare(&range_to_any(&data->array_left), &range_to_any(&data->array_right), &test_compare_u32),
+            tst_assert_equal(data->expected, range_compare(&RANGE_TO_ANY(&data->array_left), &RANGE_TO_ANY(&data->array_right), &test_compare_u32),
                     "comparison result of %d");
         }
 )
 tst_CREATE_TEST_CASE(range_compare_equal, range_compare,
-        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
-        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array_left  = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array_right = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expected    = 0,
 )
 tst_CREATE_TEST_CASE(range_compare_more_than, range_compare,
-        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }),
-        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array_left  = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }),
+        .array_right = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expected    = 1,
 )
 tst_CREATE_TEST_CASE(range_compare_more_than_with_length, range_compare,
-        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }),
-        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5 }),
+        .array_left  = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }),
+        .array_right = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5 }),
         .expected    = 1,
 )
 tst_CREATE_TEST_CASE(range_compare_more_than_before_length, range_compare,
-        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 99, 4, 5, 6, 7, 8, 10 }),
-        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4 }),
+        .array_left  = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 99, 4, 5, 6, 7, 8, 10 }),
+        .array_right = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4 }),
         .expected    = 1,
 )
 tst_CREATE_TEST_CASE(range_compare_less_than, range_compare,
-        .array_left  = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8 }),
-        .array_right = range_create_static(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+        .array_left  = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8 }),
+        .array_right = RANGE_CREATE_STATIC(u32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
         .expected    = -1,
 )
 
