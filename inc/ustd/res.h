@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef __RES_H__
-#define __RES_H__
+#ifndef __UNSTANDARD_RES_H__
+#define __UNSTANDARD_RES_H__
 
 /* code constants */
 #define RES__PREFIX res__

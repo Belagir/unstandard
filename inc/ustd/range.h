@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __RRANGE_H__
-#define __RRANGE_H__
+#ifndef __UNSTANDARD_RRANGE_H__
+#define __UNSTANDARD_RRANGE_H__
 
 #include <ustd/allocation.h>
 #include <ustd/common.h>

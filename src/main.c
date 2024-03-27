@@ -19,6 +19,5 @@ int main(void)
     ttree_execute_unittests();
     range_experimental_execute_unittests();
 #endif
-    /* code */
     return 0;
 }

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __TEEMING_TREE_H__
-#define __TEEMING_TREE_H__
+#ifndef __UNSTANDARD_TEEMING_TREE_H__
+#define __UNSTANDARD_TEEMING_TREE_H__
 
 #include <ustd/allocation.h>
 

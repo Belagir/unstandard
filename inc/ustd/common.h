@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __COMMON_H__
-#define __COMMON_H__
+#ifndef __UNSTANDARD_COMMON_H__
+#define __UNSTANDARD_COMMON_H__
 
 #include <stddef.h>
 #include <stdint.h>

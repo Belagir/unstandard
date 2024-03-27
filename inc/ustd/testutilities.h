@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __TESTUTILITIES_H__
-#define __TESTUTILITIES_H__
+#ifndef __UNSTANDARD_TESTUTILITIES_H__
+#define __UNSTANDARD_TESTUTILITIES_H__
 
 /**
  * @brief Asserts that test is true ; log the failure otherwise.

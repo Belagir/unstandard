@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __RANGE_IMPL_H__
-#define __RANGE_IMPL_H__
+#ifndef __UNSTANDARD_RANGE_IMPL_H__
+#define __UNSTANDARD_RANGE_IMPL_H__
 
 #include <ustd/range.h>
 
