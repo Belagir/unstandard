@@ -18,17 +18,17 @@
 /**
  * @brief Type definition of a range holding contiguous, typed values.
  */
-#define range(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
+#define RANGE(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
 
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
-#define range_create_static(__type, __capacity, ...) { .length = count_of(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC(__type, __capacity, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
 
 /**
  * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
-#define range_create_static_fit(__type, ...) { .length = count_of(((__type[]) __VA_ARGS__)), .capacity = count_of(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC_FIT(__type, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = COUNT_OF(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
 
 /**
  * @brief Anonymous range used for the methods' abstraction layer.
@@ -50,7 +50,7 @@ typedef struct {
 /**
  * @brief Converts a range into a data structure that can be passed to this module's methods. The value created lives on the scope of creation.
  */
-#define range_to_any(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
+#define RANGE_TO_ANY(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
 
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
@@ -205,13 +205,11 @@ void *range_create_dynamic_from_copy_of(allocator alloc, const range_any target)
 void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any target, size_t start_index, size_t end_index);
 
 /**
- * @brief
+ * @brief Compares two ranges element-wise with a comparator function taking pointers to the compared elements.
  *
- * TODO : unit tests
- *
- * @param range_lhs
- * @param range_rhs
- * @return
+ * @param[in] range_lhs
+ * @param[in] range_rhs
+ * @return 1 if the lhs range is greater (or longer) than the rhs range, -1 for the opposite, and 0 if they are similar.
  */
 i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f);
 
@@ -223,7 +221,7 @@ i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, compar
  * @param range
  * @return
  */
-void *range_ensure_capacity(allocator alloc, range_any range);
+void *range_ensure_capacity(allocator alloc, range_any range, size_t additional_capacity);
 
 #ifdef UNITTESTING
 void range_experimental_execute_unittests(void);

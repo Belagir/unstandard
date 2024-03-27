@@ -133,31 +133,31 @@ i32 test_i32_comparator(const void *v1, const void *v2) {
 
 tst_CREATE_TEST_SCENARIO(heap_sort,
         {
-            range(i32, 10) to_sort;
-            range(i32, 10) expected;
+            RANGE(i32, 10) to_sort;
+            RANGE(i32, 10) expected;
         },
         {
-            heapsort_sort(range_to_any(&data->to_sort), &test_i32_comparator);
+            heapsort_sort(RANGE_TO_ANY(&data->to_sort), &test_i32_comparator);
 
             for (size_t i = 0 ; i < 10 ; i++) {
                 tst_assert_equal_ext(data->expected.data[i], data->to_sort.data[i], "value of %d", "at index %d", i);
             }
 
-            tst_assert(is_sorted(range_to_any(&data->to_sort), &test_i32_comparator), "range is not sorted !");
+            tst_assert(is_sorted(RANGE_TO_ANY(&data->to_sort), &test_i32_comparator), "range is not sorted !");
         }
 )
 
 tst_CREATE_TEST_CASE(heap_sort_nominal, heap_sort,
-        .to_sort =  range_create_static(i32, 10, { 2, 6, 3, 9, 8, 4, 1, 7, 5, 0 }),
-        .expected = range_create_static(i32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8 ,9 })
+        .to_sort =  RANGE_CREATE_STATIC(i32, 10, { 2, 6, 3, 9, 8, 4, 1, 7, 5, 0 }),
+        .expected = RANGE_CREATE_STATIC(i32, 10, { 0, 1, 2, 3, 4, 5, 6, 7, 8 ,9 })
 )
 tst_CREATE_TEST_CASE(heap_sort_nothing, heap_sort,
-        .to_sort =  range_create_static(i32, 10, { }),
-        .expected = range_create_static(i32, 10, { })
+        .to_sort =  RANGE_CREATE_STATIC(i32, 10, { }),
+        .expected = RANGE_CREATE_STATIC(i32, 10, { })
 )
 tst_CREATE_TEST_CASE(heap_sort__one_element, heap_sort,
-        .to_sort =  range_create_static(i32, 10, { 1 }),
-        .expected = range_create_static(i32, 10, { 1 })
+        .to_sort =  RANGE_CREATE_STATIC(i32, 10, { 1 }),
+        .expected = RANGE_CREATE_STATIC(i32, 10, { 1 })
 )
 
 void heapsort_execute_unittests(void)
