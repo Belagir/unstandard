@@ -454,7 +454,6 @@ tst_CREATE_TEST_CASE(range_insert_other_at_middle, range_insert_other_range,
         .expected_array     = range_create_static(u32, 10, { 0, 1, 2, 6, 7, 8, 9, 3, 4, 5 }),
         .expect_insertion   = true,
 )
-
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(range_remove_interval,
