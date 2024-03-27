@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2023
  */
 
-#ifndef __ALLOCATION_H__
-#define __ALLOCATION_H__
+#ifndef __UNSTANDARD_ALLOCATION_H__
+#define __UNSTANDARD_ALLOCATION_H__
 
 #include <ustd/common.h>
 

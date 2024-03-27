@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __MATH_H__
-#define __MATH_H__
+#ifndef __UNSTANDARD_MATH_H__
+#define __UNSTANDARD_MATH_H__
 
 #include <ustd/common.h>
 
