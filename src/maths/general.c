@@ -4,9 +4,9 @@
 
 i32 abs_value(i32 v)
 {
-    u32 sgn_v = (u32) sgn_i32(v);
+    u32 sgn_v = (u32) SGN_i32(v);
 
-    return (i32) ((force_cast(u32, v) + sgn_v) ^ sgn_v);
+    return (i32) ((FORCE_CAST(u32, v) + sgn_v) ^ sgn_v);
 }
 
 // -------------------------------------------------------------------------------------------------

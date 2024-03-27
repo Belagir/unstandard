@@ -13,15 +13,15 @@
 
 #include <ustd/math.h>
 
-#define vector3_x_positive ((vector3_t) {  1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to +x (cockatrice's forward)
-#define vector3_y_positive ((vector3_t) {  0.0f,  1.0f,  0.0f })        ///< unit 3D vector pointing to +y (cockatrice's up)
-#define vector3_z_positive ((vector3_t) {  0.0f,  0.0f,  1.0f })        ///< unit 3D vector pointing to +z (cockatrice's right)
+#define VECTOR3_X_POSITIVE ((vector3_t) {  1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to +x (cockatrice's forward)
+#define VECTOR3_Y_POSITIVE ((vector3_t) {  0.0f,  1.0f,  0.0f })        ///< unit 3D vector pointing to +y (cockatrice's up)
+#define VECTOR3_Z_POSITIVE ((vector3_t) {  0.0f,  0.0f,  1.0f })        ///< unit 3D vector pointing to +z (cockatrice's right)
 
-#define vector3_x_negative ((vector3_t) { -1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to -x (cockatrice's backward)
-#define vector3_y_negative ((vector3_t) {  0.0f, -1.0f,  0.0f })        ///< unit 3D vector pointing to -y (cockatrice's up)
-#define vector3_z_negative ((vector3_t) {  0.0f,  0.0f, -1.0f })        ///< unit 3D vector pointing to -z (cockatrice's left)
+#define VECTOR3_X_NEGATIVE ((vector3_t) { -1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to -x (cockatrice's backward)
+#define VECTOR3_Y_NEGATIVE ((vector3_t) {  0.0f, -1.0f,  0.0f })        ///< unit 3D vector pointing to -y (cockatrice's up)
+#define VECTOR3_Z_NEGATIVE ((vector3_t) {  0.0f,  0.0f, -1.0f })        ///< unit 3D vector pointing to -z (cockatrice's left)
 
-#define vector3_origin ((vector3_t) { 0.0f,  0.0f, 0.0f })             ///< zero 3D vector
+#define VECTOR3_ORIGIN ((vector3_t) { 0.0f,  0.0f, 0.0f })             ///< zero 3D vector
 
 /**
  * @brief 3D vector.
