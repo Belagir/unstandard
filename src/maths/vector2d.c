@@ -29,6 +29,12 @@ f32 vector2_dot_product(vector2_t v1, vector2_t v2)
 }
 
 // -------------------------------------------------------------------------------------------------
+vector2_t vector2_members_product(vector2_t v1, vector2_t v2)
+{
+    return (vector2_t) { .x = (v1.x * v2.x), .y = (v1.y * v2.y) };
+}
+
+// -------------------------------------------------------------------------------------------------
 f32 vector2_angle_to(vector2_t v1, vector2_t v2)
 {
     if (vector2_is_almost_equal(v1, VECTOR2_ZERO, 1u) || vector2_is_almost_equal(v1, VECTOR2_ZERO, 1u)) {

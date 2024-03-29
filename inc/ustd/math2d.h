@@ -64,6 +64,15 @@ f32 vector2_dot_product(vector2_t v1, vector2_t v2);
  * @param v2
  * @return
  */
+vector2_t vector2_members_product(vector2_t v1, vector2_t v2);
+
+/**
+ * @brief
+ *
+ * @param v1
+ * @param v2
+ * @return
+ */
 f32 vector2_angle_to(vector2_t v1, vector2_t v2);
 
 /**
