@@ -5,13 +5,19 @@
 #include <ustd/math2d.h>
 
 // -------------------------------------------------------------------------------------------------
+vector2_t vector2_negate(vector2_t v)
+{
+    return (vector2_t) { .x = -v.x, .y = -v.y };
+}
+
+// -------------------------------------------------------------------------------------------------
 vector2_t vector2_add(vector2_t v1, vector2_t v2)
 {
     return (vector2_t) { .x = v1.x + v2.x, .y = v1.y + v2.y, };
 }
 
 // -------------------------------------------------------------------------------------------------
-vector2_t vector2_subsctract(vector2_t v1, vector2_t v2)
+vector2_t vector2_substract(vector2_t v1, vector2_t v2)
 {
     return (vector2_t) { .x = v1.x - v2.x, .y = v1.y - v2.y, };
 }

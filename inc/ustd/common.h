@@ -75,6 +75,8 @@ typedef i32 (*comparator_f)(const void * rhs, const void *lhs);
  */
 void bytewise_copy(void *dest, const void *source, size_t nb_bytes);
 
+// -------------------------------------------------------------------------------------------------
+
 /**
  * @brief Counts the number of set bits in a byte.
  *
@@ -90,5 +92,27 @@ u8 count_set_bits(u8 value);
  * @return u32
  */
 u32 reverse_bit_representation(u32 x);
+
+// -------------------------------------------------------------------------------------------------
+
+/* Compares two pointers (themselves passed by pointers) as two unsigned integers. */
+i32 raw_pointer_compare(const void *lhs, const void *rhs);
+
+/* Returns true if the given ASCII character is in the range 0-9. */
+bool character_is_num(char c);
+
+/* Greedily computes the length of a null-terminated string. */
+size_t c_string_length(const char *str, bool keep_terminator);
+
+// -------------------------------------------------------------------------------------------------
+
+/* Simple hash function to hash anything. */
+u32 hash_jenkins_one_at_a_time(const byte *key, size_t length, u32 seed);
+
+/* Compares two 4-bytes hashes as if they were unsigned integers. */
+i32 hash_compare(const void *lhs, const void *rhs);
+
+/* Compares two pointers to 4-bytes hashes as if they were unsigned integers. */
+i32 hash_compare_doubleref(const void *lhs, const void *rhs);
 
 #endif

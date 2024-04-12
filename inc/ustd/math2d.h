@@ -24,6 +24,14 @@ typedef union vector2_t {
 /**
  * @brief
  *
+ * @param v
+ * @return vector2_t
+ */
+vector2_t vector2_negate(vector2_t v);
+
+/**
+ * @brief
+ *
  * @param v1
  * @param v2
  * @return
@@ -37,7 +45,7 @@ vector2_t vector2_add(vector2_t v1, vector2_t v2);
  * @param v2
  * @return
  */
-vector2_t vector2_subsctract(vector2_t v1, vector2_t v2);
+vector2_t vector2_substract(vector2_t v1, vector2_t v2);
 
 /**
  * @brief Calculates the area between two vectors. A bit like a cross product, but in 2D space.
