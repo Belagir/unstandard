@@ -3,8 +3,10 @@
 #define __UNSTANDARD_MATH_2D_H__
 
 #include <ustd/common.h>
+#include <ustd/math.h>
 
 #define VECTOR2_ZERO ((vector2_t) { 0.f, 0.f })
+#define VECTOR2_ORIGIN VECTOR2_ZERO
 
 #define VECTOR2_X_POSITIVE ((vector2_t) {  1.f, 0.f })
 #define VECTOR2_Y_POSITIVE ((vector2_t) { 0.f,  1.f })
@@ -70,6 +72,15 @@ f32 vector2_dot_product(vector2_t v1, vector2_t v2);
  *
  * @param v1
  * @param v2
+ * @return vector2_t
+ */
+vector2_t vector2_triple_product(vector2_t v1, vector2_t v2, vector2_t v3);
+
+/**
+ * @brief
+ *
+ * @param v1
+ * @param v2
  * @return
  */
 vector2_t vector2_members_product(vector2_t v1, vector2_t v2);
@@ -82,6 +93,23 @@ vector2_t vector2_members_product(vector2_t v1, vector2_t v2);
  * @return
  */
 f32 vector2_angle_to(vector2_t v1, vector2_t v2);
+
+/**
+ * @brief Returns the anti-clockwise normal vector orthogonal to some other vector, normalized.
+ *
+ * @param v
+ * @return
+ */
+vector2_t vector2_normal_of(vector2_t v);
+
+/**
+ * @brief
+ *
+ * @param v1
+ * @param v2
+ * @return
+ */
+vector2_t vector2_direction_to(vector2_t v1, vector2_t v2);
 
 /**
  * @brief

@@ -1,8 +1,8 @@
 
 #include <math.h>
 
-#include <ustd/math.h>
 #include <ustd/math2d.h>
+#include <ustd/math3d.h>
 
 // -------------------------------------------------------------------------------------------------
 vector2_t vector2_negate(vector2_t v)
@@ -35,6 +35,18 @@ f32 vector2_dot_product(vector2_t v1, vector2_t v2)
 }
 
 // -------------------------------------------------------------------------------------------------
+vector2_t vector2_triple_product(vector2_t v1, vector2_t v2, vector2_t v3)
+{
+    vector3_t vec_generalized = vector3_cross_product(
+            vector3_cross_product(
+                    (vector3_t) { .x = v1.x, .y = v1.y, .z = 1.f },
+                    (vector3_t) { .x = v2.x, .y = v2.y, .z = 1.f }),
+            (vector3_t) { .x = v3.x, .y = v3.y, .z = 1.f } );
+
+    return (vector2_t) { vec_generalized.x, vec_generalized.y };
+}
+
+// -------------------------------------------------------------------------------------------------
 vector2_t vector2_members_product(vector2_t v1, vector2_t v2)
 {
     return (vector2_t) { .x = (v1.x * v2.x), .y = (v1.y * v2.y) };
@@ -51,6 +63,18 @@ f32 vector2_angle_to(vector2_t v1, vector2_t v2)
 }
 
 // -------------------------------------------------------------------------------------------------
+vector2_t vector2_direction_to(vector2_t v1, vector2_t v2)
+{
+    return vector2_normalize(vector2_substract(v2, v1));
+}
+
+// -------------------------------------------------------------------------------------------------
+vector2_t vector2_normal_of(vector2_t v)
+{
+    return vector2_normalize((vector2_t) { -v.y, v.x });
+}
+
+// -------------------------------------------------------------------------------------------------
 vector2_t vector2_normalize(vector2_t v)
 {
     f32 v_length = 0.f;
@@ -64,7 +88,7 @@ vector2_t vector2_normalize(vector2_t v)
 
     v_inv_length = 1.f / v_length;
 
-    return (vector2_t) { .x = v.x / v_inv_length, .y = v.y / v_inv_length, };
+    return (vector2_t) { .x = v.x * v_inv_length, .y = v.y * v_inv_length, };
 }
 
 // -------------------------------------------------------------------------------------------------
