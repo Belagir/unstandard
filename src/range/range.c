@@ -53,6 +53,12 @@ bool range_insert_range(range_any target, size_t index, const range_any other)
 }
 
 // -------------------------------------------------------------------------------------------------
+bool range_push(range_any target, const void *value)
+{
+    return range_insert_value(target, target.r->length, value);
+}
+
+// -------------------------------------------------------------------------------------------------
 bool range_remove(range_any target, size_t index)
 {
     return range_remove_interval(target, index, index + 1);
@@ -80,6 +86,12 @@ bool range_remove_interval(range_any target, size_t from, size_t to)
     target.r->length -= (to - from);
 
     return true;
+}
+
+// -------------------------------------------------------------------------------------------------
+bool range_pop(range_any target)
+{
+    return range_remove(target, target.r->length);
 }
 
 // -------------------------------------------------------------------------------------------------

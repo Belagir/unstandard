@@ -77,6 +77,17 @@ bool range_insert_value(range_any target, size_t index, const void *value);
 bool range_insert_range(range_any target, size_t index, const range_any other);
 
 /**
+ * @brief Pushes a value (by shallow copy of whatever is behind the anonymous pointer) at the end of a range if some space can be found for it.
+ * If the value was successfully inserted, true is returned, false otherwise.
+ *
+ * @param[inout] target target range
+ * @param[in] value pointer to the pushed value
+ * @return true if the element was inserted
+ * @return false if the range did not have space
+ */
+bool range_push(range_any target, const void *value);
+
+/**
  * @brief Removes an element from a range by index.
  *
  * @param[inout] target target range
@@ -97,6 +108,15 @@ bool range_remove(range_any target, size_t index);
  * @return false if the bounds provided were invalid
  */
 bool range_remove_interval(range_any target, size_t from, size_t to);
+
+/**
+ * @brief Removes the last element in a range.
+ *
+ * @param[inout] target target range
+ * @return true if the tail element was removed
+ * @return false if the range was empty
+ */
+bool range_pop(range_any target);
 
 /**
  * @brief Clears a range of all its content.
