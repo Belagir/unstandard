@@ -31,17 +31,14 @@ f32 vector2_area_product(vector2_t v1, vector2_t v2)
 // -------------------------------------------------------------------------------------------------
 f32 vector2_dot_product(vector2_t v1, vector2_t v2)
 {
-    return (v1.x * v2.x) + (v2.y * v2.y);
+    return (v1.x * v2.x) + (v1.y * v2.y);
 }
 
 // -------------------------------------------------------------------------------------------------
 vector2_t vector2_triple_product(vector2_t v1, vector2_t v2, vector2_t v3)
 {
-    vector3_t vec_generalized = vector3_cross_product(
-            vector3_cross_product(
-                    (vector3_t) { .x = v1.x, .y = v1.y, .z = 1.f },
-                    (vector3_t) { .x = v2.x, .y = v2.y, .z = 1.f }),
-            (vector3_t) { .x = v3.x, .y = v3.y, .z = 1.f } );
+    vector3_t vec_ortho = vector3_cross_product((vector3_t) { .x = v1.x, .y = v1.y, .z = 0.f }, (vector3_t) { .x = v2.x, .y = v2.y, .z = 0.f });
+    vector3_t vec_generalized = vector3_cross_product(vec_ortho, (vector3_t) { .x = v3.x, .y = v3.y, .z = 0.f });
 
     return (vector2_t) { vec_generalized.x, vec_generalized.y };
 }
