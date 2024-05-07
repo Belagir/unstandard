@@ -2,8 +2,8 @@
 #ifndef __UNSTANDARD_MATH_2D_H__
 #define __UNSTANDARD_MATH_2D_H__
 
-#include <ustd/common.h>
-#include <ustd/math.h>
+#include "common.h"
+#include "math.h"
 
 #define VECTOR2_ZERO ((vector2_t) { 0.f, 0.f })
 #define VECTOR2_ORIGIN VECTOR2_ZERO

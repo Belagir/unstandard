@@ -12,8 +12,8 @@
 #ifndef __UNSTANDARD_RRANGE_H__
 #define __UNSTANDARD_RRANGE_H__
 
-#include <ustd/allocation.h>
-#include <ustd/common.h>
+#include "allocation.h"
+#include "common.h"
 
 /**
  * @brief Type definition of a range holding contiguous, typed values.

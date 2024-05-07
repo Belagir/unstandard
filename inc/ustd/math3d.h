@@ -11,7 +11,7 @@
 #ifndef __UNSTANDARD_MATH_3D_H__
 #define __UNSTANDARD_MATH_3D_H__
 
-#include <ustd/math.h>
+#include "math.h"
 
 #define VECTOR3_X_POSITIVE ((vector3_t) {  1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to +x (cockatrice's forward)
 #define VECTOR3_Y_POSITIVE ((vector3_t) {  0.0f,  1.0f,  0.0f })        ///< unit 3D vector pointing to +y (cockatrice's up)

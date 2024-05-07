@@ -12,7 +12,7 @@
 #ifndef __UNSTANDARD_MATH_H__
 #define __UNSTANDARD_MATH_H__
 
-#include <ustd/common.h>
+#include "common.h"
 
 #define SQRT_OF_3 (1.73205f)      ///< approximation of the square root of 3
 #define THREE_HALVES (1.5f)       ///< not an *approximation* of 3 / 2
