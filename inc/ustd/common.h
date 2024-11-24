@@ -34,6 +34,18 @@ typedef uint64_t u64; ///< convenience type redefinition
 typedef float  f32; ///< convenience type redefinition
 typedef double f64; ///< convenience type redefinition
 
+#ifndef nullptr
+#define nullptr (nullptr_t) (0)
+#endif
+
+#ifndef true
+#define true (bool) (1)
+#endif
+
+#ifndef false
+#define false (bool) (0)
+#endif
+
 /**
  * @brief Function pointer to a method able to compare two regions of memory.
  * By convention, the method returns -1 if rhs < lhs, 0 if rhs == lhs and 1 if rhs > lhs.
