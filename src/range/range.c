@@ -91,7 +91,7 @@ bool range_remove_interval(range_any target, size_t from, size_t to)
 // -------------------------------------------------------------------------------------------------
 bool range_pop(range_any target)
 {
-    return range_remove(target, target.r->length);
+    return range_remove(target, target.r->length - 1);
 }
 
 // -------------------------------------------------------------------------------------------------

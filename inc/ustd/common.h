@@ -41,29 +41,29 @@ typedef double f64; ///< convenience type redefinition
 typedef i32 (*comparator_f)(const void * rhs, const void *lhs);
 
 /// Forces a reinterpret cast on a static variable.
-#define FORCE_CAST(__TYPE, __variable) (*((__TYPE*) &(__variable)))
+#define FORCE_CAST(TYPE_, variable_) (*((TYPE_*) &(variable_)))
 
 /// Translates to the offset, in bytes, of a field in a struct.
-#define OFFSET_OF(__struct, __member) ((size_t) &(((__struct *) NULL)->__member))
+#define OFFSET_OF(struct_, member_) ((size_t) &(((struct_ *) NULL)->member_))
 
 /// Translates to a pointer to the start of the containing structure if the passed pointer points to one of its given member.
-#define CONTAINER_OF(__ptr, __struct, __member) ((__struct *) (((char *) __ptr) - OFFSET_OF(__struct, __member)))
+#define CONTAINER_OF(ptr_, struct_, member_) ((struct_ *) (((char *) ptr_) - OFFSET_OF(struct_, member_)))
 
 /// Returns the "sign" bitfield of a 32-bit signed integer.
-#define SGN_i32(_v) ((_v) >> 31)
+#define SGN_i32(v_) ((v_) >> 31)
 
 /// Operates a division between two numbers that is always rounded up.
-#define CEIL_DIV(_a, _b) (((_a) + (_b) - 1) / _b)
+#define CEILD_IV(a_, b_) (((a_) + (b_) - 1) / b_)
 
 /// Maximum between two values.
-#define MAX(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
+#define MAX(a_, b_) (((a_) > (b_)) ? (a_) : (b_))
 /// Minimum between two values.
-#define MIN(_a, _b) (((_a) < (_b)) ? (_a) : (_b))
+#define MIN(a_, b_) (((a_) < (b_)) ? (a_) : (b_))
 
 /// Translates to the size of the element of a c-style array.
-#define SIZEOF_ELEMENT(__array) (sizeof(*(__array)))
+#define SIZEOF_ELEMENT(array_) (sizeof(*(array_)))
 /// Translates to the total size of a static c-style array.
-#define COUNT_OF(__array) (sizeof(__array) / SIZEOF_ELEMENT(__array))
+#define COUNT_OF(array_) (sizeof(array_) / SIZEOF_ELEMENT(array_))
 
 /**
  * @brief Copies byte to byte from `source` to `dest`.

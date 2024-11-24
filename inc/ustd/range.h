@@ -18,17 +18,22 @@
 /**
  * @brief Type definition of a range holding contiguous, typed values.
  */
-#define RANGE(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
+#define RANGE(type_, ...) struct { size_t length; size_t capacity; type_ data[__VA_ARGS__]; }
 
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
-#define RANGE_CREATE_STATIC(__type, __capacity, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC(type_, capacity_, ...) { .length = COUNT_OF(((type_[]) __VA_ARGS__)), .capacity = capacity_, .data = __VA_ARGS__ }
 
 /**
  * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
-#define RANGE_CREATE_STATIC_FIT(__type, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = COUNT_OF(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC_FIT(type_, ...) { .length = COUNT_OF(((type_[]) __VA_ARGS__)), .capacity = COUNT_OF(((type_[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+
+/**
+ * @brief Fetches the last value in a range (without bound check !) or some value at an index from the last element of the range.
+ */
+#define RANGE_LAST(range_, ...) (range_)->data[((range_)->length - 1) __VA_OPT__(+) __VA_ARGS__]
 
 /**
  * @brief Anonymous range used for the methods' abstraction layer.
@@ -50,7 +55,7 @@ typedef struct {
 /**
  * @brief Converts a range into a data structure that can be passed to this module's methods. The value created lives on the scope of creation.
  */
-#define RANGE_TO_ANY(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
+#define RANGE_TO_ANY(range_) (range_any) { .r = (range_anonymous *) range_, .stride = sizeof(*(range_)->data) }
 
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
