@@ -20,7 +20,7 @@ CC = gcc-13
 RESPACKER = ld
 
 ## compilation flags
-CFLAGS += -Wextra -Wconversion -Wdangling-pointer -Wparentheses -Wpedantic -Wstringop-overflow -Wnonnull -g --std=c2x
+CFLAGS += -Wall -Wextra -Wconversion -Wdangling-pointer -Wparentheses -Wpedantic -Wstringop-overflow -Wnonnull -g --std=c2x
 ## linker flags
 LFLAGS += -lm
 # resource packing flags

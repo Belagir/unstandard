@@ -220,7 +220,6 @@ void *range_create_dynamic_from_concat(allocator alloc, const range_any r_left, 
 void *range_create_dynamic_from_copy_of(allocator alloc, const range_any target)
 {
     range_anonymous *new_range = { };
-    const size_t sizeof_copy = sizeof(*target.r) + (target.r->capacity * target.stride);
 
     new_range = range_create_dynamic(alloc, target.stride, target.r->capacity);
     if (!new_range) {

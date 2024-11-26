@@ -69,7 +69,7 @@ typedef i32 (*comparator_f)(const void * rhs, const void *lhs);
 #define SGN_i32(v_) ((v_) >> 31)
 
 /// Operates a division between two numbers that is always rounded up.
-#define CEILD_IV(a_, b_) (((a_) + (b_) - 1) / b_)
+#define CEIL_DIV(a_, b_) (((a_) + (b_) - 1) / b_)
 
 /// Maximum between two values.
 #define MAX(a_, b_) (((a_) > (b_)) ? (a_) : (b_))
