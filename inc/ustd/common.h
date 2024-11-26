@@ -34,6 +34,10 @@ typedef uint64_t u64; ///< convenience type redefinition
 typedef float  f32; ///< convenience type redefinition
 typedef double f64; ///< convenience type redefinition
 
+#ifndef nullptr_t
+#define nullptr_t uintptr_t
+#endif
+
 #ifndef nullptr
 #define nullptr (nullptr_t) (0)
 #endif
