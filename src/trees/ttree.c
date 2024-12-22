@@ -268,7 +268,6 @@ ttree_mishap ttree_foreach_path(allocator alloc, const ttree_path *path, void (a
     size_t apply_from = { };
     size_t apply_to = { };
     ttree_path applied_on_path = { };
-    size_t last_parent_index = { };
 
     if (!path) {
         return TTREE_BAD_PATH;

@@ -5,14 +5,14 @@
 #include "common.h"
 #include "math.h"
 
-#define VECTOR2_ZERO ((vector2_t) { 0.f, 0.f })
+#define VECTOR2_ZERO ((vector2_t) {{ 0.f, 0.f }})
 #define VECTOR2_ORIGIN VECTOR2_ZERO
 
-#define VECTOR2_X_POSITIVE ((vector2_t) {  1.f, 0.f })
-#define VECTOR2_Y_POSITIVE ((vector2_t) { 0.f,  1.f })
+#define VECTOR2_X_POSITIVE ((vector2_t) {{  1.f, 0.f }})
+#define VECTOR2_Y_POSITIVE ((vector2_t) {{ 0.f,  1.f }})
 
-#define VECTOR2_X_NEGATIVE ((vector2_t) { -1.f, 0.f })
-#define VECTOR2_Y_NEGATIVE ((vector2_t) { 0.f, -1.f })
+#define VECTOR2_X_NEGATIVE ((vector2_t) {{ -1.f, 0.f }})
+#define VECTOR2_Y_NEGATIVE ((vector2_t) {{ 0.f, -1.f }})
 
 /**
  * @brief

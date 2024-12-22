@@ -18,9 +18,9 @@
         do { \
             *__tst_local_nb_assertions += 1u; \
             if (!(test)) { \
-                __tst_print("\033[0;31m[ASSERTION FAILED] :\033[0m %s:%d \033[1m`%s' : ", __FILE__, __LINE__, test_name); \
-                __tst_print((message) __VA_OPT__(,) __VA_ARGS__); \
-                __tst_print("\n\033[0m"); \
+                tstprivate_print("\033[0;31m[ASSERTION FAILED] :\033[0m %s:%d \033[1m`%s' : ", __FILE__, __LINE__, test_name); \
+                tstprivate_print((message) __VA_OPT__(,) __VA_ARGS__); \
+                tstprivate_print("\n\033[0m"); \
                 *__tst_local_nb_failed += 1u; \
             } \
         } while (0)
@@ -30,7 +30,7 @@
  *
  */
 #define tst_assert_memory_equal(mem1, mem2, size, message, ...) \
-        tst_assert(__tst_compare_mem((void *) (mem1), (void *) (mem2), (size)), (message) __VA_OPT__(,) __VA_ARGS__)
+        tst_assert(tstprivate_compare_mem((void *) (mem1), (void *) (mem2), (size)), (message) __VA_OPT__(,) __VA_ARGS__)
 
 /**
  * @brief Asserts that two values of the same type are equal (as per the == operator)
@@ -63,7 +63,7 @@
             \
             __tst_scenario_function_ ## identifier_scenario (&data, #identifier_case, &__tst_local_nb_assertions, &__tst_local_nb_failed); \
             \
-            __tst_print_test_case_report(#identifier_case, __tst_local_nb_assertions, __tst_local_nb_failed, __FILE__, __LINE__); \
+            tstprivate_print_test_case_report(#identifier_case, __tst_local_nb_assertions, __tst_local_nb_failed, __FILE__, __LINE__); \
         }
 
 /**
@@ -80,7 +80,7 @@
  * @param message format string
  * @param ... format string arguments
  */
-void __tst_print(char *message, ...);
+void tstprivate_print(char *message, ...);
 
 /**
  * @brief Compare two memory regions of the same size.
@@ -90,7 +90,7 @@ void __tst_print(char *message, ...);
  * @param addr2
  * @param size_bytes
  */
-int __tst_compare_mem(void *addr1, void *addr2, unsigned long size_bytes);
+int tstprivate_compare_mem(void *addr1, void *addr2, unsigned long size_bytes);
 
 /**
  * @brief Prints a unit test report.
@@ -101,6 +101,6 @@ int __tst_compare_mem(void *addr1, void *addr2, unsigned long size_bytes);
  * @param nb_failed
  * @return int
  */
-int __tst_print_test_case_report(char *case_name, unsigned nb_assertions, unsigned nb_failed, const char *file, int line);
+int tstprivate_print_test_case_report(char *case_name, unsigned nb_assertions, unsigned nb_failed, const char *file, int line);
 
 #endif
