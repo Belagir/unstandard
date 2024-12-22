@@ -15,7 +15,7 @@ OBJ_DIR = build
 RESDIR = res
 
 ## compiler
-CC = gcc-13
+CC = gcc
 ## resource packer
 RESPACKER = ld
 
