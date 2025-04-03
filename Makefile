@@ -3,6 +3,9 @@
 
 # ---------------- Configuration -----------------------------------------------
 
+## Name of the project. This will be the name of the executable placed in the
+## executable directory.
+PROJECT_NAME = unstandard
 ## Root source directory. Contains the c implementation files.
 SRC_DIR = src
 ## Root include directory. Contains the c header files. Passed with -I to
@@ -11,38 +14,34 @@ INC_DIR = inc
 ## Build diectory. Will contain object and binary files linked in the final
 ## executable
 OBJ_DIR = build
-## resources directory
-RESDIR = res
+## Executable directory. Contains the final binary file.
+EXC_DIR = bin
 
 ## compiler
-CC = gcc
-## resource packer
-RESPACKER = ld
+CC = gcc-13
+## archiver
+AR = ar
 
 ## compilation flags
 CFLAGS += -Wall -Wextra -Wconversion -Wdangling-pointer -Wparentheses -Wpedantic -Wstringop-overflow -Wnonnull -g --std=c2x
 ## linker flags
 LFLAGS += -lm
-# resource packing flags
-RESFLAGS = -r -b binary -z noexecstack
+## archiver flags
+ARFLAGS = rvcs
 
 # additional flags for defines
 DFLAGS +=
 
 # --------------- Internal variables -------------------------------------------
 
+## absolute path to the library
+LIBRARY = $(EXC_DIR)/lib$(PROJECT_NAME).a
 ## list of all c files without their path
 SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
 ## list of all duplicate c files to enforce uniqueness of filenames
 DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 ## list of all target object files with their path
 OBJ := $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
-## list of all resources files without their directory
-RES := $(notdir $(shell find $(RESDIR)/ -type f))
-## list of all target binaries resource files to include in the binary
-RES_BIN := $(addprefix $(OBJ_DIR)/, $(addsuffix .resbin, $(RES)))
-## list of all duplicate resource files to enforce uniqueness of filenames
-DUPL_RES := $(strip $(shell echo $(RES) | tr ' ' '\n' | sort | uniq -d))
 
 ## makefile-managed directories
 BUILD_DIRS = $(OBJ_DIR)
@@ -62,13 +61,13 @@ vpath %.c $(sort $(dir $(shell find $(SRC_DIR) -name *.c)))
 
 # -------- compilation -----------------
 
-all: check $(BUILD_DIRS) $(OBJ) | count_lines
+all: check $(BUILD_DIRS) $(LIBRARY) | count_lines
+
+$(LIBRARY): $(OBJ)
+	$(AR) $(ARFLAGS) $@ $(OBJ)
 
 $(OBJ_DIR)/%.o: %.c
 	$(CC) -c $? -o $@ $(ARGS_INCL) $(CFLAGS) $(DFLAGS)
-
-$(OBJ_DIR)/%.resbin: $(RESDIR)/%
-	$(RESPACKER) $(RESFLAGS) $? -o $@
 
 # -------- dir spawning ----------------
 
@@ -80,9 +79,6 @@ $(BUILD_DIRS):
 check:
 ifdef DUPL_SRC
 	$(error duplicate source filenames: $(DUPL_SRC))
-endif
-ifdef DUPL_RES
-	$(error duplicate resource filenames: $(DUPL_RES))
 endif
 
 # -------- cleaning --------------------
