@@ -44,7 +44,7 @@ DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 OBJ := $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
 
 ## makefile-managed directories
-BUILD_DIRS = $(OBJ_DIR)
+BUILD_DIRS = $(OBJ_DIR) $(EXC_DIR)
 
 ## additional compilation option for includes
 ARGS_INCL = -I$(INC_DIR)
