@@ -118,7 +118,7 @@ i32 raw_pointer_compare(const void *lhs, const void *rhs);
 bool character_is_num(char c);
 
 /* Greedily computes the length of a null-terminated string. */
-size_t c_string_length(const char *str, bool keep_terminator);
+size_t c_string_length(const char *str, size_t limit, bool keep_terminator);
 
 // -------------------------------------------------------------------------------------------------
 
