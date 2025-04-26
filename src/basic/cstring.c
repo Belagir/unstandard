@@ -8,7 +8,7 @@ bool character_is_num(char c)
 }
 
 // -------------------------------------------------------------------------------------------------
-size_t c_string_length(const char *str, bool keep_terminator)
+size_t c_string_length(const char *str, size_t limit, bool keep_terminator)
 {
     size_t str_length = 0u;
 
@@ -16,7 +16,7 @@ size_t c_string_length(const char *str, bool keep_terminator)
         return 0u;
     }
 
-    while (str[str_length] != '\0') {
+    while ((str[str_length] != '\0') && (str_length < limit)) {
         str_length += 1;
     }
 
