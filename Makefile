@@ -18,7 +18,7 @@ OBJ_DIR = build
 EXC_DIR = bin
 
 ## compiler
-CC = gcc-13
+CC = gcc
 ## archiver
 AR = ar
 
