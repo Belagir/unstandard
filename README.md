@@ -29,9 +29,12 @@ Manipulate contiguous collections of data, either on the stack or on the heap. A
 
 ```c
 RANGE(u32) *array1 = &(RANGE(u32, 8)) RANGE_CREATE_STATIC(u32, 8u, { 5, 2, 1, 4, 3, });
+
 printf("stack-allocated range of %d elements with a capacity of %d\n" array1.length, array1.capacity);
 // stack-allocated range of 5 elements with a capacity of 8
+
 RANGE(u32) *array2 = range_create_dynamic_from_copy_of(make_system_allocator(), RANGE_TO_ANY(array1));
+
 printf("heap-allocated range of %d elements with a capacity of %d\n" array2.length, array2.capacity);
 // heap-allocated range of 5 elements with a capacity of 8
 ```
@@ -93,13 +96,13 @@ Additionally, I added a section to provide deeper access into some module(s) :
 
 And the C standard library, of course. Tested on Linux.
 
-> [1] : the makefile uses `gcc` as the compiler. You can overide this whan calling make : `make CC='your-favorite-compiler'`
+> [1] : the makefile uses `gcc` as the compiler. You can overide this when calling make : `make CC='your-favorite-compiler'`
 
 ## Usage
 
 ### Integration
 
-Add this git repo as a submodule of your own project (or just clone it), and initialise it. Once this is done, `make` the library : this will yield a collection of `libunstandard.a` file in a new `unstandard/bin/` directory. Link against it with your favourite toolchain and include the headers present in `unstandard/inc/`, and you are good to go.
+Add this git repo as a submodule of your own project (or just clone it), and initialize it. Once this is done, `make` the library : this will yield the `libunstandard.a` file in a new `unstandard/bin/` directory. Link against it with your favourite toolchain and include the headers present in `unstandard/inc/`, and you are good to go.
 
 ```bash
 git submodule add git@github.com:Belagir/unstandard.git
