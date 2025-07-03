@@ -309,9 +309,20 @@ matrix4_identity(void);
 /**
  * @brief
  *
+ * @param m
  */
 void
 matrix4_to_array(matrix4_t m, f32 (*array)[16u]);
+
+/**
+ * @brief
+ *
+ * @param m
+ * @param offset
+ * @return matrix4_t
+ */
+matrix4_t
+matrix_translate(matrix4_t m, vector3_t offset);
 
 /**
  * @brief
