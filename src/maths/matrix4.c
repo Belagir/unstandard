@@ -51,6 +51,13 @@ matrix_translate(matrix4 m, vector3 offset)
 }
 
 // -------------------------------------------------------------------------------------------------
+vector3
+matrix_origin(matrix4 m)
+{
+    return (vector3) { m.m12, m.m13, m.m14 };
+}
+
+// -------------------------------------------------------------------------------------------------
 matrix4
 matrix4_get_view_matrix(vector3 eye, vector3 target, vector3 up)
 {

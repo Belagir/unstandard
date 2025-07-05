@@ -327,6 +327,15 @@ matrix_translate(matrix4 m, vector3 offset);
 /**
  * @brief
  *
+ * @param m
+ * @return vector3
+ */
+vector3
+matrix_origin(matrix4 m);
+
+/**
+ * @brief
+ *
  * @param eye
  * @param target
  * @param up
