@@ -51,10 +51,10 @@ typedef struct quaternion
  */
 typedef struct matrix4
 {
-    f32 m0, m4, m8,  m12;
-    f32 m1, m5, m9,  m13;
-    f32 m2, m6, m10, m14;
-    f32 m3, m7, m11, m15;
+    f32 m0,  m1,  m2,  m3;
+    f32 m4,  m5,  m6,  m7;
+    f32 m8,  m9,  m10, m11;
+    f32 m12, m13, m14, m15;
 } matrix4;
 
 /**
@@ -305,14 +305,6 @@ quaternion_execute_unittests(void);
  */
 matrix4
 matrix4_identity(void);
-
-/**
- * @brief
- *
- * @param m
- */
-void
-matrix4_to_array(matrix4 m, f32 (*array)[16u]);
 
 /**
  * @brief

@@ -16,30 +16,6 @@ matrix4_identity(void)
 }
 
 // -------------------------------------------------------------------------------------------------
-void
-matrix4_to_array(matrix4 m, f32 (*array)[16u])
-{
-    (*array)[0u] = m.m0;
-    (*array)[1u] = m.m1;
-    (*array)[2u] = m.m2;
-    (*array)[3u] = m.m3;
-
-    (*array)[4u] = m.m4;
-    (*array)[5u] = m.m5;
-    (*array)[6u] = m.m6;
-    (*array)[7u] = m.m7;
-
-    (*array)[8u] = m.m8;
-    (*array)[9u] = m.m9;
-    (*array)[10u] = m.m10;
-    (*array)[11u] = m.m11;
-
-    (*array)[12u] = m.m12;
-    (*array)[13u] = m.m13;
-    (*array)[14u] = m.m14;
-    (*array)[15u] = m.m15;
-}
-// -------------------------------------------------------------------------------------------------
 matrix4
 matrix_translate(matrix4 m, vector3 offset)
 {
