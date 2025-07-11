@@ -17,7 +17,7 @@ matrix4_identity(void)
 
 // -------------------------------------------------------------------------------------------------
 matrix4
-matrix_translate(matrix4 m, vector3 offset)
+matrix4_translate(matrix4 m, vector3 offset)
 {
     m.m12 += offset.x;
     m.m13 += offset.y;
@@ -27,8 +27,19 @@ matrix_translate(matrix4 m, vector3 offset)
 }
 
 // -------------------------------------------------------------------------------------------------
+matrix4
+matrix4_scale(matrix4 m, vector3 scale)
+{
+    m.m0  *= scale.x;
+    m.m5  *= scale.y;
+    m.m10 *= scale.z;
+
+    return m;
+}
+
+// -------------------------------------------------------------------------------------------------
 vector3
-matrix_origin(matrix4 m)
+matrix4_origin(matrix4 m)
 {
     return (vector3) { m.m12, m.m13, m.m14 };
 }

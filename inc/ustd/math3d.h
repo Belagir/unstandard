@@ -314,7 +314,17 @@ matrix4_identity(void);
  * @return matrix4
  */
 matrix4
-matrix_translate(matrix4 m, vector3 offset);
+matrix4_translate(matrix4 m, vector3 offset);
+
+/**
+ * @brief
+ *
+ * @param m
+ * @param scale
+ * @return matrix4
+ */
+matrix4
+matrix4_scale(matrix4 m, vector3 scale);
 
 /**
  * @brief
@@ -323,7 +333,7 @@ matrix_translate(matrix4 m, vector3 offset);
  * @return vector3
  */
 vector3
-matrix_origin(matrix4 m);
+matrix4_origin(matrix4 m);
 
 /**
  * @brief
