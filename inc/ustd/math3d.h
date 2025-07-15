@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_MATH_3D_H__
-#define __UNSTANDARD_MATH_3D_H__
+#ifndef UNSTANDARD_MATH_3D_H__
+#define UNSTANDARD_MATH_3D_H__
 
 #include "math.h"
 

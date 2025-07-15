@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_TESTUTILITIES_H__
-#define __UNSTANDARD_TESTUTILITIES_H__
+#ifndef UNSTANDARD_TESTUTILITIES_H__
+#define UNSTANDARD_TESTUTILITIES_H__
 
 /**
  * @brief Asserts that test is true ; log the failure otherwise.
@@ -18,8 +18,8 @@
         do { \
             *__tst_local_nb_assertions += 1u; \
             if (!(test)) { \
-                tstprivate_print("\033[0;31m[ASSERTION FAILED] :\033[0m %s:%d \033[1m`%s' : ", __FILE__, __LINE__, test_name); \
-                tstprivate_print((message) __VA_OPT__(,) __VA_ARGS__); \
+                tstprivate_print("\033[0;31m[ASSERTION FAILED] :\033[0m %s:%d \033[1m`%s' : ", FILE__, LINE__, test_name); \
+                tstprivate_print((message) VA_OPT__(,) VA_ARGS__); \
                 tstprivate_print("\n\033[0m"); \
                 *__tst_local_nb_failed += 1u; \
             } \
@@ -30,7 +30,7 @@
  *
  */
 #define tst_assert_memory_equal(mem1, mem2, size, message, ...) \
-        tst_assert(tstprivate_compare_mem((void *) (mem1), (void *) (mem2), (size)), (message) __VA_OPT__(,) __VA_ARGS__)
+        tst_assert(tstprivate_compare_mem((void *) (mem1), (void *) (mem2), (size)), (message) VA_OPT__(,) VA_ARGS__)
 
 /**
  * @brief Asserts that two values of the same type are equal (as per the == operator)
@@ -41,36 +41,36 @@
 
 
 #define tst_assert_equal_ext(val1, val2, format_mod, format_ext, ...) \
-        tst_assert((val1) == (val2), "values mismatch : expected " format_mod ", got " format_mod " " format_ext, (val1), (val2) __VA_OPT__(,) __VA_ARGS__)
+        tst_assert((val1) == (val2), "values mismatch : expected " format_mod ", got " format_mod " " format_ext, (val1), (val2) VA_OPT__(,) VA_ARGS__)
 
 /**
  * @brief Creates a unit named test scenario.
  *
  */
 #define tst_CREATE_TEST_SCENARIO(identifier, data_structure, test_scenario) \
-        struct __tst_scenario_datastruct_ ## identifier data_structure; \
-        static void __tst_scenario_function_ ## identifier (struct __tst_scenario_datastruct_ ## identifier *data, char *test_name, unsigned *__tst_local_nb_assertions, unsigned *__tst_local_nb_failed) test_scenario
+        struct tst_scenario_datastruct_ ## identifier data_structure; \
+        static void tst_scenario_function_ ## identifier (struct tst_scenario_datastruct_ ## identifier *data, char *test_name, unsigned *__tst_local_nb_assertions, unsigned *__tst_local_nb_failed) test_scenario
 
 /**
  * @brief Creates a unit test case from a scenario.
  *
  */
 #define tst_CREATE_TEST_CASE(identifier_case, identifier_scenario, ...) \
-        static void __tst_case_function_ ## identifier_case (void) { \
-            struct __tst_scenario_datastruct_ ## identifier_scenario data = { __VA_ARGS__ }; \
-            unsigned __tst_local_nb_assertions = 0u; \
-            unsigned __tst_local_nb_failed = 0u; \
+        static void tst_case_function_ ## identifier_case (void) { \
+            struct tst_scenario_datastruct_ ## identifier_scenario data = { VA_ARGS__ }; \
+            unsigned tst_local_nb_assertions = 0u; \
+            unsigned tst_local_nb_failed = 0u; \
             \
-            __tst_scenario_function_ ## identifier_scenario (&data, #identifier_case, &__tst_local_nb_assertions, &__tst_local_nb_failed); \
+            tst_scenario_function_ ## identifier_scenario (&data, #identifier_case, &__tst_local_nb_assertions, &__tst_local_nb_failed); \
             \
-            tstprivate_print_test_case_report(#identifier_case, __tst_local_nb_assertions, __tst_local_nb_failed, __FILE__, __LINE__); \
+            tstprivate_print_test_case_report(#identifier_case, tst_local_nb_assertions, tst_local_nb_failed, FILE__, LINE__); \
         }
 
 /**
  * @brief Runs a test case.
  *
  */
-#define tst_run_test_case(identifier_case) do { __tst_case_function_ ## identifier_case(); } while(0)
+#define tst_run_test_case(identifier_case) do { tst_case_function_ ## identifier_case(); } while(0)
 
 
 /**

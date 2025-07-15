@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef __UNSTANDARD_RES_H__
-#define __UNSTANDARD_RES_H__
+#ifndef UNSTANDARD_RES_H__
+#define UNSTANDARD_RES_H__
 
 /* code constants */
 #define RES__PREFIX res__
@@ -24,8 +24,8 @@
 #define RES__B_SUFFIX_END "_end"
 
 #define DECLARE_RES_IMPL(_BASE_SYMBOL, str_identifier, PREFIX, SUFFIX_START, SUFFIX_END, str_binary_prefix) \
-extern const unsigned char PREFIX ## _BASE_SYMBOL ## SUFFIX_START [] __asm__(str_binary_prefix str_identifier #SUFFIX_START); \
-extern const unsigned char PREFIX ## _BASE_SYMBOL ## SUFFIX_END   [] __asm__(str_binary_prefix str_identifier #SUFFIX_END ); \
+extern const unsigned char PREFIX ## _BASE_SYMBOL ## SUFFIX_START [] asm__(str_binary_prefix str_identifier #SUFFIX_START); \
+extern const unsigned char PREFIX ## _BASE_SYMBOL ## SUFFIX_END   [] asm__(str_binary_prefix str_identifier #SUFFIX_END ); \
 
 #define  DECLARE_RES_RESOLVE(_BASE_SYMBOL, str_identifier, PREFIX, SUFFIX_START, SUFFIX_END, str_binary_prefix) DECLARE_RES_IMPL(_BASE_SYMBOL, str_identifier, PREFIX, SUFFIX_START, SUFFIX_END, str_binary_prefix)
 

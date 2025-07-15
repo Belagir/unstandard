@@ -1,6 +1,6 @@
 
-#ifndef __UNSIGNALS_IMPL_H__
-#define __UNSIGNALS_IMPL_H__
+#ifndef UNSIGNALS_IMPL_H__
+#define UNSIGNALS_IMPL_H__
 
 #include <stddef.h>
 #include <stdint.h>

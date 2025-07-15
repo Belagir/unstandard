@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_RRANGE_H__
-#define __UNSTANDARD_RRANGE_H__
+#ifndef UNSTANDARD_RRANGE_H__
+#define UNSTANDARD_RRANGE_H__
 
 #include "allocation.h"
 #include "common.h"
@@ -23,17 +23,17 @@
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
-#define RANGE_CREATE_STATIC(type_, capacity_, ...) { .length = COUNT_OF(((type_[]) __VA_ARGS__)), .capacity = capacity_, .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC(type_, capacity_, ...) { .length = COUNT_OF(((type_[]) VA_ARGS__)), .capacity = capacity_, .data = VA_ARGS__ }
 
 /**
  * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
-#define RANGE_CREATE_STATIC_FIT(type_, ...) { .length = COUNT_OF(((type_[]) __VA_ARGS__)), .capacity = COUNT_OF(((type_[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC_FIT(type_, ...) { .length = COUNT_OF(((type_[]) VA_ARGS__)), .capacity = COUNT_OF(((type_[]) VA_ARGS__)), .data = VA_ARGS__ }
 
 /**
  * @brief Fetches the last value in a range (without bound check !) or some value at an index from the last element of the range.
  */
-#define RANGE_LAST(range_, ...) (range_)->data[((range_)->length - 1) __VA_OPT__(+) __VA_ARGS__]
+#define RANGE_LAST(range_, ...) (range_)->data[((range_)->length - 1) VA_OPT__(+) VA_ARGS__]
 
 /**
  * @brief Anonymous range used for the methods' abstraction layer.
@@ -237,7 +237,6 @@ void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any tar
  * @return 1 if the lhs range is greater (or longer) than the rhs range, -1 for the opposite, and 0 if they are similar.
  */
 i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f);
-
 
 /**
  * @brief

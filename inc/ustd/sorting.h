@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_SORTING_H__
-#define __UNSTANDARD_SORTING_H__
+#ifndef UNSTANDARD_SORTING_H__
+#define UNSTANDARD_SORTING_H__
 
 #include "common.h"
 #include <ustd/range.h>

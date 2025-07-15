@@ -1,6 +1,6 @@
 
-#ifndef __UNSTANDARD_MATH_2D_H__
-#define __UNSTANDARD_MATH_2D_H__
+#ifndef UNSTANDARD_MATH_2D_H__
+#define UNSTANDARD_MATH_2D_H__
 
 #include "common.h"
 #include "math.h"

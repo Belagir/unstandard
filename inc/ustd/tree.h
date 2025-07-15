@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_TEEMING_TREE_H__
-#define __UNSTANDARD_TEEMING_TREE_H__
+#ifndef UNSTANDARD_TEEMING_TREE_H__
+#define UNSTANDARD_TEEMING_TREE_H__
 
 #include "allocation.h"
 
@@ -81,7 +81,7 @@ ttree_path *ttree_get_path_absolute(allocator alloc, ttree *tree, range_any elem
  */
 ttree_path *ttree_get_path_relative(allocator alloc, ttree_path *path, range_any elements_range, comparator_f comp);
 
-#define ttree_get_path(__alloc, X, __elements_range, __comp) ( _Generic(X, ttree * : ttree_get_path_absolute, ttree_path * : ttree_get_path_relative) )(__alloc, X, __elements_range, __comp)
+#define ttree_get_path(__alloc, X, elements_range, comp) ( _Generic(X, ttree * : ttree_get_path_absolute, ttree_path * : ttree_get_path_relative) )(__alloc, X, elements_range, comp)
 
 /**
  * @brief

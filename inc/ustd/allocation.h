@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2023
  */
 
-#ifndef __UNSTANDARD_ALLOCATION_H__
-#define __UNSTANDARD_ALLOCATION_H__
+#ifndef UNSTANDARD_ALLOCATION_H__
+#define UNSTANDARD_ALLOCATION_H__
 
 #include "common.h"
 

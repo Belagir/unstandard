@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_COMMON_H__
-#define __UNSTANDARD_COMMON_H__
+#ifndef UNSTANDARD_COMMON_H__
+#define UNSTANDARD_COMMON_H__
 
 #include <stddef.h>
 #include <stdint.h>
@@ -40,6 +40,10 @@ typedef double f64; ///< convenience type redefinition
 
 #ifndef nullptr
 #define nullptr (nullptr_t) (0)
+#endif
+
+#ifndef bool
+#define bool u32
 #endif
 
 #ifndef true

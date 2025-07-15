@@ -11,8 +11,8 @@
  * @copyright Copyright (c) 2024
  *
  */
-#ifndef __UNSIGNALS_H__
-#define __UNSIGNALS_H__
+#ifndef UNSIGNALS_H__
+#define UNSIGNALS_H__
 
 /**
  * @brief Signal return code.
