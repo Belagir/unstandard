@@ -92,7 +92,7 @@ size_t array_capacity(const void *array);
  * @param nb_elements_max
  * @return void*
  */
-void *array_create(allocator alloc, size_t size_element, size_t nb_elements_max);
+void *array_create(allocator alloc, u32 size_element, size_t nb_elements_max);
 
 /**
  * @brief
@@ -100,7 +100,7 @@ void *array_create(allocator alloc, size_t size_element, size_t nb_elements_max)
  * @param alloc
  * @param array
  */
-void array_destroy(allocator alloc, void *array);
+void array_destroy(allocator alloc, void **array);
 
 /**
  * @brief

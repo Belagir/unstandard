@@ -31,6 +31,6 @@ struct array_impl {
  * @param some_array
  * @return struct array_impl
  */
-struct array_impl array_impl_of(void *some_array);
+struct array_impl *array_impl_of(void *some_array);
 
 #endif
