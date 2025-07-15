@@ -113,6 +113,13 @@ tst_CREATE_TEST_SCENARIO(array_i32_insertion,
             bool success = array_insert_value(array, data->insert_at, &data->inserted_val);
             tst_assert_equal(success, data->expect_insertion, "insertion success of %d");
 
+            if (success) {
+                tst_assert_equal(data->inserted_val, array[data->insert_at], "value in array of %d");
+                tst_assert_equal(data->existing_length+1, array_impl_of(array)->length, "length of %ld");
+            } else {
+                tst_assert_equal(data->existing_length, array_impl_of(array)->length, "length of %ld");
+            }
+
             array_destroy(make_system_allocator(), (void **) &array);
         }
 )
