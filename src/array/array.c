@@ -67,7 +67,7 @@ bool array_insert_value(void *array, size_t index, const void *value)
 
     insertion_byte_pos = index * target->stride;
 
-    for (size_t i = (target->length*target->stride) ; i >= insertion_byte_pos ; i--) {
+    for (i64 i = (i64) (target->length*target->stride) ; i >= (i64) insertion_byte_pos ; i--) {
         target->data[i+target->stride] = target->data[i];
     }
 
