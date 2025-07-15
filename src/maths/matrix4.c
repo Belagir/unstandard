@@ -4,10 +4,10 @@
 #include <math.h>
 
 // -------------------------------------------------------------------------------------------------
-matrix4_t
+matrix4
 matrix4_identity(void)
 {
-    return (matrix4_t) {
+    return (matrix4) {
              1, 0, 0, 0,
              0, 1, 0, 0,
              0, 0, 1, 0,
@@ -16,38 +16,42 @@ matrix4_identity(void)
 }
 
 // -------------------------------------------------------------------------------------------------
-void
-matrix4_to_array(matrix4_t m, f32 (*array)[16u])
+matrix4
+matrix4_translate(matrix4 m, vector3 offset)
 {
-    (*array)[0u] = m.m0;
-    (*array)[1u] = m.m1;
-    (*array)[2u] = m.m2;
-    (*array)[3u] = m.m3;
+    m.m12 += offset.x;
+    m.m13 += offset.y;
+    m.m14 += offset.z;
 
-    (*array)[4u] = m.m4;
-    (*array)[5u] = m.m5;
-    (*array)[6u] = m.m6;
-    (*array)[7u] = m.m7;
-
-    (*array)[8u] = m.m8;
-    (*array)[9u] = m.m9;
-    (*array)[10u] = m.m10;
-    (*array)[11u] = m.m11;
-
-    (*array)[12u] = m.m12;
-    (*array)[13u] = m.m13;
-    (*array)[14u] = m.m14;
-    (*array)[15u] = m.m15;
+    return m;
 }
 
 // -------------------------------------------------------------------------------------------------
-matrix4_t
-matrix4_get_view_matrix(vector3_t eye, vector3_t target, vector3_t up)
+matrix4
+matrix4_scale(matrix4 m, vector3 scale)
 {
-    matrix4_t matrix_out = { 0u };
-    vector3_t vz = { 0u };
-    vector3_t vx = { 0u };
-    vector3_t vy = { 0u };
+    m.m0  *= scale.x;
+    m.m5  *= scale.y;
+    m.m10 *= scale.z;
+
+    return m;
+}
+
+// -------------------------------------------------------------------------------------------------
+vector3
+matrix4_origin(matrix4 m)
+{
+    return (vector3) { m.m12, m.m13, m.m14 };
+}
+
+// -------------------------------------------------------------------------------------------------
+matrix4
+matrix4_get_view_matrix(vector3 eye, vector3 target, vector3 up)
+{
+    matrix4 matrix_out = { 0u };
+    vector3 vz = { 0u };
+    vector3 vx = { 0u };
+    vector3 vy = { 0u };
 
     matrix_out = matrix4_identity();
 
@@ -79,10 +83,10 @@ matrix4_get_view_matrix(vector3_t eye, vector3_t target, vector3_t up)
 }
 
 // -------------------------------------------------------------------------------------------------
-matrix4_t
+matrix4
 matrix4_get_projection_matrix(f32 near_distance, f32 far_distance, f32 fov, f32 aspect)
 {
-    matrix4_t matrix_out = { 0u };
+    matrix4 matrix_out = { 0u };
     f64 top = 0.0f;
     f64 bottom = 0.0f;
     f64 left = 0.0f;
@@ -115,10 +119,10 @@ matrix4_get_projection_matrix(f32 near_distance, f32 far_distance, f32 fov, f32 
 }
 
 // -------------------------------------------------------------------------------------------------
-matrix4_t
+matrix4
 matrix4_get_model_matrix(f32 x, f32 y, f32 z, f32 scale)
 {
-    matrix4_t matrix_out = { 0u };
+    matrix4 matrix_out = { 0u };
 
     matrix_out = matrix4_identity();
 

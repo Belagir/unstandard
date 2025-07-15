@@ -64,9 +64,12 @@ void uthread_master_destroy(struct uthread_master **tm)
  */
 uthread_handle uthread_start(struct uthread_master *tm, uthread_routine routine, void *args, size_t args_size, size_t payout_size)
 {
+
+    (void)payout_size;
+
     if (!routine || !tm || (!args && args_size > 0u)) {
         return UTHREAD_HANDLE_INVALID;
     }
 
-
+    return UTHREAD_HANDLE_INVALID;
 }

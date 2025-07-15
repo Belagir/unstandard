@@ -9,26 +9,31 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_RRANGE_H__
-#define __UNSTANDARD_RRANGE_H__
+#ifndef UNSTANDARD_RRANGE_H__
+#define UNSTANDARD_RRANGE_H__
 
-#include <ustd/allocation.h>
-#include <ustd/common.h>
+#include "allocation.h"
+#include "common.h"
 
 /**
  * @brief Type definition of a range holding contiguous, typed values.
  */
-#define RANGE(__type, ...) struct { size_t length; size_t capacity; __type data[__VA_ARGS__]; }
+#define RANGE(type_, ...) struct { size_t length; size_t capacity; type_ data[__VA_ARGS__]; }
 
 /**
  * @brief Initializer of a range of a certain size that will live in the scope it was created in.
  */
-#define RANGE_CREATE_STATIC(__type, __capacity, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = __capacity, .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC(type_, capacity_, ...) { .length = COUNT_OF(((type_[]) __VA_ARGS__)), .capacity = capacity_, .data = __VA_ARGS__ }
 
 /**
  * @brief Initializer of a range of a size determined by the number of passed elements that will live in the scope it was created in.
  */
-#define RANGE_CREATE_STATIC_FIT(__type, ...) { .length = COUNT_OF(((__type[]) __VA_ARGS__)), .capacity = COUNT_OF(((__type[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+#define RANGE_CREATE_STATIC_FIT(type_, ...) { .length = COUNT_OF(((type_[]) __VA_ARGS__)), .capacity = COUNT_OF(((type_[]) __VA_ARGS__)), .data = __VA_ARGS__ }
+
+/**
+ * @brief Fetches the last value in a range (without bound check !) or some value at an index from the last element of the range.
+ */
+#define RANGE_LAST(range_, ...) (range_)->data[((range_)->length - 1) __VA_OPT__(+) __VA_ARGS__]
 
 /**
  * @brief Anonymous range used for the methods' abstraction layer.
@@ -50,7 +55,7 @@ typedef struct {
 /**
  * @brief Converts a range into a data structure that can be passed to this module's methods. The value created lives on the scope of creation.
  */
-#define RANGE_TO_ANY(__range) (range_any) { .r = (range_anonymous *) __range, .stride = sizeof(*(__range)->data) }
+#define RANGE_TO_ANY(range_) (range_any) { .r = (range_anonymous *) range_, .stride = sizeof(*(range_)->data) }
 
 /**
  * @brief Inserts a value by shallow copy in a range at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
@@ -77,6 +82,17 @@ bool range_insert_value(range_any target, size_t index, const void *value);
 bool range_insert_range(range_any target, size_t index, const range_any other);
 
 /**
+ * @brief Pushes a value (by shallow copy of whatever is behind the anonymous pointer) at the end of a range if some space can be found for it.
+ * If the value was successfully inserted, true is returned, false otherwise.
+ *
+ * @param[inout] target target range
+ * @param[in] value pointer to the pushed value
+ * @return true if the element was inserted
+ * @return false if the range did not have space
+ */
+bool range_push(range_any target, const void *value);
+
+/**
  * @brief Removes an element from a range by index.
  *
  * @param[inout] target target range
@@ -97,6 +113,15 @@ bool range_remove(range_any target, size_t index);
  * @return false if the bounds provided were invalid
  */
 bool range_remove_interval(range_any target, size_t from, size_t to);
+
+/**
+ * @brief Removes the last element in a range.
+ *
+ * @param[inout] target target range
+ * @return true if the tail element was removed
+ * @return false if the range was empty
+ */
+bool range_pop(range_any target);
 
 /**
  * @brief Clears a range of all its content.
@@ -212,7 +237,6 @@ void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any tar
  * @return 1 if the lhs range is greater (or longer) than the rhs range, -1 for the opposite, and 0 if they are similar.
  */
 i32 range_compare(const range_any *range_lhs, const range_any *range_rhs, comparator_f comp_f);
-
 
 /**
  * @brief

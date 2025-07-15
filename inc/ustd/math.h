@@ -9,15 +9,16 @@
  *
  */
 
-#ifndef __UNSTANDARD_MATH_H__
-#define __UNSTANDARD_MATH_H__
+#ifndef UNSTANDARD_MATH_H__
+#define UNSTANDARD_MATH_H__
 
-#include <ustd/common.h>
+#include "common.h"
 
 #define SQRT_OF_3 (1.73205f)      ///< approximation of the square root of 3
 #define THREE_HALVES (1.5f)       ///< not an *approximation* of 3 / 2
 #define PI (3.14159265359f)
 #define PI_T_2 ((2.0f) * (PI))    ///< 2 times pi
+#define TAU PI_T_2
 
 #define RAD_TO_DEG (57.2957795131f)
 #define DEG_TO_RAD (0.0174532925199f)

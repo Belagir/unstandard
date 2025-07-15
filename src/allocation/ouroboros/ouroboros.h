@@ -1,6 +1,6 @@
 
-#ifndef __UNSTANDARD_OUROBOROS_H__
-#define __UNSTANDARD_OUROBOROS_H__
+#ifndef UNSTANDARD_OUROBOROS_H__
+#define UNSTANDARD_OUROBOROS_H__
 
 #include <ustd/common.h>
 

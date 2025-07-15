@@ -1,6 +1,14 @@
 
 #include <ustd/common.h>
 
+// -------------------------------------------------------------------------------------------------
+i32 raw_pointer_compare(const void *lhs, const void *rhs)
+{
+    uintptr_t lhs_val = (uintptr_t) *(const void **) lhs;
+    uintptr_t rhs_val = (uintptr_t) *(const void **) rhs;
+
+    return (lhs_val > rhs_val) - (lhs_val < rhs_val);
+}
 
 // -------------------------------------------------------------------------------------------------
 void bytewise_copy(void *dest, const void *source, size_t nb_bytes)

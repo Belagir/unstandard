@@ -20,16 +20,16 @@ EXC_DIR = bin
 RESDIR = res
 
 ## compiler
-CC = gcc-13
-## resource packer
-RESPACKER = ld
+CC = gcc
+## archiver
+AR = ar
 
 ## compilation flags
-CFLAGS += -Wextra -Wconversion -Wdangling-pointer -Wparentheses -Wpedantic -Wstringop-overflow -Wnonnull -g --std=c2x
+CFLAGS += -Wall -Wextra -Wconversion -Wdangling-pointer -Wparentheses -Wpedantic -Wstringop-overflow -Wnonnull -g --std=c2x
 ## linker flags
 LFLAGS += -lm
-# resource packing flags
-RESFLAGS = -r -b binary -z noexecstack
+## archiver flags
+ARFLAGS = rvcs
 
 # additional flags for defines
 DFLAGS += -DDEBUG
@@ -44,12 +44,6 @@ SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
 DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 ## list of all target object files with their path
 OBJ := $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
-## list of all resources files without their directory
-RES := $(notdir $(shell find $(RESDIR)/ -type f))
-## list of all target binaries resource files to include in the binary
-RES_BIN := $(addprefix $(OBJ_DIR)/, $(addsuffix .resbin, $(RES)))
-## list of all duplicate resource files to enforce uniqueness of filenames
-DUPL_RES := $(strip $(shell echo $(RES) | tr ' ' '\n' | sort | uniq -d))
 
 ## makefile-managed directories
 BUILD_DIRS = $(EXC_DIR) $(OBJ_DIR)
@@ -80,9 +74,6 @@ $(TARGET): $(OBJ) $(RES_BIN)
 $(OBJ_DIR)/%.o: %.c
 	$(CC) -c $? -o $@ $(ARGS_INCL) $(CFLAGS) $(DFLAGS)
 
-$(OBJ_DIR)/%.resbin: $(RESDIR)/%
-	$(RESPACKER) $(RESFLAGS) $? -o $@
-
 # -------- dir spawning ----------------
 
 $(BUILD_DIRS):
@@ -93,9 +84,6 @@ $(BUILD_DIRS):
 check:
 ifdef DUPL_SRC
 	$(error duplicate source filenames: $(DUPL_SRC))
-endif
-ifdef DUPL_RES
-	$(error duplicate resource filenames: $(DUPL_RES))
 endif
 
 # -------- cleaning --------------------

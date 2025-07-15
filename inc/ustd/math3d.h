@@ -8,35 +8,35 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_MATH_3D_H__
-#define __UNSTANDARD_MATH_3D_H__
+#ifndef UNSTANDARD_MATH_3D_H__
+#define UNSTANDARD_MATH_3D_H__
 
-#include <ustd/math.h>
+#include "math.h"
 
-#define VECTOR3_X_POSITIVE ((vector3_t) {  1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to +x (cockatrice's forward)
-#define VECTOR3_Y_POSITIVE ((vector3_t) {  0.0f,  1.0f,  0.0f })        ///< unit 3D vector pointing to +y (cockatrice's up)
-#define VECTOR3_Z_POSITIVE ((vector3_t) {  0.0f,  0.0f,  1.0f })        ///< unit 3D vector pointing to +z (cockatrice's right)
+#define VECTOR3_X_POSITIVE ((vector3) {  1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to +x (cockatrice's forward)
+#define VECTOR3_Y_POSITIVE ((vector3) {  0.0f,  1.0f,  0.0f })        ///< unit 3D vector pointing to +y (cockatrice's up)
+#define VECTOR3_Z_POSITIVE ((vector3) {  0.0f,  0.0f,  1.0f })        ///< unit 3D vector pointing to +z (cockatrice's right)
 
-#define VECTOR3_X_NEGATIVE ((vector3_t) { -1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to -x (cockatrice's backward)
-#define VECTOR3_Y_NEGATIVE ((vector3_t) {  0.0f, -1.0f,  0.0f })        ///< unit 3D vector pointing to -y (cockatrice's up)
-#define VECTOR3_Z_NEGATIVE ((vector3_t) {  0.0f,  0.0f, -1.0f })        ///< unit 3D vector pointing to -z (cockatrice's left)
+#define VECTOR3_X_NEGATIVE ((vector3) { -1.0f,  0.0f,  0.0f })        ///< unit 3D vector pointing to -x (cockatrice's backward)
+#define VECTOR3_Y_NEGATIVE ((vector3) {  0.0f, -1.0f,  0.0f })        ///< unit 3D vector pointing to -y (cockatrice's up)
+#define VECTOR3_Z_NEGATIVE ((vector3) {  0.0f,  0.0f, -1.0f })        ///< unit 3D vector pointing to -z (cockatrice's left)
 
-#define VECTOR3_ORIGIN ((vector3_t) { 0.0f,  0.0f, 0.0f })             ///< zero 3D vector
+#define VECTOR3_ORIGIN ((vector3) { 0.0f,  0.0f, 0.0f })             ///< zero 3D vector
 
 /**
  * @brief 3D vector.
  */
-typedef struct vector3_t
+typedef struct vector3
 {
     f32 x;
     f32 y;
     f32 z;
-} vector3_t;
+} vector3;
 
 /**
  * @brief Quaternion.
  */
-typedef struct quaternion_t
+typedef struct quaternion
 {
     // complex part
     f32 i;
@@ -44,94 +44,94 @@ typedef struct quaternion_t
     f32 k;
     // real part
     f32 w;
-} quaternion_t;
+} quaternion;
 
 /**
  * @brief 4x4 matrix.
  */
-typedef struct matrix4_t
+typedef struct matrix4
 {
-    f32 m0, m4, m8,  m12;
-    f32 m1, m5, m9,  m13;
-    f32 m2, m6, m10, m14;
-    f32 m3, m7, m11, m15;
-} matrix4_t;
+    f32 m0,  m1,  m2,  m3;
+    f32 m4,  m5,  m6,  m7;
+    f32 m8,  m9,  m10, m11;
+    f32 m12, m13, m14, m15;
+} matrix4;
 
 /**
  * @brief
  *
  * @param v1
  * @param v2
- * @return vector3_t
+ * @return vector3
  */
-vector3_t
-vector3_add(vector3_t v1, vector3_t v2);
+vector3
+vector3_add(vector3 v1, vector3 v2);
 
 /**
  * @brief
  *
  * @param scale
  * @param v1
- * @return vector3_t
+ * @return vector3
  */
-vector3_t
-vector3_scale(f32 scale, vector3_t v1);
+vector3
+vector3_scale(f32 scale, vector3 v1);
 
 /**
  * @brief
  *
  */
 f32
-vector3_euclidian_norm(vector3_t v);
+vector3_euclidian_norm(vector3 v);
 
 /**
  * @brief
  *
  * @param v
- * @return vector3_t
+ * @return vector3
  */
-vector3_t
-vector3_normalize(vector3_t v);
+vector3
+vector3_normalize(vector3 v);
 
 /**
  * @brief
  *
  * @param vector
  * @param rotation
- * @return vector3_t
+ * @return vector3
  */
-vector3_t
-vector3_rotate_by_quaternion(vector3_t vector, quaternion_t rotation);
+vector3
+vector3_rotate_by_quaternion(vector3 vector, quaternion rotation);
 
 /**
  * @brief
  *
  * @param v1
  * @param v2
- * @return vector3_t
+ * @return vector3
  */
-vector3_t
-vector3_substract(vector3_t v1, vector3_t v2);
+vector3
+vector3_substract(vector3 v1, vector3 v2);
 
 /**
  * @brief
  *
  * @param v1
  * @param v2
- * @return vector3_t
+ * @return vector3
  */
-vector3_t
-vector3_cross_product(vector3_t v1, vector3_t v2);
+vector3
+vector3_cross_product(vector3 v1, vector3 v2);
 
 /**
  * @brief
  *
  * @param v1
  * @param v2
- * @return vector3_t
+ * @return vector3
  */
 f32
-vector3_dot_product(vector3_t v1, vector3_t v2);
+vector3_dot_product(vector3 v1, vector3 v2);
 
 /**
  * @brief
@@ -142,14 +142,14 @@ vector3_dot_product(vector3_t v1, vector3_t v2);
  * @return u32
  */
 u32
-vector3_is_almost_equal(vector3_t v1, vector3_t v2, u32 max_ulps_diff);
+vector3_is_almost_equal(vector3 v1, vector3 v2, u32 max_ulps_diff);
 
 /**
  * @brief
  *
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
+quaternion
 quaternion_identity(void);
 
 /**
@@ -157,57 +157,48 @@ quaternion_identity(void);
  *
  * @param q1
  * @param q2
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_multiply(quaternion_t q1, quaternion_t q2);
+quaternion
+quaternion_multiply(quaternion q1, quaternion q2);
 
 /**
  * @brief
  *
  * @param axis
  * @param angle
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_from_axis_and_angle(vector3_t axis, f32 angle);
+quaternion
+quaternion_from_axis_and_angle(vector3 axis, f32 angle);
 
 /**
  * @brief
  *
  * @param v1
  * @param v2
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_from_vector3_to_vector3(vector3_t v1, vector3_t v2);
+quaternion
+quaternion_from_vector3_to_vector3(vector3 v1, vector3 v2);
 
 /**
  * @brief
  *
  * @param q
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_conjugate(quaternion_t q);
+quaternion
+quaternion_conjugate(quaternion q);
 
 /**
  * @brief
  *
  * @param q
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_invert(quaternion_t q);
-
-/**
- * @brief
- *
- * @param q
- * @return f32
- */
-f32
-quaternion_euclidian_norm(quaternion_t q);
+quaternion
+quaternion_invert(quaternion q);
 
 /**
  * @brief
@@ -216,17 +207,26 @@ quaternion_euclidian_norm(quaternion_t q);
  * @return f32
  */
 f32
-quaternion_euclidian_norm_squared(quaternion_t q);
+quaternion_euclidian_norm(quaternion q);
+
+/**
+ * @brief
+ *
+ * @param q
+ * @return f32
+ */
+f32
+quaternion_euclidian_norm_squared(quaternion q);
 
 /**
  * @brief
  *
  * @param scale
  * @param q
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_scale(f32 scale, quaternion_t q);
+quaternion
+quaternion_scale(f32 scale, quaternion q);
 
 /**
  * @brief
@@ -236,35 +236,35 @@ quaternion_scale(f32 scale, quaternion_t q);
  * @return f32
  */
 f32
-quaternion_dot_product(quaternion_t q1, quaternion_t q2);
+quaternion_dot_product(quaternion q1, quaternion q2);
 
 /**
  * @brief
  *
  * @param q
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_normalize(quaternion_t q);
+quaternion
+quaternion_normalize(quaternion q);
 
 /**
  * @brief
  *
  * @param q
- * @return matrix4_t
+ * @return matrix4
  */
-matrix4_t
-quaternion_to_matrix(quaternion_t q);
+matrix4
+quaternion_to_matrix(quaternion q);
 
 /**
  * @brief
  *
  * @param q1
  * @param q2
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 amount);
+quaternion
+quaternion_linear_interpolation(quaternion q1, quaternion q2, f32 amount);
 
 /**
  * @brief
@@ -272,10 +272,10 @@ quaternion_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 amount);
  * @param q1
  * @param q2
  * @param amount
- * @return quaternion_t
+ * @return quaternion
  */
-quaternion_t
-quaternion_spherical_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 amount);
+quaternion
+quaternion_spherical_linear_interpolation(quaternion q1, quaternion q2, f32 amount);
 
 /**
  * @brief
@@ -284,14 +284,14 @@ quaternion_spherical_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 
  * @return f32
  */
 f32
-quaternion_geodesic_distance(quaternion_t q1, quaternion_t q2);
+quaternion_geodesic_distance(quaternion q1, quaternion q2);
 
 /**
  * @brief
  *
  */
-quaternion_t
-quaternion_spherical_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 amount);
+quaternion
+quaternion_spherical_linear_interpolation(quaternion q1, quaternion q2, f32 amount);
 
 #ifdef UNITTESTING
 void
@@ -301,17 +301,39 @@ quaternion_execute_unittests(void);
 /**
  * @brief
  *
- * @return matrix4_t
+ * @return matrix4
  */
-matrix4_t
+matrix4
 matrix4_identity(void);
 
 /**
  * @brief
  *
+ * @param m
+ * @param offset
+ * @return matrix4
  */
-void
-matrix4_to_array(matrix4_t m, f32 (*array)[16u]);
+matrix4
+matrix4_translate(matrix4 m, vector3 offset);
+
+/**
+ * @brief
+ *
+ * @param m
+ * @param scale
+ * @return matrix4
+ */
+matrix4
+matrix4_scale(matrix4 m, vector3 scale);
+
+/**
+ * @brief
+ *
+ * @param m
+ * @return vector3
+ */
+vector3
+matrix4_origin(matrix4 m);
 
 /**
  * @brief
@@ -319,10 +341,10 @@ matrix4_to_array(matrix4_t m, f32 (*array)[16u]);
  * @param eye
  * @param target
  * @param up
- * @return matrix4_t
+ * @return matrix4
  */
-matrix4_t
-matrix4_get_view_matrix(vector3_t eye, vector3_t target, vector3_t up);
+matrix4
+matrix4_get_view_matrix(vector3 eye, vector3 target, vector3 up);
 
 /**
  * @brief
@@ -331,9 +353,9 @@ matrix4_get_view_matrix(vector3_t eye, vector3_t target, vector3_t up);
  * @param far_distance
  * @param fov
  * @param aspect
- * @return matrix4_t
+ * @return matrix4
  */
-matrix4_t
+matrix4
 matrix4_get_projection_matrix(f32 near_distance, f32 far_distance, f32 fov, f32 aspect);
 
 /**
@@ -343,9 +365,9 @@ matrix4_get_projection_matrix(f32 near_distance, f32 far_distance, f32 fov, f32 
  * @param y
  * @param z
  * @param scale
- * @return matrix4_t
+ * @return matrix4
  */
-matrix4_t
+matrix4
 matrix4_get_model_matrix(f32 x, f32 y, f32 z, f32 scale);
 
 #endif

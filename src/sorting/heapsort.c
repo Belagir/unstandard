@@ -48,15 +48,13 @@ void heapsort_sort(range_any array, comparator_f comparator)
 // -------------------------------------------------------------------------------------------------
 static void swap_pointed(u8 pos1[static 1], u8 pos2[static 1], size_t datasize)
 {
-   u8 tmp;
+   u8 tmp = 0;
 
-   if (pos1 && pos2) {
-      for (size_t i = 0 ; i < datasize ; i++) {
-         tmp = pos1[i];
-         pos1[i] = pos2[i];
-         pos2[i] = tmp;
-      }
-   }
+    for (size_t i = 0 ; i < datasize ; i++) {
+        tmp = pos1[i];
+        pos1[i] = pos2[i];
+        pos2[i] = tmp;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

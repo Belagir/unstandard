@@ -9,8 +9,8 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef __UNSTANDARD_LOGGER_H__
-#define __UNSTANDARD_LOGGER_H__
+#ifndef UNSTANDARD_LOGGER_H__
+#define UNSTANDARD_LOGGER_H__
 
 #include <stdio.h>
 #include <stdarg.h>

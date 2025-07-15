@@ -11,24 +11,24 @@
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
+quaternion
 quaternion_identity(void)
 {
-    return (quaternion_t) { 0.0f, 0.0f, 0.0f, 1.0f };
+    return (quaternion) { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_add(quaternion_t q1, quaternion_t q2)
+quaternion
+quaternion_add(quaternion q1, quaternion q2)
 {
-    return (quaternion_t) { q1.i + q2.i, q1.j + q2.j, q1.k + q2.k, q1.w + q2.w };
+    return (quaternion) { q1.i + q2.i, q1.j + q2.j, q1.k + q2.k, q1.w + q2.w };
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_multiply(quaternion_t q1, quaternion_t q2)
+quaternion
+quaternion_multiply(quaternion q1, quaternion q2)
 {
-    quaternion_t result = { 0u };
+    quaternion result = { 0u };
 
     result.w = (q1.w * q2.w) - (q1.i * q2.i) - (q1.j * q2.j) - (q1.k * q2.k);
     result.i = (q1.j * q2.k) - (q1.k * q2.j) + (q1.w * q2.i) + (q1.i * q2.w);
@@ -39,11 +39,11 @@ quaternion_multiply(quaternion_t q1, quaternion_t q2)
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_from_axis_and_angle(vector3_t axis, f32 angle)
+quaternion
+quaternion_from_axis_and_angle(vector3 axis, f32 angle)
 {
-    quaternion_t result = { 0u };
-    vector3_t normalized_axis = { 0u };
+    quaternion result = { 0u };
+    vector3 normalized_axis = { 0u };
     f32 half_angle = 0.0f;
     f32 sin_of_half_angle = 0.0f;
 
@@ -66,12 +66,12 @@ quaternion_from_axis_and_angle(vector3_t axis, f32 angle)
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_from_vector3_to_vector3(vector3_t v_from, vector3_t v_to)
+quaternion
+quaternion_from_vector3_to_vector3(vector3 v_from, vector3 v_to)
 {
-    quaternion_t result = { 0u };
+    quaternion result = { 0u };
     f32 dot_product = 0.0f;
-    vector3_t cross_product = { 0u };
+    vector3 cross_product = { 0u };
 
     dot_product = vector3_dot_product(v_from, v_to);
     cross_product = vector3_cross_product(v_from, v_to);
@@ -87,42 +87,42 @@ quaternion_from_vector3_to_vector3(vector3_t v_from, vector3_t v_to)
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_conjugate(quaternion_t q)
+quaternion
+quaternion_conjugate(quaternion q)
 {
-    return (quaternion_t) { .i = -q.i, .j = -q.j, .k = -q.k, .w = q.w };
+    return (quaternion) { .i = -q.i, .j = -q.j, .k = -q.k, .w = q.w };
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_invert(quaternion_t q)
+quaternion
+quaternion_invert(quaternion q)
 {
     return quaternion_scale(1.0f / quaternion_euclidian_norm_squared(q), quaternion_conjugate(q));
 }
 
 // -------------------------------------------------------------------------------------------------
 f32
-quaternion_euclidian_norm(quaternion_t q)
+quaternion_euclidian_norm(quaternion q)
 {
     return sqrtf(quaternion_euclidian_norm_squared(q));
 }
 
 // -------------------------------------------------------------------------------------------------
 f32
-quaternion_euclidian_norm_squared(quaternion_t q)
+quaternion_euclidian_norm_squared(quaternion q)
 {
     return (q.i * q.i) + (q.j * q.j) + (q.k * q.k) + (q.w * q.w);
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_scale(f32 scale, quaternion_t q)
+quaternion
+quaternion_scale(f32 scale, quaternion q)
 {
-    return (quaternion_t) { .i = (scale * q.i), .j = (scale * q.j), .k = (scale * q.k), .w = (scale * q.w) };
+    return (quaternion) { .i = (scale * q.i), .j = (scale * q.j), .k = (scale * q.k), .w = (scale * q.w) };
 }
 
 f32
-quaternion_dot_product(quaternion_t q1, quaternion_t q2)
+quaternion_dot_product(quaternion q1, quaternion q2)
 {
     f32 result = 0.0f;
 
@@ -132,8 +132,8 @@ quaternion_dot_product(quaternion_t q1, quaternion_t q2)
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_normalize(quaternion_t q)
+quaternion
+quaternion_normalize(quaternion q)
 {
     f32 length = 0.0f;
     f32 inv_length = 0.0f;
@@ -147,14 +147,14 @@ quaternion_normalize(quaternion_t q)
 
     inv_length = 1.0f / length;
 
-    return (quaternion_t) { .i = q.i * inv_length, .j = q.j * inv_length, .k = q.k * inv_length, .w = q.w * inv_length };
+    return (quaternion) { .i = q.i * inv_length, .j = q.j * inv_length, .k = q.k * inv_length, .w = q.w * inv_length };
 }
 
 // -------------------------------------------------------------------------------------------------
-matrix4_t
-quaternion_to_matrix(quaternion_t q)
+matrix4
+quaternion_to_matrix(quaternion q)
 {
-    matrix4_t result = matrix4_identity();
+    matrix4 result = matrix4_identity();
 
     f32 a2 = q.i * q.i;
     f32 b2 = q.j * q.j;
@@ -182,10 +182,10 @@ quaternion_to_matrix(quaternion_t q)
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 amount)
+quaternion
+quaternion_linear_interpolation(quaternion q1, quaternion q2, f32 amount)
 {
-    quaternion_t result = { 0 };
+    quaternion result = { 0 };
 
     result.i = q1.i + amount * (q2.i - q1.i);
     result.j = q1.j + amount * (q2.j - q1.j);
@@ -196,8 +196,8 @@ quaternion_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 amount)
 }
 
 // -------------------------------------------------------------------------------------------------
-quaternion_t
-quaternion_spherical_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 amount)
+quaternion
+quaternion_spherical_linear_interpolation(quaternion q1, quaternion q2, f32 amount)
 {
     const f32 angle = acosf(quaternion_dot_product(q1, q2));
     const f32 denom = sinf(angle);
@@ -218,7 +218,7 @@ quaternion_spherical_linear_interpolation(quaternion_t q1, quaternion_t q2, f32 
 
 // -------------------------------------------------------------------------------------------------
 f32
-quaternion_geodesic_distance(quaternion_t q1, quaternion_t q2)
+quaternion_geodesic_distance(quaternion q1, quaternion q2)
 {
     f32 dot_product = 0.0f;
 
@@ -242,10 +242,10 @@ quaternion_geodesic_distance(quaternion_t q1, quaternion_t q2)
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(quaternion_identity,
         {
-            quaternion_t original_quaternion;
+            quaternion original_quaternion;
         },
         {
-            quaternion_t id_quaternion = data->original_quaternion;
+            quaternion id_quaternion = data->original_quaternion;
 
             id_quaternion = quaternion_identity();
 
@@ -269,13 +269,13 @@ tst_CREATE_TEST_CASE(quaternion_identity_positive, quaternion_identity,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(quaternion_multiplication,
         {
-            quaternion_t first_operand;
-            quaternion_t second_operand;
+            quaternion first_operand;
+            quaternion second_operand;
 
-            quaternion_t expected_result;
+            quaternion expected_result;
         },
         {
-            quaternion_t result = { 0u };
+            quaternion result = { 0u };
 
             result = quaternion_multiply(data->first_operand, data->second_operand);
 
@@ -323,11 +323,11 @@ tst_CREATE_TEST_CASE(quaternion_multiplication_with_zero_inverted, quaternion_mu
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(quaternion_conjugate,
         {
-            quaternion_t input;
-            quaternion_t expected_result;
+            quaternion input;
+            quaternion expected_result;
         },
         {
-            quaternion_t result = { 0u };
+            quaternion result = { 0u };
 
             result = quaternion_conjugate(data->input);
 
@@ -356,12 +356,12 @@ tst_CREATE_TEST_CASE(quaternion_conjugate_with_zero, quaternion_conjugate,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(quaternion_conjugate_multiplication,
         {
-            quaternion_t first_operand;
-            quaternion_t second_operand;
+            quaternion first_operand;
+            quaternion second_operand;
         },
         {
-            quaternion_t multiplied_conj = { 0u };
-            quaternion_t conjs_multiplied = { 0u };
+            quaternion multiplied_conj = { 0u };
+            quaternion conjs_multiplied = { 0u };
 
             multiplied_conj = quaternion_conjugate(quaternion_multiply(data->first_operand, data->second_operand));
             conjs_multiplied = quaternion_multiply(quaternion_conjugate(data->second_operand), quaternion_conjugate(data->first_operand));
@@ -391,13 +391,13 @@ tst_CREATE_TEST_CASE(quaternion_conjugate_multiplication_identity, quaternion_co
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(quaternion_scale,
         {
-            quaternion_t quaternion;
+            quaternion quaternion;
             f32 scale;
 
-            quaternion_t expected_result;
+            quaternion expected_result;
         },
         {
-            quaternion_t result = { 0u };
+            quaternion result = { 0u };
 
             result = quaternion_scale(data->scale, data->quaternion);
 
@@ -427,7 +427,7 @@ tst_CREATE_TEST_CASE(quaternion_scale_by_one, quaternion_scale,
 // -------------------------------------------------------------------------------------------------
 tst_CREATE_TEST_SCENARIO(quaternion_norm,
         {
-            quaternion_t quaternion;
+            quaternion quaternion;
             f32 expected_norm;
         },
         {
