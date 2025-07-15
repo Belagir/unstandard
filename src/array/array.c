@@ -1,7 +1,6 @@
 
 #include <ustd_impl/array_impl.h>
 
-#define UNITTESTING
 #ifdef UNITTESTING
 #include <ustd/testutilities.h>
 #endif

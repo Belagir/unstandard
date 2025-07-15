@@ -111,4 +111,8 @@ void array_destroy(allocator alloc, void **array);
  */
 void array_ensure_capacity(allocator alloc, void **array, size_t additional_capacity);
 
+#ifdef UNITTESTING
+void array_execute_unittests(void);
+#endif
+
 #endif
