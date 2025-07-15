@@ -204,6 +204,7 @@ void array_ensure_capacity(allocator alloc, void **array, size_t additional_capa
     }
     new_array_impl->length = target->length;
 
+    array_destroy(alloc, array);
     *array = new_array;
 }
 
@@ -211,8 +212,7 @@ void array_ensure_capacity(allocator alloc, void **array, size_t additional_capa
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-#if 1
-// #ifdef UNITTESTING
+#ifdef UNITTESTING
 
 #include <ustd/testutilities.h>
 
