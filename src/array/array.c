@@ -162,9 +162,19 @@ bool array_get(void *array, size_t index, void *out_value)
     return true;
 }
 
-size_t array_length(const void *array);
-size_t array_capacity(const void *array);
+// -------------------------------------------------------------------------------------------------
 
+size_t array_length(const void *array)
+{
+    return array_impl_of((void *) array)->length;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+size_t array_capacity(const void *array)
+{
+    return array_impl_of((void *) array)->capacity;
+}
 
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
