@@ -177,6 +177,37 @@ size_t array_capacity(const void *array)
 }
 
 // -------------------------------------------------------------------------------------------------
+
+void array_ensure_capacity(allocator alloc, void **array, size_t additional_capacity)
+{
+    struct array_impl *target = nullptr;
+    size_t needed_size = 0;
+
+    void *new_array = nullptr;
+    struct array_impl *new_array_impl = nullptr;
+
+    if (!array || !*array || (additional_capacity == 0)) {
+        return;
+    }
+
+    target = array_impl_of(*array);
+    needed_size = target->length + additional_capacity;
+
+    if (needed_size < target->capacity) {
+        return;
+    }
+
+    new_array = array_create(alloc, target->stride, needed_size*2u);
+    new_array_impl = array_impl_of(new_array);
+    for (size_t i = 0 ; i < target->length * target->stride ; i++) {
+        new_array_impl->data[i] = target->data[i];
+    }
+    new_array_impl->length = target->length;
+
+    *array = new_array;
+}
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
@@ -329,12 +360,75 @@ tst_CREATE_TEST_CASE(array_i32_removal_one, array_i32_removal,
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+tst_CREATE_TEST_SCENARIO(array_capacity_up,
+        {
+            size_t capacity;
+            size_t length;
+            i32 *content;
+
+            size_t add_capacity;
+        },
+        {
+            i32 *array = array_create(make_system_allocator(), sizeof(*array), data->capacity);
+
+            array_impl_of(array)->length = data->length;
+            for (size_t i = 0 ; i < data->length ; i++) {
+                array[i] = data->content[i];
+            }
+
+            for (size_t i = data->length ; i < data->capacity ; i++) {
+                array[i] = 0;
+            }
+
+            array_ensure_capacity(make_system_allocator(), (void *) &array, data->add_capacity);
+
+            tst_assert(array_impl_of(array)->capacity >= data->length + data->add_capacity,
+                "failed to resize array");
+
+            for (size_t i = 0 ; i < data->capacity ; i++) {
+                tst_assert_equal_ext(data->content[i], array[i], "%d", "at index %d", i);
+            }
+
+            array_destroy(make_system_allocator(), (void **) &array);
+        }
+)
+
+// -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_CASE(array_capacity_up_one, array_capacity_up,
+        .capacity = 10,
+        .length = 10,
+        .content = (i32[10]) { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 },
+        .add_capacity = 1,
+)
+
+tst_CREATE_TEST_CASE(array_capacity_up_hundred, array_capacity_up,
+        .capacity = 10,
+        .length = 10,
+        .content = (i32[10]) { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 },
+        .add_capacity = 100,
+)
+tst_CREATE_TEST_CASE(array_capacity_no_need, array_capacity_up,
+        .capacity = 10,
+        .length = 3,
+        .content = (i32[10]) { 1, 2, 3, 0, 0, 0, 0, 0, 0, 0 },
+        .add_capacity = 4,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 void array_execute_unittests(void)
 {
     tst_run_test_case(array_i32_insertion_base);
+
     tst_run_test_case(array_i32_removal_base);
     tst_run_test_case(array_i32_removal_fail);
     tst_run_test_case(array_i32_removal_last);
     tst_run_test_case(array_i32_removal_one);
+
+    tst_run_test_case(array_capacity_up_one);
+    tst_run_test_case(array_capacity_up_hundred);
+    tst_run_test_case(array_capacity_no_need);
 }
 #endif
