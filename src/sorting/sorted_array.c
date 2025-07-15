@@ -358,7 +358,6 @@ sorted_range_execute_unittests(void)
 
     tst_run_test_case(sorted_array_remove_element_not_found);
 
-#if 0
     tst_run_test_case(sorted_array_insert_nominal);
     tst_run_test_case(sorted_array_insert_at_beginning);
     tst_run_test_case(sorted_array_insert_second_position);
@@ -366,7 +365,6 @@ sorted_range_execute_unittests(void)
     tst_run_test_case(sorted_array_insert_at_end);
     tst_run_test_case(sorted_array_u32_insert_other);
     tst_run_test_case(sorted_array_u32_insert_in_empty);
-#endif
 }
 
 #endif

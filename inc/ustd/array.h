@@ -17,7 +17,6 @@
 
 /**
  * @brief Inserts a value by shallow copy in an array at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
- * If the index is greater than the current length of the arary, the element is inserted at the back of the array at the first free space.
  * If however the array is at maximum capacity, the element is not inserted and false is returned.
  *
  * @param[inout] array target array
@@ -26,7 +25,7 @@
  * @return true if the element was inserted
  * @return false if the array did not have space
  */
-bool array_insert_value(void *array, size_t index, const void *to_value);
+bool array_insert_value(void *array, size_t index, const void *value);
 
 /**
  * @brief
@@ -55,7 +54,14 @@ bool array_remove(void *array, size_t index);
  * @return true
  * @return false
  */
-bool array_clear(void *array);
+bool array_pop(void *array);
+
+/**
+ * @brief
+ *
+ * @param array
+ */
+void array_clear(void *array);
 
 /**
  * @brief
@@ -110,5 +116,9 @@ void array_destroy(allocator alloc, void **array);
  * @param additional_capacity
  */
 void array_ensure_capacity(allocator alloc, void **array, size_t additional_capacity);
+
+#ifdef UNITTESTING
+void array_execute_unittests(void);
+#endif
 
 #endif

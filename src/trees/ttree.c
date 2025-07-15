@@ -862,6 +862,7 @@ tst_CREATE_TEST_CASE(tree_foreach_element_sum_nothing, tree_foreach_element,
 )
 
 static void test_apply_increment(void *element, void *accumulator) {
+    (void) accumulator;
     u32 *number = (u32 *) element;
 
     *number += 1u;
