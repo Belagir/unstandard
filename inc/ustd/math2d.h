@@ -5,22 +5,21 @@
 #include "common.h"
 #include "math.h"
 
-#define VECTOR2_ZERO ((vector2) {{ 0.f, 0.f }})
+#define VECTOR2_ZERO ((vector2) { 0.f, 0.f })
 #define VECTOR2_ORIGIN VECTOR2_ZERO
 
-#define VECTOR2_X_POSITIVE ((vector2) {{  1.f, 0.f }})
-#define VECTOR2_Y_POSITIVE ((vector2) {{ 0.f,  1.f }})
+#define VECTOR2_X_POSITIVE ((vector2) {  1.f, 0.f })
+#define VECTOR2_Y_POSITIVE ((vector2) { 0.f,  1.f })
 
-#define VECTOR2_X_NEGATIVE ((vector2) {{ -1.f, 0.f }})
-#define VECTOR2_Y_NEGATIVE ((vector2) {{ 0.f, -1.f }})
+#define VECTOR2_X_NEGATIVE ((vector2) { -1.f, 0.f })
+#define VECTOR2_Y_NEGATIVE ((vector2) { 0.f, -1.f })
 
 /**
  * @brief
  *
  */
-typedef union vector2 {
-    f32 vec[2u];
-    struct { f32 x, y; };
+typedef struct vector2 {
+    f32 x, y;
 } vector2;
 
 /**

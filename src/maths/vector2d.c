@@ -40,7 +40,7 @@ vector2 vector2_triple_product(vector2 v1, vector2 v2, vector2 v3)
     vector3 vec_ortho = vector3_cross_product((vector3) { .x = v1.x, .y = v1.y, .z = 0.f }, (vector3) { .x = v2.x, .y = v2.y, .z = 0.f });
     vector3 vec_generalized = vector3_cross_product(vec_ortho, (vector3) { .x = v3.x, .y = v3.y, .z = 0.f });
 
-    return (vector2) { { vec_generalized.x, vec_generalized.y } };
+    return (vector2) { vec_generalized.x, vec_generalized.y };
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ vector2 vector2_direction_to(vector2 v1, vector2 v2)
 // -------------------------------------------------------------------------------------------------
 vector2 vector2_normal_of(vector2 v)
 {
-    return vector2_normalize((vector2) {{ -v.y, v.x }});
+    return vector2_normalize((vector2) { -v.y, v.x });
 }
 
 // -------------------------------------------------------------------------------------------------
