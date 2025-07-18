@@ -79,6 +79,31 @@ bool array_insert_value(void *array, size_t index, const void *value)
 
 // -------------------------------------------------------------------------------------------------
 
+bool array_append(void *array, void *other)
+{
+    struct array_impl *target = nullptr;
+    struct array_impl *copied = nullptr;
+
+    if (!array || !other) {
+        return false;
+    }
+
+    target = array_impl_of(array);
+    copied = array_impl_of(other);
+
+    if ((target->length + copied->length) > target->capacity) {
+        return false;
+    }
+
+    bytewise_copy(target->data + (target->length*target->stride),
+                    copied->data, (copied->length*target->stride));
+    target->length += copied->length;
+
+    return true;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 bool array_push(void *array, const void *value)
 {
     struct array_impl *target = array_impl_of(array);
@@ -418,6 +443,76 @@ tst_CREATE_TEST_CASE(array_capacity_no_need, array_capacity_up,
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+tst_CREATE_TEST_SCENARIO(array_concat,
+        {
+            struct { size_t length; size_t capacity; u32 stride; i32 data[10]; } array1;
+            struct { size_t length; size_t capacity; u32 stride; i32 data[10]; } array2;
+
+            bool expect_success;
+            struct { size_t length; size_t capacity; u32 stride; i32 data[20]; } expected;
+        },
+        {
+            i32 *array1 = data->array1.data;
+            i32 *array2 = data->array2.data;
+
+            bool success = array_append(array1, array2);
+
+            if (data->expect_success) {
+                tst_assert(success, "expeced append success but failed");
+            } else {
+                tst_assert(!success, "expeced append fail but succeeded");
+            }
+
+            for (size_t i = 0 ; i < data->expected.length ; i++) {
+                tst_assert_equal_ext(data->expected.data[i], data->array1.data[i], "%d", "at index %d", i);
+            }
+            tst_assert_equal(data->expected.length, data->array1.length, "length of %d");
+        }
+)
+
+// -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_CASE(array_concat_happy, array_concat,
+        .array1 = { 3, 8, 4, { 1, 2, 3, 0 } },
+        .array2 = { 3, 3, 4, { 4, 5, 6, 0 } },
+
+        .expect_success = true,
+        .expected = { 6, 8, 4, { 1, 2, 3, 4, 5, 6, 0 } },
+)
+
+// -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_CASE(array_concat_fail, array_concat,
+        .array1 = { 3, 5, 4, { 1, 2, 3, 0 } },
+        .array2 = { 3, 3, 4, { 4, 5, 6, 0 } },
+
+        .expect_success = false,
+        .expected = { 3, 5, 4, { 1, 2, 3, 0 } },
+)
+
+// -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_CASE(array_concat_limit, array_concat,
+        .array1 = { 3, 6, 4, { 1, 2, 3, 0 } },
+        .array2 = { 3, 3, 4, { 4, 5, 6, 0 } },
+
+        .expect_success = true,
+        .expected = { 6, 6, 4, { 1, 2, 3, 4, 5, 6, 0 } },
+)
+
+// -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_CASE(array_concat_empty, array_concat,
+        .array1 = { 3, 6, 4, { 1, 2, 3, 0 } },
+        .array2 = { 0, 0, 4, { 0 } },
+
+        .expect_success = true,
+        .expected = { 3, 6, 4, { 1, 2, 3, 0 } },
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 void array_execute_unittests(void)
 {
     tst_run_test_case(array_i32_insertion_base);
@@ -430,5 +525,10 @@ void array_execute_unittests(void)
     tst_run_test_case(array_capacity_up_one);
     tst_run_test_case(array_capacity_up_hundred);
     tst_run_test_case(array_capacity_no_need);
+
+    tst_run_test_case(array_concat_happy);
+    tst_run_test_case(array_concat_fail);
+    tst_run_test_case(array_concat_limit);
+    tst_run_test_case(array_concat_empty);
 }
 #endif
