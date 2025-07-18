@@ -160,7 +160,6 @@ size_t range_count(const range_any haystack, comparator_f comparator, const void
  * @param[in] nb_elements_max maximum number of elements the range will hold
  * @return range* created range
  */
-[[nodiscard]]
 void *range_create_dynamic(allocator alloc, size_t size_element, size_t nb_elements_max);
 
 /**
@@ -181,7 +180,6 @@ void range_destroy_dynamic(allocator alloc, range_any *target);
  * @param[in] array source array to be copied into the range
  * @return range* created range containing the values in the array
  */
-[[nodiscard]]
 void *range_create_dynamic_from(allocator alloc, size_t size_element, size_t nb_elements_max, size_t nb_elements, const void *array);
 
 /**
@@ -193,7 +191,6 @@ void *range_create_dynamic_from(allocator alloc, size_t size_element, size_t nb_
  * @param[in] new_capacity new capacity of the range
  * @return range* created range of a new capacity holding the same values as the original range.
  */
-[[nodiscard]]
 void *range_create_dynamic_from_resize_of(allocator alloc, const range_any target, size_t new_capacity);
 
 /**
@@ -204,7 +201,6 @@ void *range_create_dynamic_from_resize_of(allocator alloc, const range_any targe
  * @param[in] r_right range  to compose the end of the returned range
  * @return range* concatenation of the two ranges
  */
-[[nodiscard]]
 void *range_create_dynamic_from_concat(allocator alloc, const range_any r_left, const range_any r_right);
 
 /**
@@ -214,7 +210,6 @@ void *range_create_dynamic_from_concat(allocator alloc, const range_any r_left, 
  * @param[in] target source range
  * @return range* copy of the given range
  */
-[[nodiscard]]
 void *range_create_dynamic_from_copy_of(allocator alloc, const range_any target);
 
 /**
@@ -226,7 +221,6 @@ void *range_create_dynamic_from_copy_of(allocator alloc, const range_any target)
  * @param[in] end_index  index to which values are copied, excluded
  * @return range* created subrange
  */
-[[nodiscard]]
 void *range_create_dynamic_from_subrange_of(allocator alloc, const range_any target, size_t start_index, size_t end_index);
 
 /**
