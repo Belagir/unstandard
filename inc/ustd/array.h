@@ -47,6 +47,17 @@ void array_destroy(allocator alloc, void **array);
 bool array_insert_value(void *array, size_t index, const void *value);
 
 /**
+ * @brief Adds elements found in the other array to the end of the first array.
+ * Elements of the second array are assumed to be of the stride of the first one.
+ *
+ * @param[inout] array target array
+ * @param[in] other appended array
+ * @return true if the array were concatenated
+ * @return false if the target aray did not have space
+ */
+bool array_append(void *array, void *other);
+
+/**
  * @brief Pushes a value (by shallow copy of whatever is behind the second pointer) at the end of an array if some space can be found for it.
  * If the value was successfully inserted, true is returned, false otherwise.
  *
