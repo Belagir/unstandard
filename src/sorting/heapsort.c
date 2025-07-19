@@ -122,7 +122,7 @@ bool is_sorted(range_any array, comparator_f comparator)
 
 #ifdef UNITTESTING
 
-i32 test_i32_comparator(const void *v1, const void *v2) {
+static i32 test_i32_comparator(const void *v1, const void *v2) {
     i32 val1 = *((i32 *) v1);
     i32 val2 = *((i32 *) v2);
 
