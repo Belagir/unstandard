@@ -23,6 +23,8 @@
 
 #define VECTOR3_ORIGIN ((vector3) { 0.0f,  0.0f, 0.0f })             ///< zero 3D vector
 
+#define MATRIX4_IDENTITY ((matrix4) { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, })
+
 /**
  * @brief 3D vector.
  */
