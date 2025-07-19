@@ -215,9 +215,7 @@ static void build_heap(void *array, comparator_f comparator)
     }
 }
 
-
-#if 1
-// #ifdef UNITTESTING
+#ifdef UNITTESTING
 
 #include <ustd/testutilities.h>
 
