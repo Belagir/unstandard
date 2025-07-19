@@ -92,7 +92,7 @@ size_t sorted_range_insert_in(range_any haystack, comparator_f comparator, void 
 
 #ifdef UNITTESTING
 
-i32 test_u32_comparator(const void *v1, const void *v2) {
+static i32 test_u32_comparator(const void *v1, const void *v2) {
     u32 val1 = *((u32 *) v1);
     u32 val2 = *((u32 *) v2);
 

@@ -511,6 +511,16 @@ tst_CREATE_TEST_CASE(array_concat_empty, array_concat,
 )
 
 // -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_CASE(array_concat_to_empty, array_concat,
+        .array1 = { 0, 4, 4, { 0 } },
+        .array2 = { 3, 6, 4, { 1, 2, 3, 0 } },
+
+        .expect_success = true,
+        .expected = { 3, 4, 4, { 1, 2, 3, 0 } },
+)
+
+// -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
 void array_execute_unittests(void)
@@ -530,5 +540,6 @@ void array_execute_unittests(void)
     tst_run_test_case(array_concat_fail);
     tst_run_test_case(array_concat_limit);
     tst_run_test_case(array_concat_empty);
+    tst_run_test_case(array_concat_to_empty);
 }
 #endif
