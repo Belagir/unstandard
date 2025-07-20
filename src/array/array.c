@@ -189,6 +189,29 @@ bool array_get(void *array, size_t index, void *out_value)
 
 // -------------------------------------------------------------------------------------------------
 
+bool array_find(void *haystack, comparator_f comparator, void *needle, size_t *out_position)
+{
+    size_t idx = 0;
+    bool found = false;
+
+    struct array_impl *target = nullptr;
+
+    target = array_impl_of(haystack);
+
+    while ((idx < target->length) && !found) {
+        found = (comparator(target->data + (idx * target->stride), needle) == 0);
+        idx += !found;
+    }
+
+    if (found && out_position) {
+        *out_position = idx;
+    }
+
+    return found;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 size_t array_length(const void *array)
 {
     return array_impl_of((void *) array)->length;
@@ -523,6 +546,121 @@ tst_CREATE_TEST_CASE(array_concat_to_empty, array_concat,
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
+static i32 test_u32_comparator(const void *v1, const void *v2) {
+    u32 val1 = *((u32 *) v1);
+    u32 val2 = *((u32 *) v2);
+
+    return (val1 > val2) - (val1 < val2);
+}
+
+tst_CREATE_TEST_SCENARIO(array_u32_find,
+        {
+            struct { size_t length; size_t capacity; u32 stride; i32 data[20]; } array;
+            u32 needle;
+
+            size_t expected_position;
+            size_t expect_success;
+        },
+        {
+            size_t theorical_pos = 0u;
+            size_t found = array_find(&data->array.data, &test_u32_comparator, (void *) &data->needle, &theorical_pos);
+
+            if (data->expect_success) {
+                tst_assert_equal(data->expected_position, theorical_pos, "position %d");
+            }
+            tst_assert((data->expect_success && (found)) || (!data->expect_success), "element was %sfound",
+                        (data->expect_success)? "not " : "");
+        }
+)
+
+tst_CREATE_TEST_CASE(array_u32_find_nominal, array_u32_find,
+        .array             =  { 20, 20, 4, { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u } },
+        .needle            = 13u,
+        .expected_position = 13u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_u32_find_nominal_2, array_u32_find,
+        .array             =  { 20, 20, 4, { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u } },
+        .needle            = 14u,
+        .expected_position = 14u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_u32_find_at_start, array_u32_find,
+        .array             =  { 20, 20, 4, { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u } },
+        .needle            = 0u,
+        .expected_position = 0u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_u32_find_at_end, array_u32_find,
+        .array             =  { 20, 20, 4, { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u } },
+        .needle            = 19u,
+        .expected_position = 19u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_u32_find_other_array, array_u32_find,
+        .array             =  { 20, 20, 4, { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 5000u } },
+        .needle            = 301u,
+        .expected_position = 12u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_u32_find_other_array_start, array_u32_find,
+        .array             =  { 20, 20, 4, { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 5000u } },
+        .needle            = 8u,
+        .expected_position = 0u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_u32_find_other_array_end, array_u32_find,
+        .array             =  { 20, 20, 4, { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 5000u } },
+        .needle            = 5000u,
+        .expected_position = 19u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_u32_find_other_array_not_found, array_u32_find,
+        .array             =  { 20, 20, 4, { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 5000u } },
+        .needle            = 390u,
+        .expected_position = 16u,
+        .expect_success    = 0u)
+
+tst_CREATE_TEST_CASE(array_u32_find_other_array_not_found_2, array_u32_find,
+        .array             =  { 20, 20, 4, { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 5000u } },
+        .needle            = 388u,
+        .expected_position = 15u,
+        .expect_success    = 0u)
+
+tst_CREATE_TEST_CASE(array_u32_find_other_array_not_found_before, array_u32_find,
+        .array             =  { 20, 20, 4, { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 5000u } },
+        .needle            = 2u,
+        .expected_position = 0u,
+        .expect_success    = 0u)
+
+
+tst_CREATE_TEST_CASE(array_u32_find_other_array_not_found_after, array_u32_find,
+        .array             =  { 20, 20, 4, { 8u, 12u, 18u, 64u, 65u, 65u, 65u, 132u, 256u, 280u, 290u, 300u, 301u, 302u, 303u, 389u, 395u, 400u, 4025u, 5000u } },
+        .needle            = 5001u,
+        .expected_position = 20u,
+        .expect_success    = 0u)
+
+tst_CREATE_TEST_CASE(array_u32_not_found, array_u32_find,
+        .array             =  { 20, 20, 4, { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u } },
+        .needle            = 89u,
+        .expected_position = 20u,
+        .expect_success    = 0u)
+
+tst_CREATE_TEST_CASE(array_find_first_occ_adjacent, array_u32_find,
+        .array             =  { 20, 20, 4, { 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 13u, 13u, 13u, 17u, 18u, 19u } },
+        .needle            = 13u,
+        .expected_position = 13u,
+        .expect_success    = 1u)
+
+tst_CREATE_TEST_CASE(array_find_in_empty, array_u32_find,
+        .array             =  { 0, 20, 4, { } },
+        .needle            = 42u,
+        .expected_position = 0u,
+        .expect_success    = 0u)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 void array_execute_unittests(void)
 {
     tst_run_test_case(array_i32_insertion_base);
@@ -541,5 +679,20 @@ void array_execute_unittests(void)
     tst_run_test_case(array_concat_limit);
     tst_run_test_case(array_concat_empty);
     tst_run_test_case(array_concat_to_empty);
+
+    tst_run_test_case(array_u32_find_nominal);
+    tst_run_test_case(array_u32_find_nominal_2);
+    tst_run_test_case(array_u32_find_at_start);
+    tst_run_test_case(array_u32_find_at_end);
+    tst_run_test_case(array_u32_find_other_array);
+    tst_run_test_case(array_u32_find_other_array_start);
+    tst_run_test_case(array_u32_find_other_array_end);
+    tst_run_test_case(array_u32_find_other_array_not_found);
+    tst_run_test_case(array_u32_find_other_array_not_found_2);
+    tst_run_test_case(array_u32_find_other_array_not_found_before);
+    tst_run_test_case(array_u32_find_other_array_not_found_after);
+    tst_run_test_case(array_u32_not_found);
+    tst_run_test_case(array_find_first_occ_adjacent);
+    tst_run_test_case(array_find_in_empty);
 }
 #endif

@@ -106,6 +106,19 @@ void array_clear(void *array);
 bool array_get(void *array, size_t index, void *out_value);
 
 /**
+ * @brief Iterates through an array and returns the first index for which
+ * the comparator function returns 0 when also passed the needle.
+ *
+ * @param[in] haystack searched array
+ * @param[in] comparator comparator function
+ * @param[in] needle pointer to the comparison other operand
+ * @param[out] out_position filled with the found index.
+ * @return true
+ * @return false
+ */
+bool array_find(void *haystack, comparator_f comparator, void *needle, size_t *out_position);
+
+/**
  * @brief Returns the current length of an array.
  *
  * @param[in] array target array
