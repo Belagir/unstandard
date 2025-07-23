@@ -136,6 +136,32 @@ bool array_remove(void *array, size_t index)
 
 // -------------------------------------------------------------------------------------------------
 
+bool array_remove_swapback(void *array, size_t index)
+{
+    struct array_impl *target = nullptr;
+
+    if (!array) {
+        return false;
+    }
+
+    target = array_impl_of(array);
+
+    if (index >= target->length) {
+        return false;
+    }
+
+    if (target->length > 1) {
+        bytewise_copy(target->data + (index * target->stride),
+                target->data + ((target->length - 1) * target->stride), target->stride);
+    }
+
+    target->length -= 1;
+
+    return true;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 bool array_pop(void *array)
 {
     struct array_impl *target = nullptr;
@@ -260,7 +286,8 @@ void array_ensure_capacity(allocator alloc, void **array, size_t additional_capa
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 
-#ifdef UNITTESTING
+#if 1
+// #ifdef UNITTESTING
 
 #include <ustd/testutilities.h>
 
@@ -403,6 +430,54 @@ tst_CREATE_TEST_CASE(array_i32_removal_one, array_i32_removal,
         .expected_content = (i32[10]) { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 
         .expect_removal = true,
+)
+
+// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+tst_CREATE_TEST_SCENARIO(array_u32_removal_swapback,
+        {
+            struct { size_t length; size_t capacity; u32 stride; i32 data[10]; } array;
+            size_t remove_at;
+
+            bool expect_success;
+            struct { size_t length; size_t capacity; u32 stride; i32 data[10]; } expected;
+        },
+        {
+            tst_assert_equal(data->expect_success, array_remove_swapback(data->array.data,
+                    data->remove_at), "success status of %d");
+
+            tst_assert_equal(data->expected.length, data->array.length, "length of %d");
+
+            for (size_t i = 0 ; i < data->expected.capacity ; i++) {
+                tst_assert_equal_ext(data->expected.data[i], data->array.data[i], "%d", "at index %d", i);
+            }
+        }
+)
+
+tst_CREATE_TEST_CASE(array_u32_removal_swapback_base, array_u32_removal_swapback,
+        .array = { 8, 10, 4, { 1, 2, 3, 4, 5, 6, 7, 8, 0, 0 } },
+        .remove_at = 4,
+        .expect_success = true,
+        .expected = { 7, 10, 4, { 1, 2, 3, 4, 8, 6, 7, 8, 0, 0 } },
+)
+tst_CREATE_TEST_CASE(array_u32_removal_swapback_fail, array_u32_removal_swapback,
+        .array = { 8, 10, 4, { 1, 2, 3, 4, 5, 6, 7, 8, 0, 0 } },
+        .remove_at = 8,
+        .expect_success = false,
+        .expected = { 8, 10, 4, { 1, 2, 3, 4, 5, 6, 7, 8, 0, 0 } },
+)
+tst_CREATE_TEST_CASE(array_u32_removal_swapback_last, array_u32_removal_swapback,
+        .array = { 8, 10, 4, { 1, 2, 3, 4, 5, 6, 7, 8, 0, 0 } },
+        .remove_at = 7,
+        .expect_success = true,
+        .expected = { 7, 10, 4, { 1, 2, 3, 4, 5, 6, 7, 8, 0, 0 } },
+)
+tst_CREATE_TEST_CASE(array_u32_removal_swapback_one, array_u32_removal_swapback,
+        .array = { 1, 10, 4, { 1, 0 } },
+        .remove_at = 0,
+        .expect_success = true,
+        .expected = { 0, 10, 4, { 1, 0 } },
 )
 
 // -------------------------------------------------------------------------------------------------
@@ -694,5 +769,10 @@ void array_execute_unittests(void)
     tst_run_test_case(array_u32_not_found);
     tst_run_test_case(array_find_first_occ_adjacent);
     tst_run_test_case(array_find_in_empty);
+
+    tst_run_test_case(array_u32_removal_swapback_base);
+    tst_run_test_case(array_u32_removal_swapback_fail);
+    tst_run_test_case(array_u32_removal_swapback_last);
+    tst_run_test_case(array_u32_removal_swapback_one);
 }
 #endif

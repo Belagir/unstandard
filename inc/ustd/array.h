@@ -79,6 +79,18 @@ bool array_push(void *array, const void *value);
 bool array_remove(void *array, size_t index);
 
 /**
+ * @brief Removes an element using the swapback startegy.
+ * The last element will take the place of the removed one. Very fast,
+ * but, messes indices.
+ *
+ * @param[inout] array target array
+ * @param[in] index deletion index
+ * @return true if an element was removed at the index
+ * @return false if the index was out of bounds
+ */
+bool array_remove_swapback(void *array, size_t index);
+
+/**
  * @brief Removes the last element in an array.
  *
  * @param[inout] array target array
