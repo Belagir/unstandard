@@ -15,6 +15,9 @@
 #include "allocation.h"
 #include "common.h"
 
+#define ARRAY(type_) type_ *
+#define ARRAY_ANY void *
+
 /**
  * @brief Creates an array of some size by directly allocating its memory.
  *
@@ -23,7 +26,7 @@
  * @param[in] nb_elements_max maximum number of elements the array will hold
  * @return void* the array created
  */
-void *array_create(allocator alloc, u32 size_element, size_t nb_elements_max);
+ARRAY_ANY array_create(allocator alloc, u32 size_element, size_t nb_elements_max);
 
 /**
  * @brief Frees an array from the allocator it was created with.
@@ -32,7 +35,7 @@ void *array_create(allocator alloc, u32 size_element, size_t nb_elements_max);
  * @param[in] alloc allocator that was used to create the array
  * @param[inout] array pointer to the freed array
  */
-void array_destroy(allocator alloc, void **array);
+void array_destroy(allocator alloc, ARRAY_ANY *array);
 
 /**
  * @brief Inserts a value by shallow copy in an array at a specified index. Values at the right of this index are shifted one stride to the right to accomodate.
@@ -44,7 +47,7 @@ void array_destroy(allocator alloc, void **array);
  * @return true if the element was inserted
  * @return false if the array did not have space
  */
-bool array_insert_value(void *array, size_t index, const void *value);
+bool array_insert_value(ARRAY_ANY array, size_t index, const ARRAY_ANY value);
 
 /**
  * @brief Adds elements found in the other array to the end of the first array.
@@ -55,7 +58,7 @@ bool array_insert_value(void *array, size_t index, const void *value);
  * @return true if the array were concatenated
  * @return false if the target aray did not have space
  */
-bool array_append(void *array, void *other);
+bool array_append(ARRAY_ANY array, ARRAY_ANY other);
 
 /**
  * @brief Pushes a value (by shallow copy of whatever is behind the second pointer) at the end of an array if some space can be found for it.
@@ -66,7 +69,7 @@ bool array_append(void *array, void *other);
  * @return true if the element was inserted
  * @return false if the array did not have space
  */
-bool array_push(void *array, const void *value);
+bool array_push( ARRAY_ANY array, const ARRAY_ANY value);
 
 /**
  * @brief Removes an element from an array by index.
@@ -76,7 +79,7 @@ bool array_push(void *array, const void *value);
  * @return true if an element was removed at the index
  * @return false if the index was out of bounds
  */
-bool array_remove(void *array, size_t index);
+bool array_remove(ARRAY_ANY array, size_t index);
 
 /**
  * @brief Removes an element using the swapback startegy.
@@ -88,7 +91,7 @@ bool array_remove(void *array, size_t index);
  * @return true if an element was removed at the index
  * @return false if the index was out of bounds
  */
-bool array_remove_swapback(void *array, size_t index);
+bool array_remove_swapback(ARRAY_ANY array, size_t index);
 
 /**
  * @brief Removes the last element in an array.
@@ -97,14 +100,14 @@ bool array_remove_swapback(void *array, size_t index);
  * @return true if the tail element was removed
  * @return false if the array was empty
  */
-bool array_pop(void *array);
+bool array_pop(ARRAY_ANY array);
 
 /**
  * @brief Clears an array of all its content.
  *
  * @param[inout] array cleared array
  */
-void array_clear(void *array);
+void array_clear(ARRAY_ANY array);
 
 /**
  * @brief Copy the content of an array at some index and checks bounds.
@@ -115,7 +118,7 @@ void array_clear(void *array);
  * @return true if the index is valid, even if out_value is NULL.
  * @return false if the index is out of bounds.
  */
-bool array_get(void *array, size_t index, void *out_value);
+bool array_get(ARRAY_ANY array, size_t index, void *out_value);
 
 /**
  * @brief Iterates through an array and returns the first index for which
@@ -128,7 +131,7 @@ bool array_get(void *array, size_t index, void *out_value);
  * @return true
  * @return false
  */
-bool array_find(void *haystack, comparator_f comparator, void *needle, size_t *out_position);
+bool array_find(ARRAY_ANY haystack, comparator_f comparator, void *needle, size_t *out_position);
 
 /**
  * @brief Returns the current length of an array.
@@ -136,7 +139,7 @@ bool array_find(void *haystack, comparator_f comparator, void *needle, size_t *o
  * @param[in] array target array
  * @return size_t number of elements in the array.
  */
-size_t array_length(const void *array);
+size_t array_length(const ARRAY_ANY array);
 
 /**
  * @brief Returns the current capacity of an array.
@@ -144,7 +147,7 @@ size_t array_length(const void *array);
  * @param[in] array target array
  * @return size_t maximum number of elements in the array.
  */
-size_t array_capacity(const void *array);
+size_t array_capacity(const ARRAY_ANY array);
 
 /**
  * @brief Re-allocates an array if it needs extra space to store additional elements.
@@ -153,7 +156,7 @@ size_t array_capacity(const void *array);
  * @param[inout] array target array
  * @param[in] additional_capacity number of supplemental elements the array should be able to hold
  */
-void array_ensure_capacity(allocator alloc, void **array, size_t additional_capacity);
+void array_ensure_capacity(allocator alloc, ARRAY_ANY *array, size_t additional_capacity);
 
 /**
  * @brief Sorts an array of data with heapsort. Not stable, but in place.
@@ -161,7 +164,7 @@ void array_ensure_capacity(allocator alloc, void **array, size_t additional_capa
  * @param[inout] array a valid array.
  * @param[in] comparator a comparison function for the type of the element.
  */
-void array_sort(void *array, comparator_f comparator);
+void array_sort(ARRAY_ANY array, comparator_f comparator);
 
 /**
  * @brief Returns wether a section of memory is sorted (depending on info given by the user).
@@ -170,7 +173,7 @@ void array_sort(void *array, comparator_f comparator);
  * @param[in] comparator a comparison function for the type of the element.
  * @return i32
  */
-bool array_is_sorted(void * array, comparator_f comparator);
+bool array_is_sorted(ARRAY_ANY  array, comparator_f comparator);
 
 /**
  * @brief Find the position of an element (needle) in an anonymous array (haystack) that is assumed to be sorted.
@@ -181,7 +184,7 @@ bool array_is_sorted(void * array, comparator_f comparator);
  * @param[out] out_position theorical (when not found) or real (when found) position of the needle.
  * @return bool 1 if the elment was found, 0 otherwise.
  */
-bool array_sorted_find(void *haystack, comparator_f comparator, void *needle, size_t *out_position);
+bool array_sorted_find(ARRAY_ANY haystack, comparator_f comparator, void *needle, size_t *out_position);
 
 /**
  * @brief Removes the first occurence of an element (needle) from an anonymous array (haystack) that is assumed to be sorted.
@@ -191,7 +194,7 @@ bool array_sorted_find(void *haystack, comparator_f comparator, void *needle, si
  * @param[in] needle element equal to the one to remove.
  * @return size_t The position of the deleted element, or the length of the array if not found.
  */
-size_t array_sorted_remove(void *haystack, comparator_f comparator, void *needle);
+size_t array_sorted_remove(ARRAY_ANY haystack, comparator_f comparator, void *needle);
 
 
 /**

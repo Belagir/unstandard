@@ -5,7 +5,7 @@
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
-struct array_impl *array_impl_of(void *some_array)
+struct array_impl *array_impl_of(ARRAY_ANY some_array)
 {
     return CONTAINER_OF(some_array, struct array_impl, data);
 }
@@ -15,7 +15,7 @@ struct array_impl *array_impl_of(void *some_array)
 
 // -------------------------------------------------------------------------------------------------
 
-void *array_create(allocator alloc, u32 size_element, size_t nb_elements_max)
+ARRAY_ANY array_create(allocator alloc, u32 size_element, size_t nb_elements_max)
 {
     struct array_impl *new_array = nullptr;
 
@@ -34,7 +34,7 @@ void *array_create(allocator alloc, u32 size_element, size_t nb_elements_max)
 
 // -------------------------------------------------------------------------------------------------
 
-void array_destroy(allocator alloc, void **array)
+void array_destroy(allocator alloc, ARRAY_ANY *array)
 {
     struct array_impl *target = nullptr;
 
@@ -50,7 +50,7 @@ void array_destroy(allocator alloc, void **array)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_insert_value(void *array, size_t index, const void *value)
+bool array_insert_value(ARRAY_ANY array, size_t index, const void *value)
 {
     struct array_impl *target = nullptr;
     size_t insertion_byte_pos = 0u;
