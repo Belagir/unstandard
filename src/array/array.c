@@ -79,7 +79,7 @@ bool array_insert_value(ARRAY_ANY array, size_t index, const void *value)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_append(void *array, void *other)
+bool array_append(ARRAY_ANY array, ARRAY_ANY other)
 {
     struct array_impl *target = nullptr;
     struct array_impl *copied = nullptr;
@@ -104,7 +104,7 @@ bool array_append(void *array, void *other)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_push(void *array, const void *value)
+bool array_push(ARRAY_ANY array, const void *value)
 {
     struct array_impl *target = array_impl_of(array);
     return array_insert_value(array, target->length, value);
@@ -112,7 +112,7 @@ bool array_push(void *array, const void *value)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_remove(void *array, size_t index)
+bool array_remove(ARRAY_ANY array, size_t index)
 {
     struct array_impl *target = nullptr;
 
@@ -136,7 +136,7 @@ bool array_remove(void *array, size_t index)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_remove_swapback(void *array, size_t index)
+bool array_remove_swapback(ARRAY_ANY array, size_t index)
 {
     struct array_impl *target = nullptr;
 
@@ -162,7 +162,7 @@ bool array_remove_swapback(void *array, size_t index)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_pop(void *array)
+bool array_pop(ARRAY_ANY array)
 {
     struct array_impl *target = nullptr;
 
@@ -176,7 +176,7 @@ bool array_pop(void *array)
 
 // -------------------------------------------------------------------------------------------------
 
-void array_clear(void *array)
+void array_clear(ARRAY_ANY array)
 {
     struct array_impl *target = nullptr;
 
@@ -190,7 +190,7 @@ void array_clear(void *array)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_get(void *array, size_t index, void *out_value)
+bool array_get(ARRAY_ANY array, size_t index, void *out_value)
 {
     struct array_impl *target = nullptr;
 
@@ -215,7 +215,7 @@ bool array_get(void *array, size_t index, void *out_value)
 
 // -------------------------------------------------------------------------------------------------
 
-bool array_find(void *haystack, comparator_f comparator, void *needle, size_t *out_position)
+bool array_find(ARRAY_ANY haystack, comparator_f comparator, void *needle, size_t *out_position)
 {
     size_t idx = 0;
     bool found = false;
@@ -238,26 +238,26 @@ bool array_find(void *haystack, comparator_f comparator, void *needle, size_t *o
 
 // -------------------------------------------------------------------------------------------------
 
-size_t array_length(const void *array)
+size_t array_length(const ARRAY_ANY array)
 {
-    return array_impl_of((void *) array)->length;
+    return array_impl_of((ARRAY_ANY) array)->length;
 }
 
 // -------------------------------------------------------------------------------------------------
 
-size_t array_capacity(const void *array)
+size_t array_capacity(const ARRAY_ANY array)
 {
-    return array_impl_of((void *) array)->capacity;
+    return array_impl_of((ARRAY_ANY) array)->capacity;
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void array_ensure_capacity(allocator alloc, void **array, size_t additional_capacity)
+void array_ensure_capacity(allocator alloc, ARRAY_ANY *array, size_t additional_capacity)
 {
     struct array_impl *target = nullptr;
     size_t needed_size = 0;
 
-    void *new_array = nullptr;
+    ARRAY_ANY new_array = nullptr;
     struct array_impl *new_array_impl = nullptr;
 
     if (!array || !*array || (additional_capacity == 0)) {
@@ -329,7 +329,7 @@ tst_CREATE_TEST_SCENARIO(array_i32_insertion,
             for (size_t i = 0 ; i < data->capacity ; i++) {
                 tst_assert_equal_ext(data->expected_content[i], array[i], "%d", "at index %d", i);
             }
-            array_destroy(make_system_allocator(), (void **) &array);
+            array_destroy(make_system_allocator(), (ARRAY_ANY *) &array);
         }
 )
 
@@ -385,7 +385,7 @@ tst_CREATE_TEST_SCENARIO(array_i32_removal,
                 tst_assert_equal_ext(data->expected_content[i], array[i], "%d", "at index %d", i);
             }
 
-            array_destroy(make_system_allocator(), (void **) &array);
+            array_destroy(make_system_allocator(), (ARRAY_ANY *) &array);
         }
 )
 
@@ -503,7 +503,7 @@ tst_CREATE_TEST_SCENARIO(array_capacity_up,
                 array[i] = 0;
             }
 
-            array_ensure_capacity(make_system_allocator(), (void *) &array, data->add_capacity);
+            array_ensure_capacity(make_system_allocator(), (ARRAY_ANY ) &array, data->add_capacity);
 
             tst_assert(array_impl_of(array)->capacity >= data->length + data->add_capacity,
                 "failed to resize array");
@@ -512,7 +512,7 @@ tst_CREATE_TEST_SCENARIO(array_capacity_up,
                 tst_assert_equal_ext(data->content[i], array[i], "%d", "at index %d", i);
             }
 
-            array_destroy(make_system_allocator(), (void **) &array);
+            array_destroy(make_system_allocator(), (ARRAY_ANY *) &array);
         }
 )
 
