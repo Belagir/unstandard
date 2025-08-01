@@ -61,6 +61,17 @@ bool array_insert_value(ARRAY_ANY array, size_t index, const ARRAY_ANY value);
 bool array_append(ARRAY_ANY array, ARRAY_ANY other);
 
 /**
+ * @brief
+ *
+ * @param array
+ * @param memory
+ * @param nb_elements
+ * @return true
+ * @return false
+ */
+bool array_append_mem(ARRAY_ANY array, const void *memory, size_t nb_elements);
+
+/**
  * @brief Pushes a value (by shallow copy of whatever is behind the second pointer) at the end of an array if some space can be found for it.
  * If the value was successfully inserted, true is returned, false otherwise.
  *

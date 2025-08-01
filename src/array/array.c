@@ -104,6 +104,29 @@ bool array_append(ARRAY_ANY array, ARRAY_ANY other)
 
 // -------------------------------------------------------------------------------------------------
 
+bool array_append_mem(ARRAY_ANY array, const void *memory, size_t nb_elements)
+{
+    if (!array || !memory || !nb_elements) {
+        return false;
+    }
+
+    struct array_impl *target = nullptr;
+    target = array_impl_of(array);
+
+    if ((target->length + nb_elements) > target->capacity) {
+        return false;
+    }
+
+    bytewise_copy(target->data + (target->length*target->stride),
+                    memory, (nb_elements*target->stride));
+    target->length += nb_elements;
+
+    return true;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
 bool array_push(ARRAY_ANY array, const void *value)
 {
     struct array_impl *target = array_impl_of(array);

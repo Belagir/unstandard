@@ -14,28 +14,27 @@
 #define UNSTANDARD_RES_H__
 
 /* code constants */
-#define RES__PREFIX res__
-#define RES__SUFFIX_STRT _start
-#define RES__SUFFIX_END _end
+#define RES__SUFFIX_START _start
+#define RES__SUFFIX_END   _end
+#define RES__SUFFIX_SIZE  _size
 
 /* ressources' linked name constants */
 #define RES__B_PREFIX "_binary_"
-#define RES__B_SUFFIX_STRT "_start"
-#define RES__B_SUFFIX_END "_end"
 
-#define DECLARE_RES_IMPL(_BASE_SYMBOL, str_identifier, PREFIX, SUFFIX_START, SUFFIX_END, str_binary_prefix) \
-extern const unsigned char PREFIX ## _BASE_SYMBOL ## SUFFIX_START [] asm__(str_binary_prefix str_identifier #SUFFIX_START); \
-extern const unsigned char PREFIX ## _BASE_SYMBOL ## SUFFIX_END   [] asm__(str_binary_prefix str_identifier #SUFFIX_END ); \
+#define DECLARE_RES_IMPL(BASE_SYMBOL_, str_identifier_, SUFFIX_START, SUFFIX_END, SUFFIX_SIZE, str_binary_prefix) \
+extern const unsigned char BASE_SYMBOL_ ## SUFFIX_START [] __asm__(str_binary_prefix str_identifier_ #SUFFIX_START); \
+extern const unsigned char BASE_SYMBOL_ ## SUFFIX_END   [] __asm__(str_binary_prefix str_identifier_ #SUFFIX_END); \
+extern const size_t BASE_SYMBOL_ ## SUFFIX_SIZE __asm__(str_binary_prefix str_identifier_ #SUFFIX_SIZE);
 
-#define  DECLARE_RES_RESOLVE(_BASE_SYMBOL, str_identifier, PREFIX, SUFFIX_START, SUFFIX_END, str_binary_prefix) DECLARE_RES_IMPL(_BASE_SYMBOL, str_identifier, PREFIX, SUFFIX_START, SUFFIX_END, str_binary_prefix)
+#define  DECLARE_RES_RESOLVE(BASE_SYMBOL_, str_identifier_, SUFFIX_START, SUFFIX_END, SUFFIX_SIZE, str_binary_prefix) DECLARE_RES_IMPL(BASE_SYMBOL_, str_identifier_, SUFFIX_START, SUFFIX_END, SUFFIX_SIZE, str_binary_prefix)
 
 /**
  * @brief Declares an embedded resource as a set of two symbols : the start of a byte array and its end.
- *  declares two symbols : res__`_BASE_SYMBOL'_start and res__`_BASE_SYMBOL'_end.
+ *  declares two symbols : `BASE_SYMBOL_'_start and `BASE_SYMBOL_'_end.
  *
- * @tparam _BASE_SYMBOL the base symbol used for the generation of the two other symbols.
- * @tparam str_identifier the base string litteral used to alias real name symbols in the executable. This is typically the relative path + name (from compilation active directory) with every punctuation character replaced by `_' : "res/image.png" becomes "res_image_png".
+ * @tparam BASE_SYMBOL_ the base symbol used for the generation of the two other symbols.
+ * @tparam str_identifier_ the base string litteral used to alias real name symbols in the executable. This is typically the relative path + name (from compilation active directory) with every punctuation character replaced by `_' : "res/image.png" becomes "res_image_png".
  */
-#define DECLARE_RES(_BASE_SYMBOL, str_identifier) DECLARE_RES_RESOLVE(_BASE_SYMBOL, str_identifier, RES__PREFIX, RES__SUFFIX_STRT, RES__SUFFIX_END, RES__B_PREFIX)
+#define DECLARE_RES(BASE_SYMBOL_, str_identifier_) DECLARE_RES_RESOLVE(BASE_SYMBOL_, str_identifier_, RES__SUFFIX_START, RES__SUFFIX_END, RES__SUFFIX_SIZE, RES__B_PREFIX)
 
 #endif
