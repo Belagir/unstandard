@@ -56,7 +56,7 @@ HASHMAP_ANY hashmap_create(
 
             .length = 0,
             .capacity = starting_capacity,
-            .stride = element_size,
+            .stride = (u32) element_size,
     };
 
     return &(new_hashmap->data);
