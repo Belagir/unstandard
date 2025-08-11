@@ -22,7 +22,7 @@ void hashmap_ensure_capacity(
         size_t additional_capacity);
 
 u32 hashmap_hash_of(
-        const char *key);
+        const char *key, u32 seed);
 
 size_t hashmap_index_of(
         HASHMAP_ANY map,

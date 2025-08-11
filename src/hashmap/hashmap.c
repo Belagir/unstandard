@@ -141,7 +141,7 @@ void hashmap_ensure_capacity(
  * @return u32
  */
 u32 hashmap_hash_of(
-        const char *key)
+        const char *key, u32 seed)
 {
     return hash_jenkins_one_at_a_time((const byte *) key,
             c_string_length(key, 128, false), 0);
@@ -168,7 +168,7 @@ size_t hashmap_index_of(
         return array_length(map);
     }
 
-    hash = hashmap_hash_of(key);
+    hash = hashmap_hash_of(key, 0);
     return hashmap_index_of_hashed(map, hash);
 }
 
@@ -223,7 +223,7 @@ size_t hashmap_set(
         return array_length(map);
     }
 
-    hash = hashmap_hash_of(key);
+    hash = hashmap_hash_of(key, 0);
     return hashmap_set_hashed(map, hash, value);
 }
 
