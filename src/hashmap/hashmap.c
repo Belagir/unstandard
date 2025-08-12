@@ -265,6 +265,58 @@ size_t hashmap_set_hashed(
     return pos;
 }
 
+/**
+ * @brief
+ *
+ * @param map
+ * @param key
+ * @return size_t
+ */
+void hashmap_remove(
+        HASHMAP_ANY map,
+        const char *key)
+{
+    u32 hash = 0;
+
+    if (!map) {
+        return;
+    }
+
+    if (!key) {
+        return;
+    }
+
+    hash = hashmap_hash_of(key, 0);
+    return hashmap_remove_hashed(map, hash);
+}
+
+/**
+ * @brief
+ *
+ * @param map
+ * @param hash
+ */
+void hashmap_remove_hashed(
+        HASHMAP_ANY map,
+        u32 hash)
+{
+    struct hashmap_impl *target = nullptr;
+    bool exists = false;
+    size_t pos = 0;
+
+    if (!map) {
+        return;
+    }
+
+    target = hashmap_impl_of(map);
+    if (!array_sorted_find(target->keys, &hash_compare, &hash, &pos)) {
+        return;
+    }
+
+    array_remove_swapback(target->keys, pos);
+    array_remove_swapback(target, pos);
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 

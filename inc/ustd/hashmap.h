@@ -42,6 +42,14 @@ size_t hashmap_set_hashed(
         u32 hash,
         void *value);
 
+void hashmap_remove(
+        HASHMAP_ANY map,
+        const char *key);
+
+void hashmap_remove_hashed(
+        HASHMAP_ANY map,
+        u32 hash);
+
 ARRAY(u32) hashmap_keys(
         HASHMAP_ANY map);
 
