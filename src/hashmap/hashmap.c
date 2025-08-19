@@ -144,7 +144,7 @@ u32 hashmap_hash_of(
         const char *key, u32 seed)
 {
     return hash_jenkins_one_at_a_time((const byte *) key,
-            c_string_length(key, 128, false), 0);
+            c_string_length(key, 128, false), seed);
 }
 
 /**
@@ -287,7 +287,7 @@ void hashmap_remove(
     }
 
     hash = hashmap_hash_of(key, 0);
-    return hashmap_remove_hashed(map, hash);
+    hashmap_remove_hashed(map, hash);
 }
 
 /**
@@ -301,7 +301,6 @@ void hashmap_remove_hashed(
         u32 hash)
 {
     struct hashmap_impl *target = nullptr;
-    bool exists = false;
     size_t pos = 0;
 
     if (!map) {
@@ -314,7 +313,7 @@ void hashmap_remove_hashed(
     }
 
     array_remove_swapback(target->keys, pos);
-    array_remove_swapback(target, pos);
+    array_remove_swapback(map, pos);
 }
 
 // -----------------------------------------------------------------------------

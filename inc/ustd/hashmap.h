@@ -7,6 +7,15 @@
 #define HASHMAP(type_) type_ *
 #define HASHMAP_ANY void *
 
+#define hashmap_get(hashmap_, index_, out_value_) \
+        array_get(hashmap_, index_, out_value_)
+
+#define hashmap_length(hashmap_) \
+        array_length(hashmap_)
+
+#define hashmap_capacity(hashmap_) \
+        array_capacity(hashmap_)
+
 HASHMAP_ANY hashmap_create(
         struct allocator alloc,
         size_t element_size,
