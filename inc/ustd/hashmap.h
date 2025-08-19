@@ -11,11 +11,7 @@
         array_get(hashmap_, index_, out_value_)
 
 #define hashmap_length(hashmap_) \
-<<<<<<< HEAD
         array_length(hashmap_)
-=======
-        arra_length(hashmap_)
->>>>>>> f6688864769be41ba50af2d359e8a80352c5a1ed
 
 #define hashmap_capacity(hashmap_) \
         array_capacity(hashmap_)
