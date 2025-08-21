@@ -312,8 +312,8 @@ void hashmap_remove_hashed(
         return;
     }
 
-    array_remove_swapback(target->keys, pos);
-    array_remove_swapback(map, pos);
+    array_remove(target->keys, pos);
+    array_remove(map, pos);
 }
 
 // -----------------------------------------------------------------------------
