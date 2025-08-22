@@ -59,7 +59,7 @@ void hashmap_remove_hashed(
         HASHMAP_ANY map,
         u32 hash);
 
-ARRAY(u32) hashmap_keys(
+const ARRAY(u32) hashmap_keys(
         HASHMAP_ANY map);
 
 #endif

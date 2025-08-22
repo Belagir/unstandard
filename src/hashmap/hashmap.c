@@ -316,6 +316,24 @@ void hashmap_remove_hashed(
     array_remove(map, pos);
 }
 
+/**
+ * @brief
+ *
+ */
+const ARRAY(u32) hashmap_keys(
+        HASHMAP_ANY map)
+{
+    struct hashmap_impl *target = nullptr;
+
+    if (!map) {
+        return nullptr;
+    }
+
+    target = hashmap_impl_of(map);
+
+    return target->keys;
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
