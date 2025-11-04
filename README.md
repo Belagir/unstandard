@@ -23,7 +23,9 @@ struct logger *err_logger = logger_create(stderr, LOGGER_ON_DESTROY_DO_NOTHING);
 logger_log(err_logger, LOGGER_SEVERITY_INFO, "hello %s !", "world");
 ```
 
-**range.h** & **sorting.h**
+~~**range.h** & **sorting.h**~~
+
+> Now deprecated ! i really prefer using array.h for both uses.
 
 Manipulate contiguous collections of data, either on the stack or on the heap. Also provides heap sorting, dichotomic find, insert and removal.
 
@@ -60,6 +62,7 @@ And also :
  - **res.h**, to fetch and name data that was embedded in the executable with the linker ;
  - **tree.h**, to manage statically-allocated n-trees ;
  - **unsignals.h**, to create and hook to global signals.
+ - **path.h**, to manipulate simple delimited paths.
 
 ## Library Contents
 
@@ -68,14 +71,16 @@ The library grew organically, and some modules got more love than others, and so
 | `ustd/` header    | intended use                                                 | usefulness  | unit tests | used | personal appreciation                                        |
 | ----------------- | ------------------------------------------------------------ | ----------- | ---------- | ---- | ------------------------------------------------------------ |
 | `allocation.h`    | Manipulate allocator objects to make memory management manifest in function prototypes. | very high   | no         | yes  | I actually lost the tests for the static allocator 'ouroboros' (don't ask). |
+| `array.h`         | Create & manage allocated collections of data with full transparency with the c way of things | very high | yes | yes | Goated.
 | `common.h`        | Useful definitions and macros for basic stuff.               | very high   | no         | yes  | Included by every other header.                              |
 | `logging.h`       | Create loggers in static data for lightweight and encapsulated logging. | high        | no         | yes  | The first module I created.                                  |
 | `math.h`          | Some maths utilities I found myself using a lot.             | moderate    | no         | yes  | Not very extensive, might grow later.                        |
 | `math2d.h`        | 2D vectors maths.                                            | moderate    | no         | yes  |                                                              |
 | `math3d.h`        | 3D matrix and quaternion maths.                              | low         | yes        | yes  |                                                              |
-| `range.h`         | Manage collections of data, either static or allocated.      | best        | yes        | yes  | The header I use the most. Not perfect by any means.         |
+| `path.h`          | Manipulate terminated strings that also have separators.   | moderate         | yes        | yes  |                                                              |
+| `range.h`         | ~~Manage collections of data, either static or allocated.~~      | best        | yes        | yes  | The header I use the most. Not perfect by any means.         |
 | `res.h`           | Associate symbols to data embedded into the executable.      | in question | no         | yes  | I have found a better way to store static data, that does imply to embed data in the executable. Will soon update the lib. |
-| `sorting.h`       | Extends `range.h` to provide sorting and dichotomy over ranges. | high        | yes        | yes  |                                                              |
+| `sorting.h`       | ~~Extends `range.h` to provide sorting and dichotomy over ranges.~~ | high        | yes        | yes  |                                                              |
 | `testutilities.h` | Macros to create test scenarios and test cases for unit testing. | very high   | i guess    | yes  | Once the few "gotchas" sorted, this provide a simple test framework. |
 | `tree.h`          | Extends `range.h` to manage ranges as if they were n-tree structures. | low         | yes        | no   | The use case for this header is too limited : you need to use n-trees in an environment where allocation is forbidden. |
 | `unsignals.h`     | Create, and (un)subscribe to program-wide signals.           | moderate    | no         | no   | Very recent.                                                 |
