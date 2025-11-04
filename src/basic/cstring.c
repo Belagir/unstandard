@@ -8,6 +8,15 @@ bool character_is_num(char c)
 }
 
 // -------------------------------------------------------------------------------------------------
+i32 character_compare(const void *lhs, const void *rhs)
+{
+    char c_lhs = *(char *) lhs;
+    char c_rhs = *(char *) rhs;
+
+    return (c_lhs > c_rhs) - (c_lhs < c_rhs);
+}
+
+// -------------------------------------------------------------------------------------------------
 size_t c_string_length(const char *str, size_t limit, bool keep_terminator)
 {
     size_t str_length = 0u;

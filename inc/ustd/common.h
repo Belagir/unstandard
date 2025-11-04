@@ -121,6 +121,9 @@ i32 raw_pointer_compare(const void *lhs, const void *rhs);
 /* Returns true if the given ASCII character is in the range 0-9. */
 bool character_is_num(char c);
 
+/*  Compares two characters by their ascii position. */
+i32 character_compare(const void *lhs, const void *rhs);
+
 /* Greedily computes the length of a null-terminated string. */
 size_t c_string_length(const char *str, size_t limit, bool keep_terminator);
 

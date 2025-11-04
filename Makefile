@@ -41,7 +41,7 @@ SRC := $(notdir $(shell find $(SRC_DIR) -name *.c))
 ## list of all duplicate c files to enforce uniqueness of filenames
 DUPL_SRC := $(strip $(shell echo $(SRC) | tr ' ' '\n' | sort | uniq -d))
 ## list of all target object files with their path
-OBJ := $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
+OBJ = $(addprefix $(OBJ_DIR)/, $(patsubst %.c, %.o, $(SRC)))
 
 ## makefile-managed directories
 BUILD_DIRS = $(OBJ_DIR) $(EXC_DIR)

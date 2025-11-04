@@ -261,6 +261,29 @@ bool array_find(ARRAY_ANY haystack, comparator_f comparator, void *needle, size_
 
 // -------------------------------------------------------------------------------------------------
 
+bool array_find_back(ARRAY_ANY haystack, comparator_f comparator, void *needle, size_t *out_position)
+{
+    size_t idx = array_length(haystack);
+    bool found = false;
+
+    struct array_impl *target = nullptr;
+
+    target = array_impl_of(haystack);
+
+    while ((idx > 0) && !found) {
+        found = (comparator(target->data + ((idx - 1) * target->stride), needle) == 0);
+        idx -= !found;
+    }
+
+    if (found && out_position) {
+        *out_position = idx;
+    }
+
+    return found;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 size_t array_length(const ARRAY_ANY array)
 {
     return array_impl_of((ARRAY_ANY) array)->length;
