@@ -14,7 +14,7 @@
 size_t file_length(const char *path)
 {
     FILE *fd = 0;
-    size_t length = 0u;
+    long length = 0u;
 
     if (!path) {
         return 0;
@@ -29,7 +29,11 @@ size_t file_length(const char *path)
     length = ftell(fd);
     fclose(fd);
 
-    return length;
+    if (length < 0) {
+        return 0;
+    }
+
+    return (size_t) length;
 }
 
 /**

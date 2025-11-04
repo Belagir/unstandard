@@ -276,7 +276,7 @@ bool array_find_back(ARRAY_ANY haystack, comparator_f comparator, void *needle, 
     }
 
     if (found && out_position) {
-        *out_position = idx;
+        *out_position = idx - 1;
     }
 
     return found;

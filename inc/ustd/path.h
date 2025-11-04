@@ -26,4 +26,8 @@ void path_ensure_capacity(struct allocator alloc, PATH *path, size_t additional_
 void path_up(PATH path);
 void path_append(PATH path, const char *appended);
 
+#ifdef UNITTESTING
+void path_execute_unittests(void);
+#endif
+
 #endif
