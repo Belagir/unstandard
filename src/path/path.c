@@ -93,6 +93,22 @@ void path_destroy(struct allocator alloc, PATH *path)
 
 // -----------------------------------------------------------------------------
 
+void path_clear(PATH path)
+{
+    struct path_impl *target = nullptr;
+
+    if (!path) {
+        return;
+    }
+
+    target = path_impl_of(path);
+
+    target->length = 0;
+    path_update_last_delim(target);
+}
+
+// -----------------------------------------------------------------------------
+
 void path_ensure_capacity(struct allocator alloc, PATH *path, size_t additional_capacity)
 {
     size_t size_needed = 0;
@@ -169,6 +185,38 @@ void path_append(PATH path, const char *appended)
 
     path_update_last_delim(target);
 }
+
+// -----------------------------------------------------------------------------
+
+void path_prepend(PATH path, const char *prefix)
+{
+    struct path_impl *target = nullptr;
+    size_t prepended_len = 0;
+
+    if (!path || !prefix) {
+        return;
+    }
+
+    target = path_impl_of(path);
+    prepended_len = c_string_length(prefix, target->capacity, false);
+
+    if ((prepended_len == 0) || ((prepended_len + target->length) > target->capacity)) {
+        return;
+    }
+
+    if (target->length > 1) {
+        // push a delimiter at the start
+        array_insert_value(path, 0, &target->delimiter);
+    }
+
+    // TODO: less naive approach
+    for (size_t i = 0 ; i < prepended_len ; i++) {
+        array_insert_value(path, i, prefix + i);
+    }
+
+    path_update_last_delim(target);
+}
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
